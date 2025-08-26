@@ -1,0 +1,206 @@
+ Software Requirements Specification (SRS)
+System Name: CAnalyzerAI – AI-Powered C Code Analyzer
+
+1. Introduction
+1.1 Purpose
+This system provides a futuristic web dashboard allowing users to upload a C source file (.c), receive side-by-side results from classic static analysis and AI-powered analysis (including cloud and local LLMs such as Ollama), and access a built-in chatbox for advanced code discussions.
+New: The AI will also assess and return a “Difficulty Level” metric to guide testers on estimated effort for creating unit tests.
+
+1.2 Scope
+The application will:
+
+Accept single .c file upload (≤5 MB)
+
+Perform traditional static analysis (LOC, multiple cyclomatic complexity formulas)
+
+Run AI analysis (OpenAI or Ollama/Local LLM)
+
+Display analytic results side by side
+
+Provide a chatbox for code-related natural language queries (OpenAI/Ollama selectable)
+
+Temporarily store and clean up upload post-analysis
+
+Show “Difficulty Level” for unit testing (from AI), with rationale/explanation
+
+Be extensible for future features (user accounts, batch/CI/CD, etc.)
+
+1.3 Definitions, Acronyms, and Abbreviations
+Term	Description
+LOC	Testable Lines of Code
+LLM	Large Language Model (AI)
+Ollama	Framework for running local AI models
+Chatbox	Conversational interface for querying AI
+API Key	Auth token for cloud LLMs (OpenAI)
+Difficulty Level	An ordinal/qualitative assessment (“Easy”, “Medium”, “Hard”, etc.) of how challenging the code will be to unit test, as determined by the LLM
+E, N, P, R	Control flow graph flags (Edges, Nodes, Connected Components, Regions)
+1.4 References
+McCabe, T.J., “A Complexity Measure,” IEEE Transactions on Software Engineering, 1976.
+
+OpenAI, Ollama Documentation.
+
+Modern UI/UX and software testing best practices.
+
+1.5 Overview
+Key Entities:
+
+UploadedFile
+
+StaticAnalysisResult
+
+AIAnalysisResult (Cloud & Local LLM)
+
+ComparisonResult
+
+APIKey
+
+ChatboxSession
+
+New:
+
+DifficultyAssessment (from AI)
+
+2. System Features
+2.1 UploadedFile Entity
+Fields: FileID, FileName, FilePath, UploadTimestamp, FileSize
+
+Validation: Must be .c file, ≤5 MB
+
+Actions: Upload triggers analysis pipeline; file deleted after processing
+
+2.2 StaticAnalysisResult Entity
+Fields: ResultID, FileID (FK), TestableLOC, Cyclomatic_EdgeNode, Cyclomatic_Decision, Cyclomatic_Region, AnalysisTimestamp
+
+Validation: File exists, LOC > 0
+
+2.3 AIAnalysisResult Entity
+Fields: ResultID, FileID (FK), AnalysisType (OpenAI/Ollama), TestableLOC, Cyclomatic_EdgeNode, Cyclomatic_Decision, Cyclomatic_Region, RawAIResponse, AnalysisTimestamp
+
+Validation: Valid API key/ local LLM, response structure meets contract
+
+2.4 DifficultyAssessment Entity  (New)
+Fields: AssessmentID, FileID (FK), AIResultID (FK), DifficultyLevel (enum/string), Rationale (text), AssessedAt (datetime)
+
+Validation: Obtained only from AI analysis, present in AI response
+
+Notes: DifficultyLevel is one of: Easy, Moderate, Hard, or numeric/ordinal if desired; Rationale is an AI-generated explanation
+
+2.5 ComparisonResult Entity
+Fields: ComparisonID, FileID (FK), StaticResultID, AIResultID, DifferencesSummary (JSON), DifficultyAssessmentID (FK)
+
+Validation: Both analytic results must exist; difficulty required if AI succeeded
+
+2.6 APIKey Entity
+Fields: KeyID, KeyValue (encrypted), Status, LastValidated
+
+Validation: Valid per provider (e.g., OpenAI spec)
+
+2.7 ChatboxSession Entity
+Fields: SessionID, LLMProvider, Messages (array), CreatedAt, LinkedFileID (optional)
+
+Actions: Run conversations using selected LLM, maintain session per upload
+
+3. Functional Requirements
+Accept single .c upload; immediately validate and process
+
+Allow user to select among OpenAI API and local LLM via Ollama for AI operations and chatbox
+
+Run static and AI analysis in parallel
+
+Parse code and compute: Testable LOC, cyclomatic complexity by at least 3 formulas
+
+From AI, extract same metrics plus “Difficulty Level” for unit testing, with rationale
+
+Show side-by-side: Static vs AI results, and their differences (color-coded)
+
+Provide chatbox for code queries/LLM explanations (about complexity or “how to test”)
+
+Export results (including difficulty) to JSON/PDF
+
+UI/UX: neon/dark, responsive, progress/animation, accessible
+
+4. Business Logic Rules
+All uploads validated (type/size) before analysis
+
+Both analysis results and difficulty returned before comparison UI is fully enabled
+
+Clean up code files post-analysis
+
+AI failure: Show static analysis and error with retry option
+
+Chatbox can use context of uploaded file, including metrics and difficulty
+
+Only allow switching LLM or API key when upload is not running
+
+5. Error Handling
+Invalid file: error and reset
+
+API/LLM down: error with retry or switch model
+
+AI response missing “difficulty”: fallback to default/explanation and icon
+
+Partial or missing metrics: display "N/A" in results UI
+
+6. Dashboard Design Requirements
+Layout:
+
+Header (branding, API/LLM status, help)
+
+Upload (drag-drop, futuristic preview)
+
+Analysis Panel (Static on left, AI+Difficulty on right, comparison highlights center)
+
+Difficulty Level prominently displayed with icon and rationale from AI results
+
+Chatbox: always visible, docked/bottom/side
+
+Footer (links, roadmap)
+
+UI/UX:
+
+Dark/neon theme, responsive/accessible
+
+Animated status and transitions
+
+Real-time update (no reloads)
+
+7. Permissions & Security
+Public (no login), future-ready for RBAC
+
+Uploaded files and chat history cleared on session-end
+
+API keys encrypted and masked
+
+Local LLM access (Ollama) available only on user’s own infrastructure
+
+8. Non-Functional Requirements
+Analysis for <1MB in ≤5s
+
+Strict code/data privacy, minimal logging
+
+Extensible for more LLMs, future CI/CD, more code languages
+
+“Difficulty Level” always justified by AI rationale, never a random value
+
+9. Future Enhancements
+Multi-file & batch analysis, support for more languages
+
+Git/CI/CD integrations
+
+User login with persistent code history and chat history
+
+Customizable difficulty rubric
+
+10. System Architecture Diagram
+text
+[Frontend: Dashboard/Chatbox]
+        |
+[Backend: Upload Handler]
+        |
+----[Static Analyzer]----\
+        |                 \
+[AI Analyzer (OpenAI)]     -- [Comparator] -- [Result Formatter/UI]
+[AI Analyzer (Ollama)]   /
+       |               /
+---[Difficulty Assessor] (from AI)
+---[Chatbox LLM Proxy]  /
