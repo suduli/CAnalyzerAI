@@ -26,7 +26,17 @@
                 <span class="status-detail" id="lastValidated">Never configured</span>
               </div>
             </div>
-            <button class="settings-btn" id="settingsBtn" title="API Configuration"><span class="settings-icon">⚙️</span></button>
+            <div class="header-actions">
+              <button class="settings-btn" id="settingsBtn" title="API Configuration"><span class="settings-icon">⚙️</span></button>
+              <div class="theme-picker">
+                <button id="themeBtn" class="settings-btn" title="Theme">🌗</button>
+                <div id="themeMenu" class="theme-menu hidden" role="menu" aria-hidden="true">
+                  <button class="theme-option" data-theme="dark" role="menuitem" tabindex="0">Dark</button>
+                  <button class="theme-option" data-theme="light" role="menuitem" tabindex="0">Light</button>
+                  <button class="theme-option" data-theme="auto" role="menuitem" tabindex="0">Auto</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -109,8 +119,8 @@
             </div>
           </div>
           <div class="file-actions">
-            <button class="btn btn--primary" id="analyzeBtn">Analyze Code</button>
-            <button class="btn btn--outline btn--sm" id="clearFile">Clear</button>
+            <button class="btn btn--primary" id="analyzeBtn"><span class="btn-icon">🔬</span>Analyze Code</button>
+            <button class="btn btn--outline btn--sm" id="clearFile" title="Clear selected file">Clear</button>
           </div>
         </div>
       </div>
@@ -118,10 +128,10 @@
 
     <section class="results-section hidden" id="resultsSection">
       <div class="results-header">
-        <h2>Analysis Results</h2>
+        <h2><span class="section-icon">📊</span>Analysis Results</h2>
         <div class="results-actions">
-          <button class="btn btn--outline btn--sm" id="exportResults">Export JSON</button>
-          <button class="btn btn--outline btn--sm" id="newAnalysis">New Analysis</button>
+          <button class="btn btn--outline btn--sm" id="exportResults" title="Download results as JSON"><span class="btn-icon">💾</span>Export JSON</button>
+          <button class="btn btn--outline btn--sm" id="newAnalysis" title="Start a new analysis"><span class="btn-icon">🔄</span>New Analysis</button>
         </div>
       </div>
 
@@ -183,8 +193,20 @@
         <div class="loading-text" id="loadingText">Initializing analysis engines...</div>
       </div>
     </div>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-left">
+          StaticPlusAI &copy; 2024 | <a href="#" class="footer-link">Documentation</a> | <a href="#" class="footer-link">Changelog</a>
+        </div>
+        <div class="footer-right">
+          Version 1.0.0
+        </div>
+      </div>
+    </footer>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

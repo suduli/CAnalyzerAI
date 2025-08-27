@@ -252,6 +252,12 @@
       this.resultsSection?.classList.add('hidden');
     }
 
+    // Helper to format values for display: finite numbers are shown as-is, otherwise "NA"
+    formatForDisplay(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? String(n) : 'NA';
+    }
+
     showProgress(show) {
       this.uploadProgress?.classList.toggle('hidden', !show);
       if (!show) {
@@ -357,10 +363,10 @@
     }
 
     displayStatic(s, ms) {
-      this.staticLOC.textContent = String(s.loc);
-      this.staticComplexity1.textContent = String(s.c1);
-      this.staticComplexity2.textContent = String(s.c2);
-      this.staticComplexity3.textContent = String(s.c3);
+  this.staticLOC.textContent = this.formatForDisplay(s.loc);
+  this.staticComplexity1.textContent = this.formatForDisplay(s.c1);
+  this.staticComplexity2.textContent = this.formatForDisplay(s.c2);
+  this.staticComplexity3.textContent = this.formatForDisplay(s.c3);
       if (this.staticTime) this.staticTime.textContent = `${ms.toFixed(1)} ms`;
     }
 
@@ -368,6 +374,15 @@
       const provider = localStorage.getItem('cai_provider') || 'ollama';
       const apiKey = localStorage.getItem('cai_api_key') || '';
       const model = localStorage.getItem('selectedModel') || 'deepseek-coder:gpu-ultra';
+
+      // If provider requires an API key (OpenAI/OpenRouter) and it's missing/too short,
+      // announce and return NA object to skip AI analysis (per user instruction).
+      if ((provider === 'openai' || provider === 'openrouter') && (!apiKey || apiKey.length < 10)) {
+        const note = 'No API key – AI analysis unavailable';
+        if (this.aiStatusNotice) this.aiStatusNotice.textContent = note;
+        return { loc: 'NA', c1: 'NA', c2: 'NA', c3: 'NA', notes: [note], unavailable: true };
+      }
+
       const prompt = `Analyze this C code and return ONLY a compact JSON object with keys: loc (number), complexity1 (number), complexity2 (number), complexity3 (number), notes (string[]). Code:\n\n${code.slice(0, 16000)}`;
       let statusNote = '';
       try {
@@ -434,18 +449,42 @@
     }
 
     displayAI(a, ms) {
-      this.aiLOC.textContent = String(a.loc);
-      this.aiComplexity1.textContent = String(a.c1);
-      this.aiComplexity2.textContent = String(a.c2);
-      this.aiComplexity3.textContent = String(a.c3);
+      // If AI marked unavailable, show a clear notice and set metrics to NA
+      if (a && a.unavailable) {
+        if (this.aiStatusNotice) this.aiStatusNotice.textContent = (a.notes && a.notes[0]) ? a.notes[0] : 'AI unavailable';
+        this.aiLOC.textContent = 'NA';
+        this.aiComplexity1.textContent = 'NA';
+        this.aiComplexity2.textContent = 'NA';
+        this.aiComplexity3.textContent = 'NA';
+        if (this.aiTime) this.aiTime.textContent = '';
+        // add an explicit visual flag
+        this.aiStatusNotice?.classList.add('ai-unavailable');
+        return;
+      }
+
+      this.aiStatusNotice?.classList.remove('ai-unavailable');
+      this.aiLOC.textContent = this.formatForDisplay(a.loc);
+      this.aiComplexity1.textContent = this.formatForDisplay(a.c1);
+      this.aiComplexity2.textContent = this.formatForDisplay(a.c2);
+      this.aiComplexity3.textContent = this.formatForDisplay(a.c3);
       if (this.aiTime) this.aiTime.textContent = `${ms.toFixed(1)} ms`;
     }
 
     displayComparison(s, a) {
-      const locDiff = (a.loc || 0) - (s.loc || 0);
-      const cVar = (a.c1 || 0) - (s.c1 || 0);
-      this.locDifference.textContent = String(locDiff);
-      this.complexityVariance.textContent = String(cVar);
+      // if AI unavailable, show NA for comparison
+      if (a && a.unavailable) {
+        this.locDifference.textContent = 'NA';
+        this.complexityVariance.textContent = 'NA';
+      } else {
+        const aLocNum = Number(a.loc);
+        const sLocNum = Number(s.loc);
+        const aC1Num = Number(a.c1);
+        const sC1Num = Number(s.c1);
+        const locDiff = Number.isFinite(aLocNum) && Number.isFinite(sLocNum) ? (aLocNum - sLocNum) : 'NA';
+        const cVar = Number.isFinite(aC1Num) && Number.isFinite(sC1Num) ? (aC1Num - sC1Num) : 'NA';
+        this.locDifference.textContent = this.formatForDisplay(locDiff);
+        this.complexityVariance.textContent = this.formatForDisplay(cVar);
+      }
       this.differencesList.innerHTML = '';
       (a.notes || []).forEach(n => {
         const div = document.createElement('div');
@@ -465,9 +504,13 @@
 
     makeRecommendations(s, a) {
       const recs = [];
-      if (s.c1 > 10) recs.push('Refactor to reduce cyclomatic complexity (extract functions, simplify branches).');
-      if (s.nestingDepth > 4) recs.push('Reduce nesting depth by early returns or guard clauses.');
-      if ((a.loc || 0) > (s.loc || 0) * 1.5) recs.push('AI indicates more testable LOC; review for dead code or hidden branches.');
+  const sC1 = Number(s.c1);
+  const sNest = Number(s.nestingDepth || 0);
+  const aLoc = Number(a.loc);
+  const sLoc = Number(s.loc);
+  if (Number.isFinite(sC1) && sC1 > 10) recs.push('Refactor to reduce cyclomatic complexity (extract functions, simplify branches).');
+  if (Number.isFinite(sNest) && sNest > 4) recs.push('Reduce nesting depth by early returns or guard clauses.');
+  if (Number.isFinite(aLoc) && Number.isFinite(sLoc) && aLoc > sLoc * 1.5) recs.push('AI indicates more testable LOC; review for dead code or hidden branches.');
       if (!recs.length) recs.push('Code appears manageable; add unit tests for decision-heavy functions.');
       return recs;
     }
@@ -518,6 +561,178 @@
 
   window.addEventListener('DOMContentLoaded', () => {
     sys.init();
-    new CAnalyzerAIRef();
+    const app = new CAnalyzerAIRef();
+
+    // Theme manager: align with reference implementation
+    class ThemeManager {
+      constructor() {
+        // support both button ids (existing markup or reference)
+        this.btn = document.getElementById('themeBtn') || document.getElementById('themeToggleBtn');
+        this.menu = document.getElementById('themeMenu');
+        this.options = Array.from(document.querySelectorAll('.theme-option'));
+        // prefer the common key used by the reference repo, but fall back to previous key
+        this.storageKey = 'color-scheme'; // values: 'dark' | 'light' | 'auto'
+        this.legacyKey = 'cai_theme';
+        this.current = localStorage.getItem(this.storageKey) || localStorage.getItem(this.legacyKey) || 'auto';
+        this.mql = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+        this.init();
+      }
+      init() {
+    this.apply(this.current, false);
+    console.debug('[ThemeManager] init', { storageKey: this.storageKey, legacyKey: this.legacyKey, current: this.current });
+        this.bind();
+      }
+      bind() {
+        // Toggle menu when a menu button is present
+        // Click: quick toggle dark/light. Shift+Click opens the full menu when present.
+        this.btn?.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const current = document.documentElement.getAttribute('data-color-scheme') || 'light';
+          const next = current === 'dark' ? 'light' : 'dark';
+          if (e.shiftKey && this.menu) {
+            // open the menu instead of quick toggle
+            const willHide = !this.menu.classList.contains('hidden');
+            this.menu.classList.toggle('hidden');
+            this.menu.setAttribute('aria-hidden', String(this.menu.classList.contains('hidden')));
+            this.btn.setAttribute('aria-expanded', String(!this.menu.classList.contains('hidden')));
+            if (!willHide) {
+              const first = this.menu.querySelector('.theme-option');
+              if (first) first.focus();
+            }
+            return;
+          }
+          // Quick toggle dark/light
+          this.set(next);
+        });
+
+        // keyboard support for the button (Enter / Space)
+        this.btn?.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.btn.click();
+          }
+        });
+
+        // close menu on outside click (ignore clicks on the button/menu)
+        document.addEventListener('click', (ev) => {
+          if (!this.menu) return;
+          const target = ev.target;
+          if (this.menu.classList.contains('hidden')) return;
+          if (target === this.btn || this.btn?.contains(target) || this.menu.contains(target)) return;
+          this.menu.classList.add('hidden');
+          this.menu.setAttribute('aria-hidden', 'true');
+          this.btn?.setAttribute('aria-expanded', 'false');
+        });
+
+        // menu options: add click + keyboard support and ARIA roles
+        this.options.forEach(opt => {
+          opt.setAttribute('role', 'menuitem');
+          opt.setAttribute('tabindex', '0');
+          opt.addEventListener('click', (e) => {
+            const t = opt.getAttribute('data-theme');
+            this.set(t);
+            if (this.menu) { this.menu.classList.add('hidden'); this.menu.setAttribute('aria-hidden', 'true'); }
+            this.btn?.focus();
+            this.btn?.setAttribute('aria-expanded', 'false');
+          });
+          opt.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              opt.click();
+            }
+          });
+        });
+
+        // Listen for system theme changes and update only when user preference is 'auto' or unset
+        if (this.mql && typeof this.mql.addEventListener === 'function') {
+          this.mql.addEventListener('change', (e) => { if (!localStorage.getItem(this.storageKey) || localStorage.getItem(this.storageKey) === 'auto') this.apply('auto'); });
+        } else if (this.mql && typeof this.mql.addListener === 'function') {
+          this.mql.addListener((e) => { if (!localStorage.getItem(this.storageKey) || localStorage.getItem(this.storageKey) === 'auto') this.apply('auto'); });
+        }
+      }
+      set(theme) {
+        // normalize
+        const normalized = theme || 'auto';
+        this.current = normalized;
+        localStorage.setItem(this.storageKey, this.current);
+        // keep legacy key in sync for older installs
+        localStorage.setItem(this.legacyKey, this.current);
+        this.apply(this.current);
+        // announce to screen readers
+        const announcer = document.createElement('div');
+        announcer.setAttribute('aria-live', 'polite');
+        announcer.className = 'sr-only';
+        announcer.textContent = `Theme changed to ${this.current} mode`;
+        document.body.appendChild(announcer);
+        setTimeout(() => { document.body.removeChild(announcer); }, 2500);
+      }
+      apply(theme, persist = true) {
+        let resolved = theme;
+        let source = 'explicit';
+        if (theme === 'auto') {
+          source = 'system';
+          const prefersDark = this.mql ? this.mql.matches : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          resolved = prefersDark ? 'dark' : 'light';
+        }
+        // set both attributes so either CSS strategy works
+        document.documentElement.setAttribute('data-color-scheme', resolved);
+        document.documentElement.setAttribute('data-theme', resolved);
+        console.debug('[ThemeManager] apply', { requested: theme, resolved, source, storageValue: localStorage.getItem(this.storageKey), legacyValue: localStorage.getItem(this.legacyKey) });
+        // update button icon if present (show opposite semantics like reference)
+        if (this.btn) {
+          const iconEl = this.btn.querySelector('.theme-toggle-icon');
+          if (iconEl) {
+            iconEl.innerHTML = resolved === 'dark' ? '☀️' : '🌙';
+          } else {
+            // fallback: set textContent
+            this.btn.textContent = resolved === 'dark' ? '☀️' : '🌙';
+          }
+        }
+        // highlight selection in menu based on the stored choice (dark/light/auto)
+        this.options.forEach(o => o.classList.toggle('active', o.getAttribute('data-theme') === this.current));
+        if (persist) localStorage.setItem(this.storageKey, this.current);
+      }
+      // helper to print diagnostic info
+      debugNow() {
+        console.info('[ThemeManager] debug', {
+          storageKey: this.storageKey,
+          stored: localStorage.getItem(this.storageKey),
+          legacy: localStorage.getItem(this.legacyKey),
+          htmlAttr_color: document.documentElement.getAttribute('data-color-scheme'),
+          htmlAttr_theme: document.documentElement.getAttribute('data-theme'),
+          prefersDark: this.mql ? this.mql.matches : window.matchMedia('(prefers-color-scheme: dark)').matches
+        });
+      }
+    }
+
+    window.themeManager = new ThemeManager();
+
+    // Animations with Anime.js
+    anime({
+      targets: '.app-title',
+      translateX: [-20, 0],
+      opacity: [0, 1],
+      duration: 800,
+      easing: 'easeOutExpo'
+    });
+
+    anime({
+      targets: '.header .api-key-status, .header .version',
+      translateX: [20, 0],
+      opacity: [0, 1],
+      duration: 800,
+      easing: 'easeOutExpo',
+      delay: 200
+    });
+
+    anime({
+      targets: '.upload-zone',
+      translateY: [50, 0],
+      opacity: [0, 1],
+      duration: 1000,
+      easing: 'easeOutExpo',
+      delay: 400
+    });
   });
 })();
