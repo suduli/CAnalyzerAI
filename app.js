@@ -2402,7 +2402,7 @@ class CyberParticleController {
     document.addEventListener('DOMContentLoaded', () => {
       if (window.cyberParticles) {
         // Cyber particles are available
-        console.log('🚀 Cyber particle system integrated successfully');
+        sys.log('🚀 Cyber particle system integrated successfully');
         
         // Optional: Add particle controls to settings
         this.addParticleSettings();
@@ -2424,11 +2424,11 @@ class CyberParticleController {
       if (this.isEnabled) {
         window.cyberParticles.destroy();
         this.isEnabled = false;
-        console.log('💥 Cyber particles disabled');
+        sys.log('💥 Cyber particles disabled');
       } else {
         window.cyberParticles.init();
         this.isEnabled = true;
-        console.log('✨ Cyber particles enabled');
+        sys.log('✨ Cyber particles enabled');
       }
       localStorage.setItem('cyber-particles-enabled', this.isEnabled.toString());
     }
@@ -2439,7 +2439,7 @@ class CyberParticleController {
       // Intensity from 0 to 1 - maps to the cyber particle density setting
       const density = Math.floor(intensity * 100); // 0-100 density
       window.cyberParticles.adjustDensity(density);
-      console.log(`🎛️ Cyber particle intensity: ${Math.round(intensity * 100)}%`);
+      sys.log(`🎛️ Cyber particle intensity: ${Math.round(intensity * 100)}%`);
     }
   }
 
