@@ -278,11 +278,12 @@
       if (file) this.setFile(file);
     }
 
-    clearFile() { this.file = null; this.fileText = ''; this.resetUI(); }
+    clearFile() { this.file = null; this.fileText = ''; this.resetUI(); this.hideError(); }
 
     setFile(file) {
-      if (!/\.(c|h)$/i.test(file.name)) { sys.error('Only .c/.h allowed'); return; }
-      if (file.size > 5 * 1024 * 1024) { sys.error('File too large (>5MB)'); return; }
+      this.hideError();
+      if (!/\.(c|h)$/i.test(file.name)) { this.showError('Only .c/.h files allowed'); return; }
+      if (file.size > 5 * 1024 * 1024) { this.showError('File too large (>5MB)'); return; }
       this.file = file;
       this.fileNameEl.textContent = file.name;
       this.fileSizeEl.textContent = `${(file.size / 1024).toFixed(1)} KB`;
@@ -290,6 +291,18 @@
       this.fileInfo.classList.remove('hidden');
       this.analyzeBtn.removeAttribute('disabled');
       sys.log(`Selected ${file.name}`);
+    }
+
+    showError(message) {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.textContent = message;
+      errorEl.classList.remove('hidden');
+    }
+
+    hideError() {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.textContent = '';
+      errorEl.classList.add('hidden');
     }
 
     async startAnalysis() {
@@ -563,150 +576,349 @@
     sys.init();
     const app = new CAnalyzerAIRef();
 
-    // Theme manager: align with reference implementation
+    // Loading text animation
+    anime({
+      targets: '.loading-text',
+      translateY: [0, -10, 0],
+      opacity: [1, 0.5, 1],
+      duration: 1500,
+      loop: true,
+      easing: 'easeInOutSine'
+    });
+
+    // Enhanced Theme System with Auto Detection
     class ThemeManager {
       constructor() {
-        // support both button ids (existing markup or reference)
-        this.btn = document.getElementById('themeBtn') || document.getElementById('themeToggleBtn');
-        this.menu = document.getElementById('themeMenu');
-        this.options = Array.from(document.querySelectorAll('.theme-option'));
-        // prefer the common key used by the reference repo, but fall back to previous key
-        this.storageKey = 'color-scheme'; // values: 'dark' | 'light' | 'auto'
-        this.legacyKey = 'cai_theme';
-        this.current = localStorage.getItem(this.storageKey) || localStorage.getItem(this.legacyKey) || 'auto';
-        this.mql = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+        this.themes = ['auto', 'light', 'dark'];
+        this.currentTheme = 'auto';
+        this.systemPreference = 'dark';
+        this.mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        this.transitionDuration = 500;
+        
         this.init();
       }
+
       init() {
-    this.apply(this.current, false);
-    console.debug('[ThemeManager] init', { storageKey: this.storageKey, legacyKey: this.legacyKey, current: this.current });
-        this.bind();
+        this.detectSystemPreference();
+        this.loadSavedTheme();
+        this.setupEventListeners();
+        this.setupKeyboardControls();
+        this.applyTheme(this.currentTheme, false);
+        this.updateUI();
+        
+        console.log('🎨 Enhanced theme system initialized');
       }
-      bind() {
-        // Toggle menu when a menu button is present
-        // Click: quick toggle dark/light. Shift+Click opens the full menu when present.
-        this.btn?.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const current = document.documentElement.getAttribute('data-color-scheme') || 'light';
-          const next = current === 'dark' ? 'light' : 'dark';
-          if (e.shiftKey && this.menu) {
-            // open the menu instead of quick toggle
-            const willHide = !this.menu.classList.contains('hidden');
-            this.menu.classList.toggle('hidden');
-            this.menu.setAttribute('aria-hidden', String(this.menu.classList.contains('hidden')));
-            this.btn.setAttribute('aria-expanded', String(!this.menu.classList.contains('hidden')));
-            if (!willHide) {
-              const first = this.menu.querySelector('.theme-option');
-              if (first) first.focus();
-            }
-            return;
+
+      detectSystemPreference() {
+        this.systemPreference = this.mediaQuery.matches ? 'dark' : 'light';
+        
+        // Listen for system theme changes
+        this.mediaQuery.addEventListener('change', (e) => {
+          this.systemPreference = e.matches ? 'dark' : 'light';
+          console.log(`🔄 System theme changed to: ${this.systemPreference}`);
+          
+          // If using auto mode, apply the new system preference
+          if (this.currentTheme === 'auto') {
+            this.applyTheme('auto', true);
           }
-          // Quick toggle dark/light
-          this.set(next);
+          
+          this.updateUI();
         });
+      }
 
-        // keyboard support for the button (Enter / Space)
-        this.btn?.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            this.btn.click();
-          }
-        });
-
-        // close menu on outside click (ignore clicks on the button/menu)
-        document.addEventListener('click', (ev) => {
-          if (!this.menu) return;
-          const target = ev.target;
-          if (this.menu.classList.contains('hidden')) return;
-          if (target === this.btn || this.btn?.contains(target) || this.menu.contains(target)) return;
-          this.menu.classList.add('hidden');
-          this.menu.setAttribute('aria-hidden', 'true');
-          this.btn?.setAttribute('aria-expanded', 'false');
-        });
-
-        // menu options: add click + keyboard support and ARIA roles
-        this.options.forEach(opt => {
-          opt.setAttribute('role', 'menuitem');
-          opt.setAttribute('tabindex', '0');
-          opt.addEventListener('click', (e) => {
-            const t = opt.getAttribute('data-theme');
-            this.set(t);
-            if (this.menu) { this.menu.classList.add('hidden'); this.menu.setAttribute('aria-hidden', 'true'); }
-            this.btn?.focus();
-            this.btn?.setAttribute('aria-expanded', 'false');
-          });
-          opt.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              opt.click();
-            }
-          });
-        });
-
-        // Listen for system theme changes and update only when user preference is 'auto' or unset
-        if (this.mql && typeof this.mql.addEventListener === 'function') {
-          this.mql.addEventListener('change', (e) => { if (!localStorage.getItem(this.storageKey) || localStorage.getItem(this.storageKey) === 'auto') this.apply('auto'); });
-        } else if (this.mql && typeof this.mql.addListener === 'function') {
-          this.mql.addListener((e) => { if (!localStorage.getItem(this.storageKey) || localStorage.getItem(this.storageKey) === 'auto') this.apply('auto'); });
+      loadSavedTheme() {
+        const savedTheme = localStorage.getItem('theme-preference');
+        if (savedTheme && this.themes.includes(savedTheme)) {
+          this.currentTheme = savedTheme;
+        } else {
+          // Default to auto if no preference is saved
+          this.currentTheme = 'auto';
+          this.saveTheme();
         }
       }
-      set(theme) {
-        // normalize
-        const normalized = theme || 'auto';
-        this.current = normalized;
-        localStorage.setItem(this.storageKey, this.current);
-        // keep legacy key in sync for older installs
-        localStorage.setItem(this.legacyKey, this.current);
-        this.apply(this.current);
-        // announce to screen readers
+
+      saveTheme() {
+        localStorage.setItem('theme-preference', this.currentTheme);
+        localStorage.setItem('theme-timestamp', new Date().toISOString());
+        console.log(`💾 Theme preference saved: ${this.currentTheme}`);
+      }
+
+      setupEventListeners() {
+        const themeToggle = document.getElementById('themeToggle');
+        const themeOptions = document.getElementById('themeOptions');
+        const themeOptionButtons = document.querySelectorAll('.theme-option');
+
+        // Main toggle click
+        themeToggle?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.toggleDropdown();
+        });
+
+        // Theme option selection
+        themeOptionButtons.forEach(button => {
+          button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const theme = button.dataset.theme;
+            this.setTheme(theme);
+            this.hideDropdown();
+          });
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.theme-toggle-container')) {
+            this.hideDropdown();
+          }
+        });
+
+        // Close dropdown on escape key
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            this.hideDropdown();
+          }
+        });
+      }
+
+      setupKeyboardControls() {
+        const themeToggle = document.getElementById('themeToggle');
+        
+        themeToggle?.addEventListener('keydown', (e) => {
+          switch (e.key) {
+            case 'Enter':
+            case ' ':
+              e.preventDefault();
+              this.toggleDropdown();
+              break;
+            case 'ArrowDown':
+              e.preventDefault();
+              this.showDropdown();
+              this.focusFirstOption();
+              break;
+            case 'ArrowUp':
+              e.preventDefault();
+              this.showDropdown();
+              this.focusLastOption();
+              break;
+          }
+        });
+
+        // Arrow key navigation in dropdown
+        const themeOptions = document.querySelectorAll('.theme-option');
+        themeOptions.forEach((option, index) => {
+          option.addEventListener('keydown', (e) => {
+            switch (e.key) {
+              case 'ArrowDown':
+                e.preventDefault();
+                const nextIndex = (index + 1) % themeOptions.length;
+                themeOptions[nextIndex].focus();
+                break;
+              case 'ArrowUp':
+                e.preventDefault();
+                const prevIndex = (index - 1 + themeOptions.length) % themeOptions.length;
+                themeOptions[prevIndex].focus();
+                break;
+              case 'Enter':
+              case ' ':
+                e.preventDefault();
+                option.click();
+                break;
+            }
+          });
+        });
+      }
+
+      setTheme(theme) {
+        if (!this.themes.includes(theme)) {
+          console.warn(`Invalid theme: ${theme}`);
+          return;
+        }
+
+        this.currentTheme = theme;
+        this.saveTheme();
+        this.applyTheme(theme, true);
+        this.updateUI();
+        
+        // Trigger custom event for other components
+        window.dispatchEvent(new CustomEvent('themechange', {
+          detail: { 
+            theme, 
+            effectiveTheme: this.getEffectiveTheme(),
+            systemPreference: this.systemPreference 
+          }
+        }));
+        
+        console.log(`🎨 Theme changed to: ${theme}`);
+      }
+
+      getEffectiveTheme() {
+        return this.currentTheme === 'auto' ? this.systemPreference : this.currentTheme;
+      }
+
+      applyTheme(theme, withTransition = false) {
+        const effectiveTheme = this.getEffectiveTheme();
+        
+        if (withTransition) {
+          document.documentElement.classList.add('theme-transitioning');
+          
+          setTimeout(() => {
+            document.documentElement.classList.remove('theme-transitioning');
+          }, this.transitionDuration);
+        }
+
+        // Set the effective theme (what's actually displayed)
+        document.documentElement.setAttribute('data-theme', effectiveTheme);
+        
+        // Store the user's preference separately
+        document.documentElement.setAttribute('data-theme-preference', theme);
+        
+        // Update meta theme-color for mobile browsers
+        this.updateMetaThemeColor(effectiveTheme);
+        
+        // Announce theme change to screen readers
+        this.announceThemeChange(theme, effectiveTheme);
+      }
+
+      updateMetaThemeColor(theme) {
+        let themeColor = theme === 'dark' ? '#02001a' : '#f6f8ff';
+        
+        let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (!metaThemeColor) {
+          metaThemeColor = document.createElement('meta');
+          metaThemeColor.name = 'theme-color';
+          document.head.appendChild(metaThemeColor);
+        }
+        metaThemeColor.content = themeColor;
+      }
+
+      announceThemeChange(userTheme, effectiveTheme) {
+        const announcement = userTheme === 'auto' 
+          ? `Theme set to auto mode, currently displaying ${effectiveTheme} theme`
+          : `Theme changed to ${effectiveTheme} mode`;
+          
+        // Create temporary announcement element for screen readers
         const announcer = document.createElement('div');
         announcer.setAttribute('aria-live', 'polite');
+        announcer.setAttribute('aria-atomic', 'true');
         announcer.className = 'sr-only';
-        announcer.textContent = `Theme changed to ${this.current} mode`;
+        announcer.textContent = announcement;
+        
         document.body.appendChild(announcer);
-        setTimeout(() => { document.body.removeChild(announcer); }, 2500);
+        setTimeout(() => announcer.remove(), 1000);
       }
-      apply(theme, persist = true) {
-        let resolved = theme;
-        let source = 'explicit';
-        if (theme === 'auto') {
-          source = 'system';
-          const prefersDark = this.mql ? this.mql.matches : window.matchMedia('(prefers-color-scheme: dark)').matches;
-          resolved = prefersDark ? 'dark' : 'light';
+
+      updateUI() {
+        const themeToggleLabel = document.getElementById('themeToggleLabel');
+        const themeOptions = document.querySelectorAll('.theme-option');
+        const themeToggle = document.getElementById('themeToggle');
+        
+        // Update toggle label
+        if (themeToggleLabel) {
+          const labels = {
+            auto: 'Auto',
+            light: 'Light',
+            dark: 'Dark'
+          };
+          themeToggleLabel.textContent = labels[this.currentTheme];
         }
-        // set both attributes so either CSS strategy works
-        document.documentElement.setAttribute('data-color-scheme', resolved);
-        document.documentElement.setAttribute('data-theme', resolved);
-        console.debug('[ThemeManager] apply', { requested: theme, resolved, source, storageValue: localStorage.getItem(this.storageKey), legacyValue: localStorage.getItem(this.legacyKey) });
-        // update button icon if present (show opposite semantics like reference)
-        if (this.btn) {
-          const iconEl = this.btn.querySelector('.theme-toggle-icon');
-          if (iconEl) {
-            iconEl.innerHTML = resolved === 'dark' ? '☀️' : '🌙';
-          } else {
-            // fallback: set textContent
-            this.btn.textContent = resolved === 'dark' ? '☀️' : '🌙';
-          }
+
+        // Update ARIA attributes
+        if (themeToggle) {
+          themeToggle.setAttribute('aria-checked', this.currentTheme);
+          themeToggle.setAttribute('aria-label', 
+            `Theme toggle, current: ${this.currentTheme}, effective: ${this.getEffectiveTheme()}`);
         }
-        // highlight selection in menu based on the stored choice (dark/light/auto)
-        this.options.forEach(o => o.classList.toggle('active', o.getAttribute('data-theme') === this.current));
-        if (persist) localStorage.setItem(this.storageKey, this.current);
-      }
-      // helper to print diagnostic info
-      debugNow() {
-        console.info('[ThemeManager] debug', {
-          storageKey: this.storageKey,
-          stored: localStorage.getItem(this.storageKey),
-          legacy: localStorage.getItem(this.legacyKey),
-          htmlAttr_color: document.documentElement.getAttribute('data-color-scheme'),
-          htmlAttr_theme: document.documentElement.getAttribute('data-theme'),
-          prefersDark: this.mql ? this.mql.matches : window.matchMedia('(prefers-color-scheme: dark)').matches
+
+        // Update active option
+        themeOptions.forEach(option => {
+          const isActive = option.dataset.theme === this.currentTheme;
+          option.classList.toggle('active', isActive);
+          option.setAttribute('aria-selected', isActive);
         });
+
+        // Add system preference indicator if auto is selected
+        this.updateSystemIndicator();
+      }
+
+      updateSystemIndicator() {
+        const indicator = document.querySelector('.system-preference-indicator');
+        if (!indicator) {
+          const themeToggle = document.getElementById('themeToggle');
+          const newIndicator = document.createElement('div');
+          newIndicator.className = 'system-preference-indicator';
+          newIndicator.setAttribute('title', `System preference: ${this.systemPreference}`);
+          themeToggle?.appendChild(newIndicator);
+        }
+      }
+
+      toggleDropdown() {
+        const themeOptions = document.getElementById('themeOptions');
+        const isVisible = themeOptions?.classList.contains('show');
+        
+        if (isVisible) {
+          this.hideDropdown();
+        } else {
+          this.showDropdown();
+        }
+      }
+
+      showDropdown() {
+        const themeOptions = document.getElementById('themeOptions');
+        themeOptions?.classList.add('show');
+        
+        // Animate individual options
+        const options = themeOptions?.querySelectorAll('.theme-option');
+        options?.forEach((option, index) => {
+          option.style.opacity = '0';
+          option.style.transform = 'translateX(-10px)';
+          
+          setTimeout(() => {
+            option.style.transition = 'all 0.2s ease';
+            option.style.opacity = '1';
+            option.style.transform = 'translateX(0)';
+          }, index * 50);
+        });
+      }
+
+      hideDropdown() {
+        const themeOptions = document.getElementById('themeOptions');
+        themeOptions?.classList.remove('show');
+      }
+
+      focusFirstOption() {
+        const firstOption = document.querySelector('.theme-option');
+        firstOption?.focus();
+      }
+
+      focusLastOption() {
+        const options = document.querySelectorAll('.theme-option');
+        const lastOption = options[options.length - 1];
+        lastOption?.focus();
+      }
+
+      // Cycle through themes (for quick toggle)
+      cycleTheme() {
+        const currentIndex = this.themes.indexOf(this.currentTheme);
+        const nextIndex = (currentIndex + 1) % this.themes.length;
+        this.setTheme(this.themes[nextIndex]);
+      }
+
+      // Get theme statistics for debugging
+      getThemeStats() {
+        return {
+          currentTheme: this.currentTheme,
+          effectiveTheme: this.getEffectiveTheme(),
+          systemPreference: this.systemPreference,
+          savedTimestamp: localStorage.getItem('theme-timestamp'),
+          supportsPreference: this.mediaQuery ? 'yes' : 'no'
+        };
       }
     }
 
-    window.themeManager = new ThemeManager();
+    // Initialize enhanced theme system
+    const themeManager = new ThemeManager();
+    
+    // Expose theme manager globally for debugging
+    window.themeManager = themeManager;
 
     // Animations with Anime.js
     anime({
@@ -734,5 +946,800 @@
       easing: 'easeOutExpo',
       delay: 400
     });
+
+    // Interactive element animations
+    function addInteractiveAnimations() {
+      // Animate metric cards on scroll
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            anime({
+              targets: entry.target,
+              scale: [0.9, 1],
+              opacity: [0, 1],
+              duration: 600,
+              easing: 'easeOutElastic(1, 0.8)',
+              delay: anime.stagger(100)
+            });
+          }
+        });
+      }, observerOptions);
+
+      // Observe all metric cards and analysis panels
+      document.querySelectorAll('.metric-card, .analysis-panel, .comparison-panel').forEach(el => {
+        observer.observe(el);
+      });
+
+      // Add mouse follow effect to buttons
+      document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+          const rect = btn.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          
+          btn.style.setProperty('--mouse-x', `${x}px`);
+          btn.style.setProperty('--mouse-y', `${y}px`);
+        });
+      });
+
+      // Animate complexity cards with stagger effect
+      document.addEventListener('click', (e) => {
+        if (e.target.id === 'analyzeBtn') {
+          setTimeout(() => {
+            anime({
+              targets: '.complexity-card',
+              scale: [1.1, 1],
+              rotateY: [180, 0],
+              opacity: [0, 1],
+              duration: 800,
+              easing: 'easeOutExpo',
+              delay: anime.stagger(200, {start: 1000})
+            });
+          }, 1000);
+        }
+      });
+    }
+
+    // Initialize interactive animations
+    addInteractiveAnimations();
+
+    // Floating text effect for file upload
+    function createFloatingText(text, x, y) {
+      const floatingText = document.createElement('div');
+      floatingText.textContent = text;
+      floatingText.style.cssText = `
+        position: fixed;
+        left: ${x}px;
+        top: ${y}px;
+        color: var(--accent-cyan);
+        font-weight: bold;
+        font-size: 14px;
+        pointer-events: none;
+        z-index: 1000;
+        text-shadow: 0 0 10px var(--accent-cyan);
+      `;
+      document.body.appendChild(floatingText);
+
+      anime({
+        targets: floatingText,
+        translateY: -50,
+        opacity: [1, 0],
+        duration: 2000,
+        easing: 'easeOutExpo',
+        complete: () => floatingText.remove()
+      });
+    }
+
+    // Enhanced file drop animation
+    const uploadZone = document.getElementById('uploadZone');
+    if (uploadZone) {
+      uploadZone.addEventListener('dragenter', (e) => {
+        anime({
+          targets: uploadZone,
+          scale: 1.05,
+          duration: 300,
+          easing: 'easeOutExpo'
+        });
+      });
+
+      uploadZone.addEventListener('dragleave', (e) => {
+        anime({
+          targets: uploadZone,
+          scale: 1,
+          duration: 300,
+          easing: 'easeOutExpo'
+        });
+      });
+
+      uploadZone.addEventListener('drop', (e) => {
+        createFloatingText('File uploaded!', e.clientX, e.clientY);
+        anime({
+          targets: uploadZone,
+          scale: [1.1, 1],
+          duration: 500,
+          easing: 'easeOutElastic(1, 0.6)'
+        });
+      });
+    }
   });
+
+  // Simplified But Visible Particle System
+  document.addEventListener('DOMContentLoaded', () => {
+    // Small delay to ensure DOM is fully ready
+    setTimeout(() => {
+      console.log('🎯 Initializing particle system...');
+      
+      const canvas = document.getElementById('particleCanvas');
+      if (!canvas) {
+        console.error('❌ Canvas element not found!');
+        return;
+      }
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        console.error('❌ Canvas context failed!');
+        return;
+      }
+      
+      console.log('✅ Canvas ready, starting particles...');
+      
+      // Ensure canvas is properly sized
+      function updateCanvasSize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        console.log(`� Canvas size: ${canvas.width} x ${canvas.height}`);
+      }
+      updateCanvasSize();
+      
+      let particles = [];
+      let frameCount = 0;
+      
+      class VisibleParticle {
+        constructor() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.vx = (Math.random() - 0.5) * 2;
+          this.vy = (Math.random() - 0.5) * 2;
+          this.size = Math.random() * 3 + 1;
+          this.opacity = Math.random() * 0.7 + 0.3;
+          this.color = Math.random() > 0.5 ? '#6c63ff' : '#00f5d4';
+        }
+        
+        update() {
+          // Move particle
+          this.x += this.vx;
+          this.y += this.vy;
+          
+          // Bounce off edges
+          if (this.x <= 0 || this.x >= canvas.width) this.vx *= -1;
+          if (this.y <= 0 || this.y >= canvas.height) this.vy *= -1;
+          
+          // Keep in bounds
+          this.x = Math.max(0, Math.min(canvas.width, this.x));
+          this.y = Math.max(0, Math.min(canvas.height, this.y));
+        }
+        
+        draw() {
+          ctx.save();
+          ctx.globalAlpha = this.opacity;
+          ctx.fillStyle = this.color;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+      
+      // Create particles
+      function createParticles() {
+        particles = [];
+        const count = 50;
+        for (let i = 0; i < count; i++) {
+          particles.push(new VisibleParticle());
+        }
+        console.log(`✨ Created ${particles.length} particles`);
+      }
+      
+      // Animation loop
+      function animate() {
+        frameCount++;
+        
+        // Clear canvas with slight trail
+        ctx.fillStyle = 'rgba(2, 0, 26, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Update and draw particles
+        particles.forEach(particle => {
+          particle.update();
+          particle.draw();
+        });
+        
+        // Log progress every 60 frames (about 1 second)
+        if (frameCount % 60 === 0) {
+          console.log(`🎬 Animation running - Frame ${frameCount}, Particles: ${particles.length}`);
+        }
+        
+        requestAnimationFrame(animate);
+      }
+      
+      // Initialize and start
+      createParticles();
+      animate();
+      
+      // Handle resize
+      window.addEventListener('resize', () => {
+        updateCanvasSize();
+        createParticles();
+      });
+      
+      console.log('🚀 Particle system started successfully!');
+    }, 100); // Small delay to ensure DOM is ready
+  });
+
+  // Enhanced Particle System - Working Version
+  setTimeout(() => {
+    console.log('🎯 Initializing enhanced particle system...');
+    
+    const canvas = document.getElementById('particleCanvas');
+    if (!canvas) {
+      console.error('❌ Canvas not found');
+      return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.error('❌ Context failed');
+      return;
+    }
+    
+    console.log('✅ Canvas and context ready');
+    
+    // Force canvas setup
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.zIndex = '0';
+    canvas.style.pointerEvents = 'none';
+    console.log(`📐 Canvas: ${canvas.width}x${canvas.height}`);
+    
+    let particles = [];
+    let animId;
+    
+    class WorkingParticle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 1.5;
+        this.vy = (Math.random() - 0.5) * 1.5;
+        this.size = Math.random() * 3 + 1;
+        this.alpha = Math.random() * 0.7 + 0.3;
+        this.hue = Math.random() * 60 + 240; // Blue to purple range
+      }
+      
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        
+        // Wrap around edges
+        if (this.x < -10) this.x = canvas.width + 10;
+        if (this.x > canvas.width + 10) this.x = -10;
+        if (this.y < -10) this.y = canvas.height + 10;
+        if (this.y > canvas.height + 10) this.y = -10;
+      }
+      
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = `hsl(${this.hue}, 100%, 60%)`;
+        ctx.shadowColor = `hsl(${this.hue}, 100%, 60%)`;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+    
+    // Create particles
+    for (let i = 0; i < 50; i++) {
+      particles.push(new WorkingParticle());
+    }
+    console.log(`✨ Created ${particles.length} working particles`);
+    
+    // Animation loop
+    function animate() {
+      // Clear with trail effect
+      ctx.fillStyle = 'rgba(2, 0, 26, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Update and draw particles
+      particles.forEach(particle => {
+        particle.update();
+        particle.draw();
+      });
+      
+      animId = requestAnimationFrame(animate);
+    }
+    
+    // Start animation
+    animate();
+    
+    // Handle resize
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      console.log('🔄 Canvas resized');
+    });
+    
+    console.log('🚀 Enhanced particle system running!');
+    
+    // Confirmation after 2 seconds
+    setTimeout(() => {
+      console.log(`✅ Confirmed: ${particles.length} particles actively animating`);
+    }, 2000);
+  }, 500); // Wait 500ms to ensure DOM is fully ready
 })();
+
+// ========================================
+// MICRO-INTERACTIONS SYSTEM
+// ========================================
+
+class MicroInteractions {
+  constructor() {
+    this.rippleElements = [];
+    this.init();
+  }
+
+  init() {
+    this.setupButtonRipples();
+    this.setupFormInteractions();
+    this.setupCardInteractions();
+    this.setupNavigationTransitions();
+    this.setupProgressiveDisclosure();
+    this.setupParallaxEffects();
+    this.setupLoadingStates();
+    this.setupTooltipInteractions();
+    console.log('🎨 Micro-interactions system initialized');
+  }
+
+  // Button Ripple Effects
+  setupButtonRipples() {
+    const buttons = document.querySelectorAll('.btn, .settings-btn, .key-toggle-btn');
+    
+    buttons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        this.createRipple(e, button);
+      });
+
+      // Add press animation
+      button.addEventListener('mousedown', () => {
+        button.style.transform = 'scale(0.95)';
+        button.style.transition = 'transform 0.1s ease-out';
+      });
+
+      button.addEventListener('mouseup', () => {
+        button.style.transform = '';
+        button.style.transition = 'all 0.25s cubic-bezier(0.25, 1, 0.5, 1)';
+      });
+
+      button.addEventListener('mouseleave', () => {
+        button.style.transform = '';
+      });
+    });
+  }
+
+  createRipple(event, element) {
+    const circle = document.createElement('span');
+    const rect = element.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = event.clientX - rect.left - size / 2;
+    const y = event.clientY - rect.top - size / 2;
+
+    circle.classList.add('btn-ripple');
+    circle.style.width = circle.style.height = size + 'px';
+    circle.style.left = x + 'px';
+    circle.style.top = y + 'px';
+
+    element.appendChild(circle);
+
+    setTimeout(() => {
+      circle.remove();
+    }, 500);
+  }
+
+  // Enhanced Form Interactions
+  setupFormInteractions() {
+    const inputs = document.querySelectorAll('.form-control');
+    
+    inputs.forEach(input => {
+      // Focus animations
+      input.addEventListener('focus', () => {
+        this.animateInputFocus(input);
+      });
+
+      input.addEventListener('blur', () => {
+        this.animateInputBlur(input);
+      });
+
+      // Real-time validation feedback
+      input.addEventListener('input', () => {
+        this.validateInput(input);
+      });
+
+      // Floating label effect
+      this.setupFloatingLabel(input);
+    });
+  }
+
+  animateInputFocus(input) {
+    input.style.transform = 'scale(1.01)';
+    input.parentElement?.classList.add('input-focused');
+    
+    // Add glow effect
+    const glow = document.createElement('div');
+    glow.className = 'input-glow';
+    glow.style.cssText = `
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(45deg, var(--accent-glow), var(--accent-cyan));
+      border-radius: inherit;
+      z-index: -1;
+      opacity: 0;
+      animation: glowPulse 2s ease-in-out infinite;
+    `;
+    
+    if (input.parentElement.style.position !== 'relative') {
+      input.parentElement.style.position = 'relative';
+    }
+    input.parentElement.appendChild(glow);
+  }
+
+  animateInputBlur(input) {
+    input.style.transform = '';
+    input.parentElement?.classList.remove('input-focused');
+    
+    const glow = input.parentElement?.querySelector('.input-glow');
+    if (glow) {
+      glow.remove();
+    }
+  }
+
+  validateInput(input) {
+    const value = input.value.trim();
+    
+    if (input.type === 'email' && value) {
+      const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      this.setInputValidation(input, isValid);
+    } else if (input.required && value) {
+      this.setInputValidation(input, value.length >= 3);
+    }
+  }
+
+  setInputValidation(input, isValid) {
+    input.classList.remove('input-valid', 'input-invalid');
+    input.classList.add(isValid ? 'input-valid' : 'input-invalid');
+    
+    if (!isValid) {
+      input.style.animation = 'shake 0.6s ease-in-out';
+      setTimeout(() => {
+        input.style.animation = '';
+      }, 600);
+    }
+  }
+
+  setupFloatingLabel(input) {
+    const label = input.parentElement?.querySelector('.form-label');
+    if (!label) return;
+
+    const updateLabel = () => {
+      if (input.value || input === document.activeElement) {
+        label.style.transform = 'translateY(-25px) scale(0.8)';
+        label.style.color = 'var(--accent-glow)';
+      } else {
+        label.style.transform = '';
+        label.style.color = '';
+      }
+    };
+
+    input.addEventListener('focus', updateLabel);
+    input.addEventListener('blur', updateLabel);
+    input.addEventListener('input', updateLabel);
+    
+    updateLabel();
+  }
+
+  // Card Hover Interactions
+  setupCardInteractions() {
+    const cards = document.querySelectorAll('.metric-card, .complexity-card, .summary-item, .analysis-panel, .comparison-panel');
+    
+    cards.forEach(card => {
+      card.addEventListener('mouseenter', (e) => {
+        this.animateCardHover(card, true);
+      });
+
+      card.addEventListener('mouseleave', (e) => {
+        this.animateCardHover(card, false);
+      });
+
+      card.addEventListener('click', (e) => {
+        this.animateCardPress(card);
+      });
+    });
+  }
+
+  animateCardHover(card, isEntering) {
+    if (isEntering) {
+      card.style.zIndex = '10';
+      card.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    } else {
+      card.style.zIndex = '';
+      setTimeout(() => {
+        card.style.transition = '';
+      }, 300);
+    }
+  }
+
+  animateCardPress(card) {
+    card.style.transform = 'scale(0.98) translateY(0)';
+    card.style.transition = 'transform 0.1s ease-out';
+    
+    setTimeout(() => {
+      card.style.transform = '';
+      card.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    }, 100);
+  }
+
+  // Navigation Transitions
+  setupNavigationTransitions() {
+    const sections = document.querySelectorAll('.upload-section, .results-section');
+    
+    // Intersection Observer for scroll animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animation = 'slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    sections.forEach(section => observer.observe(section));
+  }
+
+  // Progressive Disclosure
+  setupProgressiveDisclosure() {
+    const panels = document.querySelectorAll('.analysis-panel, .comparison-panel');
+    
+    panels.forEach((panel, index) => {
+      panel.style.opacity = '0';
+      panel.style.transform = 'translateY(30px)';
+      
+      setTimeout(() => {
+        panel.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        panel.style.opacity = '1';
+        panel.style.transform = 'translateY(0)';
+      }, index * 150);
+    });
+  }
+
+  // Parallax Effects
+  setupParallaxEffects() {
+    let ticking = false;
+    
+    const updateParallax = () => {
+      const scrollY = window.pageYOffset;
+      
+      // Parallax on background elements
+      const parallaxElements = document.querySelectorAll('.upload-icon, .panel-icon');
+      parallaxElements.forEach(element => {
+        const speed = 0.5;
+        const yPos = -(scrollY * speed);
+        element.style.transform = `translateY(${yPos}px)`;
+      });
+      
+      ticking = false;
+    };
+
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(updateParallax);
+        ticking = true;
+      }
+    });
+  }
+
+  // Loading States
+  setupLoadingStates() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    
+    if (loadingOverlay) {
+      // Enhanced loading animation
+      const loadingSpinner = loadingOverlay.querySelector('.loading-spinner');
+      if (loadingSpinner) {
+        loadingSpinner.style.animation = 'rotate 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite';
+      }
+    }
+
+    // Form submission loading states
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+      form.addEventListener('submit', (e) => {
+        this.showFormLoading(form);
+      });
+    });
+  }
+
+  showFormLoading(form) {
+    const submitBtn = form.querySelector('.btn--primary');
+    if (submitBtn) {
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Processing...';
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.7';
+      
+      // Add loading dots
+      const dots = document.createElement('span');
+      dots.className = 'loading-dots';
+      dots.innerHTML = '<span>.</span><span>.</span><span>.';
+      dots.style.animation = 'loadingDots 1.4s infinite';
+      submitBtn.appendChild(dots);
+      
+      // Reset after 3 seconds (adjust as needed)
+      setTimeout(() => {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '';
+      }, 3000);
+    }
+  }
+
+  // Tooltip Interactions
+  setupTooltipInteractions() {
+    const tooltipElements = document.querySelectorAll('[title]');
+    
+    tooltipElements.forEach(element => {
+      const title = element.getAttribute('title');
+      element.removeAttribute('title'); // Remove default tooltip
+      
+      const tooltip = document.createElement('div');
+      tooltip.className = 'custom-tooltip';
+      tooltip.textContent = title;
+      tooltip.style.cssText = `
+        position: absolute;
+        background: var(--bg-glass-elevated);
+        color: var(--text-primary);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        pointer-events: none;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.2s ease;
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--muted-border);
+        box-shadow: var(--glass-shadow-sm);
+      `;
+      
+      document.body.appendChild(tooltip);
+      
+      element.addEventListener('mouseenter', (e) => {
+        const rect = element.getBoundingClientRect();
+        tooltip.style.left = rect.left + rect.width / 2 - tooltip.offsetWidth / 2 + 'px';
+        tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
+        tooltip.style.opacity = '1';
+        tooltip.style.transform = 'translateY(0)';
+      });
+      
+      element.addEventListener('mouseleave', () => {
+        tooltip.style.opacity = '0';
+        tooltip.style.transform = 'translateY(10px)';
+      });
+    });
+  }
+
+  // File Upload Interactions
+  setupUploadInteractions() {
+    const uploadZone = document.getElementById('uploadZone');
+    if (!uploadZone) return;
+
+    // Enhanced drag and drop
+    uploadZone.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('drag-over', 'file-dropping');
+    });
+
+    uploadZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      if (!uploadZone.contains(e.relatedTarget)) {
+        uploadZone.classList.remove('drag-over', 'file-dropping');
+      }
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over', 'file-dropping');
+      uploadZone.classList.add('file-dropped');
+      
+      // Animate successful drop
+      setTimeout(() => {
+        uploadZone.classList.remove('file-dropped');
+      }, 1000);
+    });
+  }
+
+  // Mouse tracking for interactive elements
+  setupMouseTracking() {
+    const trackingElements = document.querySelectorAll('.btn, .metric-card, .complexity-card');
+    
+    trackingElements.forEach(element => {
+      element.addEventListener('mousemove', (e) => {
+        const rect = element.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        
+        element.style.setProperty('--mouse-x', x + '%');
+        element.style.setProperty('--mouse-y', y + '%');
+      });
+    });
+  }
+}
+
+// Initialize micro-interactions when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  new MicroInteractions();
+});
+
+// Add CSS for dynamic micro-interactions
+const microInteractionStyles = `
+  .input-focused .form-label {
+    color: var(--accent-glow) !important;
+  }
+  
+  .input-valid {
+    border-color: var(--accent-cyan) !important;
+    box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.2) !important;
+  }
+  
+  .input-invalid {
+    border-color: #ff4757 !important;
+    box-shadow: 0 0 0 2px rgba(255, 71, 87, 0.2) !important;
+  }
+  
+  .file-dropped {
+    background: linear-gradient(135deg, rgba(0, 245, 212, 0.15), rgba(108, 99, 255, 0.1)) !important;
+    border-color: var(--accent-cyan) !important;
+    animation: bounceIn 0.6s ease !important;
+  }
+  
+  .loading-dots span {
+    animation: loadingDots 1.4s infinite;
+  }
+  
+  .loading-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  
+  .loading-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  
+  .custom-tooltip {
+    font-family: var(--font-family-main);
+    white-space: nowrap;
+  }
+`;
+
+// Inject micro-interaction styles
+const styleSheet = document.createElement('style');
+styleSheet.textContent = microInteractionStyles;
+document.head.appendChild(styleSheet);

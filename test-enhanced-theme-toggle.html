@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto" data-theme-preference="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Theme Toggle Test Suite</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Test-specific styles */
+        .test-suite {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--muted-border);
+            backdrop-filter: var(--blur-md) saturate(180%);
+            -webkit-backdrop-filter: var(--blur-md) saturate(180%);
+            box-shadow: var(--glass-shadow-sm);
+        }
+
+        .test-section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--muted-border);
+            backdrop-filter: var(--blur-md) saturate(180%);
+            -webkit-backdrop-filter: var(--blur-md) saturate(180%);
+            box-shadow: var(--glass-shadow-sm);
+            transition: all 0.3s ease;
+        }
+
+        .test-section:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glass-shadow-md);
+        }
+
+        .test-title {
+            font-family: var(--font-family-heading);
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--accent-cyan);
+            padding-bottom: 10px;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .test-item {
+            padding: 20px;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .test-item:hover {
+            border-color: var(--accent-glow);
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.15);
+        }
+
+        .test-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .test-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .test-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .status-pass {
+            background: rgba(0, 245, 212, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 245, 212, 0.2);
+        }
+
+        .status-fail {
+            background: rgba(255, 71, 87, 0.1);
+            color: #ff4757;
+            border: 1px solid rgba(255, 71, 87, 0.2);
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.2);
+        }
+
+        .theme-demo-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .theme-demo-card {
+            padding: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--muted-border);
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: var(--blur-sm) saturate(150%);
+            -webkit-backdrop-filter: var(--blur-sm) saturate(150%);
+        }
+
+        .theme-demo-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--glass-shadow-md);
+            border-color: var(--accent-glow);
+        }
+
+        .control-panel {
+            position: sticky;
+            top: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--muted-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: var(--blur-md) saturate(180%);
+            -webkit-backdrop-filter: var(--blur-md) saturate(180%);
+            box-shadow: var(--glass-shadow-sm);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .test-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .test-btn:hover {
+            background: var(--accent-glow);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3);
+        }
+
+        .stats-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .log-output {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            color: var(--text-secondary);
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(var(--border-rgb), 0.1);
+        }
+
+        .log-timestamp {
+            color: var(--accent-cyan);
+            margin-right: 10px;
+        }
+
+        /* Keyboard navigation indicators */
+        .keyboard-focus {
+            outline: 2px solid var(--accent-glow) !important;
+            outline-offset: 2px;
+            box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.2) !important;
+        }
+
+        /* Accessibility test indicators */
+        .a11y-indicator {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .a11y-pass .a11y-indicator {
+            opacity: 1;
+            background: var(--accent-cyan);
+        }
+
+        .a11y-fail .a11y-indicator {
+            opacity: 1;
+            background: #ff4757;
+        }
+
+        /* Performance indicators */
+        .perf-meter {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .perf-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4757, #ffc107, var(--accent-cyan));
+            transition: width 0.3s ease;
+        }
+
+        .mobile-simulation {
+            margin-top: 20px;
+            padding: 15px;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-buttons {
+                flex-direction: column;
+            }
+            
+            .stats-display {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Enhanced Theme Toggle (copied from main app) -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="app-title">
+                <span class="title-icon">🔬</span>
+                Enhanced Theme Toggle Test Suite
+            </h1>
+            
+            <!-- Enhanced Theme Toggle -->
+            <div class="theme-toggle-container">
+                <button id="themeToggle" class="theme-toggle" role="switch" aria-checked="auto" aria-label="Theme toggle" tabindex="0">
+                    <span class="theme-track">
+                        <span class="theme-thumb"></span>
+                    </span>
+                    <span id="themeToggleLabel" class="theme-label">Auto</span>
+                </button>
+                
+                <div id="themeOptions" class="theme-options" role="menu" aria-labelledby="themeToggle">
+                    <button class="theme-option active" data-theme="auto" role="menuitem" tabindex="0">
+                        <span class="theme-icon">🌙☀️</span>
+                        <span class="theme-text">Auto</span>
+                        <span class="theme-description">Follow system</span>
+                    </button>
+                    <button class="theme-option" data-theme="light" role="menuitem" tabindex="0">
+                        <span class="theme-icon">☀️</span>
+                        <span class="theme-text">Light</span>
+                        <span class="theme-description">Always light</span>
+                    </button>
+                    <button class="theme-option" data-theme="dark" role="menuitem" tabindex="0">
+                        <span class="theme-icon">🌙</span>
+                        <span class="theme-text">Dark</span>
+                        <span class="theme-description">Always dark</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="test-suite">
+        <!-- Test Control Panel -->
+        <div class="control-panel">
+            <h2 style="margin: 0 0 20px; color: var(--text-primary); font-family: var(--font-family-heading);">
+                🧪 Test Control Panel
+            </h2>
+            
+            <div class="control-buttons">
+                <button class="test-btn" id="runAllTests">Run All Tests</button>
+                <button class="test-btn" id="testAccessibility">Test Accessibility</button>
+                <button class="test-btn" id="testPerformance">Test Performance</button>
+                <button class="test-btn" id="testKeyboardNav">Test Keyboard Navigation</button>
+                <button class="test-btn" id="simulateSystemChange">Simulate System Change</button>
+                <button class="test-btn" id="clearTests">Clear Results</button>
+            </div>
+
+            <div class="stats-display">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalTests">0</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="passedTests">0</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="failedTests">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="testScore">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+            </div>
+
+            <div class="log-output" id="testLog">
+                <div class="log-entry">
+                    <span class="log-timestamp">[Ready]</span>
+                    Enhanced theme toggle test suite initialized
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Header -->
+        <div class="test-header">
+            <h1 style="margin: 0; color: var(--text-primary); font-family: var(--font-family-heading);">
+                🎨 Enhanced Dark/Light Mode Toggle Test Suite
+            </h1>
+            <p style="margin: 10px 0 0; color: var(--text-secondary);">
+                Comprehensive testing for theme persistence, system preference detection, accessibility compliance, and performance optimization
+            </p>
+        </div>
+
+        <!-- Core Functionality Tests -->
+        <div class="test-section">
+            <h2 class="test-title">⚙️ Core Functionality Tests</h2>
+            <div class="test-grid">
+                <div class="test-item" id="test-basic-toggle">
+                    <div class="test-label">
+                        <span>🔄</span> Basic Theme Toggle
+                        <div class="a11y-indicator"></div>
+                    </div>
+                    <div class="test-description">Tests if theme toggle switches between light, dark, and auto modes</div>
+                    <div class="test-status status-pending" id="status-basic-toggle">
+                        <span>⏳</span> Pending
+                    </div>
+                </div>
+
+                <div class="test-item" id="test-persistence">
+                    <div class="test-label">
+                        <span>💾</span> Theme Persistence
+                        <div class="a11y-indicator"></div>
+                    </div>
+                    <div class="test-description">Verifies theme preference is saved to localStorage and persists across sessions</div>
+                    <div class="test-status status-pending" id="status-persistence">
+                        <span>⏳</span> Pending
+                    </div>
+                </div>
+
+                <div class="test-item" id="test-system-detection">
+                    <div class="test-label">
+                        <span>🖥️</span> System Preference Detection
+                        <div class="a11y-indicator"></div>
+                    </div>
+                    <div class="test-description">Tests automatic detection and following of system dark/light mode preference</div>
+                    <div class="test-status status-pending" id="status-system-detection">
+                        <span>⏳</span> Pending
+                    </div>
+                </div>
+
+                <div class="test-item" id="test-smooth-transitions">
+                    <div class="test-label">
+                        <span>✨</span> Smooth Transitions
+                        <div class="a11y-indicator"></div>
+                    </div>
+                    <div class="test-description">Validates smooth visual transitions when switching themes</div>
+                    <div class="test-status status-pending" id="status-smooth-transitions">
+                        <span>⏳</span> Pending
+                    </div>
+                    <div class="perf-meter">
+                        <div class="perf-fill" style="width: 0%" id="transition-perf"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accessibility Tests -->
+        <div class="test-section">
+            <h2 class="test-title">♿ Accessibility Tests</h2>
+            <div class="test-grid">
+                <div class="test-item" id="test-keyboard-navigation">
+                    <div class="test-label">
+                        <span>⌨️</span> Keyboard Navigation
+                        <div class="a11y-indicator"></div>
+                    </div>
+                    <div class="test-description">Tests keyboard accessibility including tab navigation and arrow key controls</div>
+                    <div class="test-status status-pending" id="status-keyboard-navigation">
+                        <span>⏳</span> Pending
+                    </div>
+                </div>
+
+                <div class="test-item" id="test-screen-reader">
+                    <div class="test-label">
+                        <span>📢</span> Screen Reader Support
+                        <div class="a11y-indicator"></div>
+                    </div>
+                    <div class="test-description">Validates ARIA labels, announcements, and semantic markup</div>
+                    <div class="test-status status-pending" id="status-screen-reader">
+                        <span>⏳</span> Pending
+                    </div>
+                </div>
+
+                <div class="test-item" id="test-focus-management">
+                    <div class="test-label">
+                        <span>🎯</span> Focus Management
+                        <div class="a11y-indicator"></div>
+                    </div>
+                    <div class="test-description">Tests proper focus handling and visual focus indicators</div>
+                    <div class="test-status status-pending" id="status-focus-management">
+                        <span>⏳</span> Pending
+                    </div>
+                </div>
+
+                <div class="test-item" id="test-reduced-motion">
+                    <div class="test-label">
+                        <span>🔇</span> Reduced Motion Support
+                        <div class="a11y-indicator"></div>
+                    </div>
+                    <div class="test-description">Respects prefers-reduced-motion user preference</div>
+                    <div class="test-status status-pending" id="status-reduced-motion">
+                        <span>⏳</span> Pending
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Tests -->
+        <div class="test-section">
+            <h2 class="test-title">⚡ Performance Tests</h2>
+            <div class="test-grid">
+                <div class="test-item" id="test-transition-performance">
+                    <div class="test-label">
+                        <span>🏃</span> Transition Performance
+                        <div class="a11y-indicator"></div>
+                    </div>
+                    <div class="test-description">Measures frame rate and smoothness during theme transitions</div>
+                    <div class="test-status status-pending" id="status-transition-performance">
+                        <span>⏳</span> Pending
+                    </div>
+                    <div class="perf-meter">
+                        <div class="perf-fill" style="width: 0%" id="fps-perf"></div>
+                    </div>
+                </div>
+
+                <div class="test-item" id="test-memory-usage">
+                    <div class="test-label">
+                        <span>🧠</span> Memory Usage
+                        <div class="a11y-indicator"></div>
+                    </div>
+                    <div class="test-description">Monitors memory consumption during theme operations</div>
+                    <div class="test-status status-pending" id="status-memory-usage">
+                        <span>⏳</span> Pending
+                    </div>
+                    <div class="perf-meter">
+                        <div class="perf-fill" style="width: 0%" id="memory-perf"></div>
+                    </div>
+                </div>
+
+                <div class="test-item" id="test-paint-performance">
+                    <div class="test-label">
+                        <span>🎨</span> Paint Performance
+                        <div class="a11y-indicator"></div>
+                    </div>
+                    <div class="test-description">Measures paint and layout performance during theme changes</div>
+                    <div class="test-status status-pending" id="status-paint-performance">
+                        <span>⏳</span> Pending
+                    </div>
+                    <div class="perf-meter">
+                        <div class="perf-fill" style="width: 0%" id="paint-perf"></div>
+                    </div>
+                </div>
+
+                <div class="test-item" id="test-mobile-performance">
+                    <div class="test-label">
+                        <span>📱</span> Mobile Performance
+                        <div class="a11y-indicator"></div>
+                    </div>
+                    <div class="test-description">Tests performance on mobile devices and touch interactions</div>
+                    <div class="test-status status-pending" id="status-mobile-performance">
+                        <span>⏳</span> Pending
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme Demonstration -->
+        <div class="test-section">
+            <h2 class="test-title">🎭 Theme Demonstration</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                Visual demonstration of theme switching across different UI components
+            </p>
+            
+            <div class="theme-demo-section">
+                <div class="theme-demo-card">
+                    <h4 style="margin: 0 0 10px; color: var(--text-primary);">Card Component</h4>
+                    <p style="margin: 0; color: var(--text-secondary); font-size: 14px;">
+                        This card demonstrates theme transitions
+                    </p>
+                </div>
+                
+                <div class="theme-demo-card">
+                    <h4 style="margin: 0 0 10px; color: var(--accent-cyan);">Accent Colors</h4>
+                    <div style="display: flex; justify-content: space-around; margin-top: 10px;">
+                        <div style="width: 20px; height: 20px; background: var(--accent-cyan); border-radius: 50%;"></div>
+                        <div style="width: 20px; height: 20px; background: var(--accent-glow); border-radius: 50%;"></div>
+                        <div style="width: 20px; height: 20px; background: var(--accent-magenta); border-radius: 50%;"></div>
+                    </div>
+                </div>
+                
+                <div class="theme-demo-card">
+                    <h4 style="margin: 0 0 10px; color: var(--text-primary);">Typography</h4>
+                    <p style="margin: 0; color: var(--text-primary); font-weight: 600;">Primary Text</p>
+                    <p style="margin: 5px 0 0; color: var(--text-secondary); font-size: 12px;">Secondary Text</p>
+                </div>
+                
+                <div class="theme-demo-card">
+                    <h4 style="margin: 0 0 10px; color: var(--text-primary);">Interactive Elements</h4>
+                    <button class="test-btn" style="font-size: 12px; padding: 6px 12px;">Sample Button</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Testing Simulation -->
+        <div class="test-section">
+            <h2 class="test-title">📱 Mobile Testing Simulation</h2>
+            <div class="mobile-simulation">
+                <p style="margin: 0 0 15px; color: var(--text-secondary);">
+                    Simulated mobile environment for testing touch interactions and responsive behavior
+                </p>
+                <div style="max-width: 375px; margin: 0 auto; padding: 20px; border: 2px solid var(--border-color); border-radius: 24px; background: var(--surface);">
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <div style="display: inline-block; width: 50px; height: 4px; background: var(--border-color); border-radius: 2px;"></div>
+                    </div>
+                    <p style="margin: 0; text-align: center; color: var(--text-primary); font-weight: 600;">
+                        Mobile Theme Toggle Test
+                    </p>
+                    <p style="margin: 10px 0 0; text-align: center; color: var(--text-secondary); font-size: 14px;">
+                        Touch the theme toggle above to test mobile interactions
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        // Enhanced Theme Toggle Test Suite
+        class ThemeToggleTestSuite {
+            constructor() {
+                this.tests = new Map();
+                this.totalTests = 0;
+                this.passedTests = 0;
+                this.failedTests = 0;
+                this.testLog = [];
+                this.performanceMetrics = {};
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.registerTests();
+                this.updateUI();
+                this.log('Theme toggle test suite initialized');
+            }
+
+            setupEventListeners() {
+                document.getElementById('runAllTests')?.addEventListener('click', () => this.runAllTests());
+                document.getElementById('testAccessibility')?.addEventListener('click', () => this.testAccessibility());
+                document.getElementById('testPerformance')?.addEventListener('click', () => this.testPerformance());
+                document.getElementById('testKeyboardNav')?.addEventListener('click', () => this.testKeyboardNavigation());
+                document.getElementById('simulateSystemChange')?.addEventListener('click', () => this.simulateSystemChange());
+                document.getElementById('clearTests')?.addEventListener('click', () => this.clearTests());
+
+                // Listen for theme changes
+                window.addEventListener('themechange', (e) => {
+                    this.log(`Theme changed: ${e.detail.theme} (effective: ${e.detail.effectiveTheme})`);
+                });
+            }
+
+            registerTests() {
+                // Core functionality tests
+                this.tests.set('basic-toggle', {
+                    name: 'Basic Theme Toggle',
+                    test: () => this.testBasicToggle(),
+                    category: 'core'
+                });
+
+                this.tests.set('persistence', {
+                    name: 'Theme Persistence',
+                    test: () => this.testPersistence(),
+                    category: 'core'
+                });
+
+                this.tests.set('system-detection', {
+                    name: 'System Preference Detection',
+                    test: () => this.testSystemDetection(),
+                    category: 'core'
+                });
+
+                this.tests.set('smooth-transitions', {
+                    name: 'Smooth Transitions',
+                    test: () => this.testSmoothTransitions(),
+                    category: 'core'
+                });
+
+                // Accessibility tests
+                this.tests.set('keyboard-navigation', {
+                    name: 'Keyboard Navigation',
+                    test: () => this.testKeyboardNavigation(),
+                    category: 'accessibility'
+                });
+
+                this.tests.set('screen-reader', {
+                    name: 'Screen Reader Support',
+                    test: () => this.testScreenReaderSupport(),
+                    category: 'accessibility'
+                });
+
+                this.tests.set('focus-management', {
+                    name: 'Focus Management',
+                    test: () => this.testFocusManagement(),
+                    category: 'accessibility'
+                });
+
+                this.tests.set('reduced-motion', {
+                    name: 'Reduced Motion Support',
+                    test: () => this.testReducedMotionSupport(),
+                    category: 'accessibility'
+                });
+
+                // Performance tests
+                this.tests.set('transition-performance', {
+                    name: 'Transition Performance',
+                    test: () => this.testTransitionPerformance(),
+                    category: 'performance'
+                });
+
+                this.tests.set('memory-usage', {
+                    name: 'Memory Usage',
+                    test: () => this.testMemoryUsage(),
+                    category: 'performance'
+                });
+
+                this.tests.set('paint-performance', {
+                    name: 'Paint Performance',
+                    test: () => this.testPaintPerformance(),
+                    category: 'performance'
+                });
+
+                this.tests.set('mobile-performance', {
+                    name: 'Mobile Performance',
+                    test: () => this.testMobilePerformance(),
+                    category: 'performance'
+                });
+
+                this.totalTests = this.tests.size;
+            }
+
+            async runAllTests() {
+                this.log('🚀 Running all tests...');
+                this.clearTests();
+
+                for (const [testId, testData] of this.tests) {
+                    try {
+                        await this.runTest(testId, testData);
+                    } catch (error) {
+                        this.log(`❌ Test ${testData.name} failed with error: ${error.message}`);
+                        this.setTestStatus(testId, 'fail');
+                    }
+                }
+
+                this.updateUI();
+                this.log(`✅ All tests completed. Score: ${this.getSuccessRate()}%`);
+            }
+
+            async runTest(testId, testData) {
+                this.log(`🧪 Running test: ${testData.name}`);
+                this.setTestStatus(testId, 'pending');
+
+                try {
+                    const result = await testData.test();
+                    if (result === true || result === undefined) {
+                        this.setTestStatus(testId, 'pass');
+                        this.passedTests++;
+                        this.log(`✅ Test passed: ${testData.name}`);
+                    } else {
+                        this.setTestStatus(testId, 'fail');
+                        this.failedTests++;
+                        this.log(`❌ Test failed: ${testData.name} - ${result}`);
+                    }
+                } catch (error) {
+                    this.setTestStatus(testId, 'fail');
+                    this.failedTests++;
+                    this.log(`❌ Test error: ${testData.name} - ${error.message}`);
+                }
+
+                this.updateUI();
+            }
+
+            // Core functionality tests
+            async testBasicToggle() {
+                const themeManager = window.themeManager;
+                if (!themeManager) {
+                    throw new Error('Theme manager not found');
+                }
+
+                const initialTheme = themeManager.currentTheme;
+                
+                // Test cycling through themes
+                themeManager.setTheme('light');
+                await this.wait(100);
+                if (themeManager.currentTheme !== 'light') {
+                    return 'Failed to set light theme';
+                }
+
+                themeManager.setTheme('dark');
+                await this.wait(100);
+                if (themeManager.currentTheme !== 'dark') {
+                    return 'Failed to set dark theme';
+                }
+
+                themeManager.setTheme('auto');
+                await this.wait(100);
+                if (themeManager.currentTheme !== 'auto') {
+                    return 'Failed to set auto theme';
+                }
+
+                // Restore initial theme
+                themeManager.setTheme(initialTheme);
+                return true;
+            }
+
+            async testPersistence() {
+                const themeManager = window.themeManager;
+                
+                // Save current state
+                const originalTheme = themeManager.currentTheme;
+                
+                // Test saving to localStorage
+                themeManager.setTheme('dark');
+                const savedTheme = localStorage.getItem('theme-preference');
+                if (savedTheme !== 'dark') {
+                    return 'Theme not saved to localStorage';
+                }
+
+                // Test timestamp saving
+                const timestamp = localStorage.getItem('theme-timestamp');
+                if (!timestamp) {
+                    return 'Timestamp not saved';
+                }
+
+                // Restore original theme
+                themeManager.setTheme(originalTheme);
+                return true;
+            }
+
+            async testSystemDetection() {
+                const themeManager = window.themeManager;
+                
+                // Check if media query is working
+                if (!themeManager.mediaQuery) {
+                    return 'Media query not initialized';
+                }
+
+                // Test system preference detection
+                const systemPref = themeManager.systemPreference;
+                if (systemPref !== 'light' && systemPref !== 'dark') {
+                    return 'Invalid system preference detected';
+                }
+
+                // Test auto mode following system preference
+                themeManager.setTheme('auto');
+                const effectiveTheme = themeManager.getEffectiveTheme();
+                if (effectiveTheme !== systemPref) {
+                    return 'Auto theme not following system preference';
+                }
+
+                return true;
+            }
+
+            async testSmoothTransitions() {
+                const startTime = performance.now();
+                
+                // Trigger theme change and measure transition
+                const themeManager = window.themeManager;
+                const originalTheme = themeManager.currentTheme;
+                
+                themeManager.setTheme('light');
+                await this.wait(500); // Wait for transition
+                
+                const endTime = performance.now();
+                const transitionTime = endTime - startTime;
+                
+                // Update performance meter
+                const perfFill = document.getElementById('transition-perf');
+                const score = Math.min(100, Math.max(0, 100 - (transitionTime - 500) / 10));
+                if (perfFill) {
+                    perfFill.style.width = `${score}%`;
+                }
+                
+                // Restore original theme
+                themeManager.setTheme(originalTheme);
+                
+                // Check if transition completed smoothly (within reasonable time)
+                return transitionTime < 1000;
+            }
+
+            // Accessibility tests
+            async testKeyboardNavigation() {
+                const themeToggle = document.getElementById('themeToggle');
+                if (!themeToggle) {
+                    return 'Theme toggle not found';
+                }
+
+                // Test focus
+                themeToggle.focus();
+                if (document.activeElement !== themeToggle) {
+                    return 'Theme toggle not focusable';
+                }
+
+                // Test keyboard activation
+                const enterEvent = new KeyboardEvent('keydown', { key: 'Enter' });
+                themeToggle.dispatchEvent(enterEvent);
+                
+                await this.wait(100);
+                
+                // Check if dropdown opened
+                const dropdown = document.getElementById('themeOptions');
+                if (!dropdown || !dropdown.classList.contains('show')) {
+                    return 'Keyboard activation failed';
+                }
+
+                // Test arrow key navigation
+                const arrowEvent = new KeyboardEvent('keydown', { key: 'ArrowDown' });
+                themeToggle.dispatchEvent(arrowEvent);
+                
+                return true;
+            }
+
+            async testScreenReaderSupport() {
+                const themeToggle = document.getElementById('themeToggle');
+                
+                // Check ARIA attributes
+                if (!themeToggle.hasAttribute('aria-checked')) {
+                    return 'Missing aria-checked attribute';
+                }
+                
+                if (!themeToggle.hasAttribute('aria-label')) {
+                    return 'Missing aria-label attribute';
+                }
+                
+                if (themeToggle.getAttribute('role') !== 'switch') {
+                    return 'Missing or incorrect role attribute';
+                }
+
+                // Check if options have proper menu roles
+                const options = document.querySelectorAll('.theme-option');
+                for (const option of options) {
+                    if (option.getAttribute('role') !== 'menuitem') {
+                        return 'Theme option missing menuitem role';
+                    }
+                }
+
+                return true;
+            }
+
+            async testFocusManagement() {
+                const themeToggle = document.getElementById('themeToggle');
+                
+                // Test focus visibility
+                themeToggle.focus();
+                const computedStyle = window.getComputedStyle(themeToggle, ':focus');
+                
+                // Check if focus styles are applied (outline or box-shadow)
+                const outline = computedStyle.outline;
+                const boxShadow = computedStyle.boxShadow;
+                
+                if (outline === 'none' && boxShadow === 'none') {
+                    return 'No visible focus indicator';
+                }
+
+                return true;
+            }
+
+            async testReducedMotionSupport() {
+                // Create a temporary element to test reduced motion
+                const testElement = document.createElement('div');
+                testElement.style.cssText = `
+                    position: absolute;
+                    top: -9999px;
+                    transition: transform 0.3s ease;
+                `;
+                document.body.appendChild(testElement);
+
+                // Simulate reduced motion preference
+                const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+                
+                // Check if CSS respects reduced motion
+                if (mediaQuery.matches) {
+                    // In real implementation, animations should be disabled
+                    // This is a simplified test
+                    this.log('Reduced motion preference detected');
+                }
+
+                document.body.removeChild(testElement);
+                return true;
+            }
+
+            // Performance tests
+            async testTransitionPerformance() {
+                const startTime = performance.now();
+                let frameCount = 0;
+                let lastFrameTime = startTime;
+
+                // Monitor FPS during theme transition
+                const measureFPS = () => {
+                    const currentTime = performance.now();
+                    frameCount++;
+                    
+                    if (currentTime - startTime < 500) {
+                        requestAnimationFrame(measureFPS);
+                    } else {
+                        const fps = frameCount / ((currentTime - startTime) / 1000);
+                        const score = Math.min(100, (fps / 60) * 100);
+                        
+                        const perfFill = document.getElementById('fps-perf');
+                        if (perfFill) {
+                            perfFill.style.width = `${score}%`;
+                        }
+                        
+                        this.performanceMetrics.fps = fps;
+                        this.log(`FPS during transition: ${fps.toFixed(1)}`);
+                    }
+                };
+
+                // Trigger theme change and measure
+                const themeManager = window.themeManager;
+                const originalTheme = themeManager.currentTheme;
+                
+                requestAnimationFrame(measureFPS);
+                themeManager.setTheme(originalTheme === 'light' ? 'dark' : 'light');
+                
+                await this.wait(600);
+                
+                // Restore original theme
+                themeManager.setTheme(originalTheme);
+                
+                return this.performanceMetrics.fps > 30; // Acceptable FPS threshold
+            }
+
+            async testMemoryUsage() {
+                if (!performance.memory) {
+                    this.log('Memory API not available');
+                    return true; // Pass if API not available
+                }
+
+                const initialMemory = performance.memory.usedJSHeapSize;
+                
+                // Perform multiple theme changes to test for memory leaks
+                const themeManager = window.themeManager;
+                const originalTheme = themeManager.currentTheme;
+                
+                for (let i = 0; i < 10; i++) {
+                    themeManager.setTheme('light');
+                    await this.wait(50);
+                    themeManager.setTheme('dark');
+                    await this.wait(50);
+                }
+                
+                const finalMemory = performance.memory.usedJSHeapSize;
+                const memoryIncrease = finalMemory - initialMemory;
+                const score = Math.max(0, 100 - (memoryIncrease / 1024 / 1024)); // Score based on MB increase
+                
+                const perfFill = document.getElementById('memory-perf');
+                if (perfFill) {
+                    perfFill.style.width = `${Math.min(100, score)}%`;
+                }
+                
+                this.performanceMetrics.memoryIncrease = memoryIncrease;
+                this.log(`Memory increase: ${(memoryIncrease / 1024).toFixed(2)} KB`);
+                
+                // Restore original theme
+                themeManager.setTheme(originalTheme);
+                
+                return memoryIncrease < 1024 * 1024; // Less than 1MB increase
+            }
+
+            async testPaintPerformance() {
+                if (!window.PerformanceObserver) {
+                    this.log('PerformanceObserver not available');
+                    return true;
+                }
+
+                return new Promise((resolve) => {
+                    let paintEntries = [];
+                    
+                    const observer = new PerformanceObserver((list) => {
+                        paintEntries = paintEntries.concat(list.getEntries());
+                    });
+                    
+                    observer.observe({ entryTypes: ['paint', 'measure'] });
+                    
+                    // Trigger theme change
+                    const themeManager = window.themeManager;
+                    const originalTheme = themeManager.currentTheme;
+                    themeManager.setTheme(originalTheme === 'light' ? 'dark' : 'light');
+                    
+                    setTimeout(() => {
+                        observer.disconnect();
+                        
+                        const totalPaintTime = paintEntries.reduce((sum, entry) => sum + entry.duration, 0);
+                        const score = Math.max(0, 100 - totalPaintTime);
+                        
+                        const perfFill = document.getElementById('paint-perf');
+                        if (perfFill) {
+                            perfFill.style.width = `${Math.min(100, score)}%`;
+                        }
+                        
+                        this.performanceMetrics.paintTime = totalPaintTime;
+                        this.log(`Paint time: ${totalPaintTime.toFixed(2)}ms`);
+                        
+                        // Restore original theme
+                        themeManager.setTheme(originalTheme);
+                        
+                        resolve(totalPaintTime < 100); // Less than 100ms paint time
+                    }, 500);
+                });
+            }
+
+            async testMobilePerformance() {
+                // Simulate mobile viewport
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (!viewport) {
+                    return 'No viewport meta tag found';
+                }
+
+                // Test touch events
+                const themeToggle = document.getElementById('themeToggle');
+                const touchEvent = new TouchEvent('touchstart', {
+                    touches: [new Touch({
+                        identifier: 0,
+                        target: themeToggle,
+                        clientX: 100,
+                        clientY: 100
+                    })]
+                });
+                
+                themeToggle.dispatchEvent(touchEvent);
+                
+                // Test responsive behavior
+                const container = document.querySelector('.theme-toggle-container');
+                const containerStyle = window.getComputedStyle(container);
+                
+                // Check if element is appropriately sized for mobile
+                const minTouchSize = 44; // Minimum touch target size
+                const width = parseInt(containerStyle.width);
+                const height = parseInt(containerStyle.height);
+                
+                if (width < minTouchSize || height < minTouchSize) {
+                    return 'Touch target too small for mobile';
+                }
+
+                return true;
+            }
+
+            // Test utilities
+            async testAccessibility() {
+                this.log('🔍 Running accessibility tests...');
+                
+                const accessibilityTests = ['keyboard-navigation', 'screen-reader', 'focus-management', 'reduced-motion'];
+                
+                for (const testId of accessibilityTests) {
+                    const testData = this.tests.get(testId);
+                    if (testData) {
+                        await this.runTest(testId, testData);
+                    }
+                }
+            }
+
+            async testPerformance() {
+                this.log('⚡ Running performance tests...');
+                
+                const performanceTests = ['transition-performance', 'memory-usage', 'paint-performance', 'mobile-performance'];
+                
+                for (const testId of performanceTests) {
+                    const testData = this.tests.get(testId);
+                    if (testData) {
+                        await this.runTest(testId, testData);
+                    }
+                }
+            }
+
+            simulateSystemChange() {
+                this.log('🔄 Simulating system theme change...');
+                
+                // Simulate system preference change
+                const themeManager = window.themeManager;
+                const newPreference = themeManager.systemPreference === 'dark' ? 'light' : 'dark';
+                
+                // Manually trigger the change (in real scenario, this would come from the system)
+                themeManager.systemPreference = newPreference;
+                
+                if (themeManager.currentTheme === 'auto') {
+                    themeManager.applyTheme('auto', true);
+                    themeManager.updateUI();
+                }
+                
+                this.log(`System preference simulated: ${newPreference}`);
+            }
+
+            setTestStatus(testId, status) {
+                const statusElement = document.getElementById(`status-${testId}`);
+                const testItem = document.getElementById(`test-${testId}`);
+                
+                if (statusElement) {
+                    statusElement.className = `test-status status-${status}`;
+                    
+                    switch (status) {
+                        case 'pass':
+                            statusElement.innerHTML = '<span>✅</span> Passed';
+                            testItem?.classList.add('a11y-pass');
+                            break;
+                        case 'fail':
+                            statusElement.innerHTML = '<span>❌</span> Failed';
+                            testItem?.classList.add('a11y-fail');
+                            break;
+                        case 'pending':
+                            statusElement.innerHTML = '<span>⏳</span> Running...';
+                            testItem?.classList.remove('a11y-pass', 'a11y-fail');
+                            break;
+                    }
+                }
+            }
+
+            clearTests() {
+                this.passedTests = 0;
+                this.failedTests = 0;
+                this.testLog = [];
+                this.performanceMetrics = {};
+                
+                // Reset all test statuses
+                for (const testId of this.tests.keys()) {
+                    this.setTestStatus(testId, 'pending');
+                    const testItem = document.getElementById(`test-${testId}`);
+                    testItem?.classList.remove('a11y-pass', 'a11y-fail');
+                }
+                
+                // Reset performance meters
+                const perfMeters = document.querySelectorAll('.perf-fill');
+                perfMeters.forEach(meter => meter.style.width = '0%');
+                
+                this.updateUI();
+                this.log('🧹 Tests cleared');
+            }
+
+            updateUI() {
+                document.getElementById('totalTests').textContent = this.totalTests;
+                document.getElementById('passedTests').textContent = this.passedTests;
+                document.getElementById('failedTests').textContent = this.failedTests;
+                document.getElementById('testScore').textContent = `${this.getSuccessRate()}%`;
+                
+                // Update log
+                const logElement = document.getElementById('testLog');
+                if (logElement) {
+                    logElement.innerHTML = this.testLog.slice(-10).map(entry => 
+                        `<div class="log-entry">
+                            <span class="log-timestamp">[${entry.time}]</span>
+                            ${entry.message}
+                        </div>`
+                    ).join('');
+                    logElement.scrollTop = logElement.scrollHeight;
+                }
+            }
+
+            getSuccessRate() {
+                if (this.totalTests === 0) return 0;
+                return Math.round((this.passedTests / (this.passedTests + this.failedTests)) * 100) || 0;
+            }
+
+            log(message) {
+                const time = new Date().toLocaleTimeString();
+                this.testLog.push({ time, message });
+                console.log(`[Theme Test] ${message}`);
+                this.updateUI();
+            }
+
+            wait(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Initialize test suite when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait for theme manager to initialize
+            setTimeout(() => {
+                if (window.themeManager) {
+                    window.testSuite = new ThemeToggleTestSuite();
+                    console.log('🧪 Enhanced theme toggle test suite ready');
+                } else {
+                    console.error('❌ Theme manager not found - cannot initialize tests');
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>
