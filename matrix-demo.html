@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Particles Demo - CAnalyzerAI</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #00ff41;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .matrix-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            background: transparent;
+        }
+
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .demo-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border-radius: 10px;
+            border: 1px solid #00ff41;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #00ff41;
+            text-shadow: 0 0 10px #00ff41;
+            margin-bottom: 30px;
+        }
+
+        .controls {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #00ff41;
+            border-radius: 5px;
+            background: rgba(0, 255, 65, 0.1);
+        }
+
+        .control-group {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        label {
+            min-width: 150px;
+            color: #00ff41;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 5px;
+            background: #333;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #00ff41;
+            cursor: pointer;
+            box-shadow: 0 0 5px #00ff41;
+        }
+
+        button {
+            background: transparent;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: rgba(0, 255, 65, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0, 255, 65, 0.1);
+            border-left: 3px solid #00ff41;
+            font-size: 14px;
+        }
+
+        .theme-toggle {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .theme-button {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Matrix Particle System -->
+    <div id="particles-js" class="matrix-particles"></div>
+    
+    <div class="demo-content">
+        <h1>Matrix Particle System Demo</h1>
+        
+        <div class="status" id="status">
+            Loading Matrix particle system...
+        </div>
+
+        <div class="theme-toggle">
+            <button class="theme-button" onclick="setTheme('dark')">Dark Theme</button>
+            <button class="theme-button" onclick="setTheme('light')">Light Theme</button>
+        </div>
+        
+        <div class="controls">
+            <h3>Particle Controls</h3>
+            
+            <div class="control-group">
+                <label for="particleCount">Particle Count:</label>
+                <input type="range" id="particleCount" min="20" max="200" value="80">
+                <span id="particleCountValue">80</span>
+            </div>
+            
+            <div class="control-group">
+                <label for="particleSpeed">Speed:</label>
+                <input type="range" id="particleSpeed" min="1" max="10" value="3" step="0.5">
+                <span id="particleSpeedValue">3</span>
+            </div>
+            
+            <div class="control-group">
+                <label for="particleOpacity">Opacity:</label>
+                <input type="range" id="particleOpacity" min="0.1" max="1" value="0.6" step="0.1">
+                <span id="particleOpacityValue">0.6</span>
+            </div>
+            
+            <div class="control-group">
+                <button onclick="toggleParticles()">Toggle Particles</button>
+                <button onclick="resetDefaults()">Reset Defaults</button>
+            </div>
+        </div>
+
+        <div class="status" id="info">
+            <strong>Integration Status:</strong> Matrix particle system is running in the background of your CAnalyzerAI application.
+            The particles automatically adapt to your theme (dark/light) and provide a subtle digital ambiance.
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="matrix-particles.js"></script>
+    
+    <script>
+        let matrixSystem;
+        let currentTheme = 'dark';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const statusEl = document.getElementById('status');
+            
+            if (typeof particlesJS !== 'undefined') {
+                matrixSystem = new MatrixParticleSystem();
+                setTimeout(() => {
+                    matrixSystem.init();
+                    statusEl.textContent = 'Matrix particle system initialized successfully!';
+                    statusEl.style.borderColor = '#00ff41';
+                }, 500);
+            } else {
+                statusEl.textContent = 'Error: particles.js library not loaded';
+                statusEl.style.borderColor = '#ff4141';
+            }
+
+            setupControls();
+        });
+
+        function setupControls() {
+            // Particle count control
+            const particleCountSlider = document.getElementById('particleCount');
+            const particleCountValue = document.getElementById('particleCountValue');
+            
+            particleCountSlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                particleCountValue.textContent = value;
+                if (matrixSystem) {
+                    matrixSystem.setParticleCount(value);
+                }
+            });
+
+            // Speed control
+            const particleSpeedSlider = document.getElementById('particleSpeed');
+            const particleSpeedValue = document.getElementById('particleSpeedValue');
+            
+            particleSpeedSlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                particleSpeedValue.textContent = value;
+                if (matrixSystem) {
+                    matrixSystem.setSpeed(value);
+                }
+            });
+
+            // Opacity control
+            const particleOpacitySlider = document.getElementById('particleOpacity');
+            const particleOpacityValue = document.getElementById('particleOpacityValue');
+            
+            particleOpacitySlider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                particleOpacityValue.textContent = value;
+                if (matrixSystem) {
+                    matrixSystem.setOpacity(value);
+                }
+            });
+        }
+
+        function setTheme(theme) {
+            currentTheme = theme;
+            if (theme === 'dark') {
+                document.body.style.background = '#000';
+                document.body.style.color = '#00ff41';
+                document.body.classList.remove('light-theme');
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.style.background = '#f0f0f0';
+                document.body.style.color = '#006622';
+                document.body.classList.remove('dark-theme');
+                document.body.classList.add('light-theme');
+            }
+        }
+
+        function toggleParticles() {
+            if (matrixSystem) {
+                if (matrixSystem.isInitialized) {
+                    matrixSystem.destroy();
+                    document.getElementById('status').textContent = 'Particles disabled';
+                } else {
+                    matrixSystem.init();
+                    document.getElementById('status').textContent = 'Particles enabled';
+                }
+            }
+        }
+
+        function resetDefaults() {
+            document.getElementById('particleCount').value = 80;
+            document.getElementById('particleCountValue').textContent = '80';
+            document.getElementById('particleSpeed').value = 3;
+            document.getElementById('particleSpeedValue').textContent = '3';
+            document.getElementById('particleOpacity').value = 0.6;
+            document.getElementById('particleOpacityValue').textContent = '0.6';
+            
+            if (matrixSystem) {
+                matrixSystem.setParticleCount(80);
+                matrixSystem.setSpeed(3);
+                matrixSystem.setOpacity(0.6);
+            }
+        }
+    </script>
+</body>
+</html>

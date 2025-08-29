@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Particles Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+        
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 10;
+            padding: 50px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        h1 {
+            color: #00ff41;
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <div class="content">
+        <h1>Simple Particles Test</h1>
+        <p>If you see green moving dots, particles are working!</p>
+        <div id="status">Loading...</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            const status = document.getElementById('status');
+            
+            if (typeof particlesJS === 'undefined') {
+                status.textContent = 'ERROR: particles.js not loaded';
+                status.style.color = 'red';
+                return;
+            }
+            
+            status.textContent = 'particles.js loaded, initializing...';
+            
+            // Very simple config
+            particlesJS("particles-js", {
+                "particles": {
+                    "number": {
+                        "value": 80,
+                        "density": {"enable": true, "value_area": 800}
+                    },
+                    "color": {"value": "#00ff41"},
+                    "shape": {"type": "circle"},
+                    "opacity": {"value": 0.7},
+                    "size": {"value": 3, "random": true},
+                    "line_linked": {
+                        "enable": true,
+                        "distance": 150,
+                        "color": "#00ff41",
+                        "opacity": 0.4,
+                        "width": 1
+                    },
+                    "move": {
+                        "enable": true,
+                        "speed": 2,
+                        "direction": "none",
+                        "out_mode": "out"
+                    }
+                },
+                "interactivity": {
+                    "detect_on": "canvas",
+                    "events": {
+                        "onhover": {"enable": true, "mode": "repulse"},
+                        "onclick": {"enable": true, "mode": "push"},
+                        "resize": true
+                    }
+                },
+                "retina_detect": true
+            });
+            
+            setTimeout(() => {
+                const canvas = document.querySelector('#particles-js canvas');
+                if (canvas) {
+                    status.textContent = 'SUCCESS: Particles initialized!';
+                    status.style.color = '#00ff41';
+                } else {
+                    status.textContent = 'ERROR: No canvas created';
+                    status.style.color = 'red';
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

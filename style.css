@@ -1,3 +1,63 @@
+/* Cyber Particle System Styles */
+.matrix-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  background: transparent;
+}
+
+#particles-js {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Enhanced theme support for cyber particles */
+.light-theme .matrix-particles {
+  opacity: 0.4;
+}
+
+.dark-theme .matrix-particles {
+  opacity: 0.7;
+}
+
+/* Auto theme follows system preference */
+@media (prefers-color-scheme: dark) {
+  .matrix-particles {
+    opacity: 0.7;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .matrix-particles {
+    opacity: 0.4;
+  }
+}
+
+/* Ensure cyber particles blend well with existing color scheme */
+#particles-js canvas {
+  mix-blend-mode: screen;
+  filter: saturate(1.2) brightness(1.1);
+}
+
+.dark-theme #particles-js canvas {
+  mix-blend-mode: screen;
+  filter: saturate(1.1) brightness(0.9);
+}
+
+.light-theme #particles-js canvas {
+  mix-blend-mode: multiply;
+  filter: saturate(0.8) brightness(1.2);
+}
+
 /* CAnalyzerAI - Futuristic Glow/Glass UI */
 
 @keyframes fadeIn {
@@ -409,7 +469,7 @@
 /* Ensure canvas is always visible behind content */
 .app-container {
   position: relative;
-  z-index: 1;
+  z-index: 10;
 }
 
 html, body {

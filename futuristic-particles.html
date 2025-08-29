@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuristic Particle System - CAnalyzerAI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="futuristic-particles.css">
+</head>
+<body>
+    <!-- Particle System Container -->
+    <div id="particles-js" class="particles-container"></div>
+    
+    <!-- Gradient Overlay System -->
+    <div class="gradient-overlay" id="gradientOverlay"></div>
+    
+    <!-- Main Content -->
+    <div class="content-wrapper">
+        <header class="futuristic-header">
+            <div class="header-glow"></div>
+            <h1 class="main-title">
+                <span class="title-text">FUTURISTIC</span>
+                <span class="title-subtitle">Particle System</span>
+            </h1>
+            <div class="header-stats" id="headerStats">
+                <div class="stat-item">
+                    <span class="stat-label">Particles</span>
+                    <span class="stat-value" id="particleCount">150</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">FPS</span>
+                    <span class="stat-value" id="fpsCounter">60</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Performance</span>
+                    <span class="stat-value" id="performanceIndicator">Optimal</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Control Panel -->
+        <div class="control-panel" id="controlPanel">
+            <div class="panel-header">
+                <h2 class="panel-title">
+                    <span class="panel-icon">⚙️</span>
+                    Particle Controls
+                </h2>
+                <button class="panel-toggle" id="panelToggle" aria-label="Toggle Control Panel">
+                    <span class="toggle-icon">▼</span>
+                </button>
+            </div>
+            
+            <div class="panel-content" id="panelContent">
+                <div class="control-sections">
+                    <!-- Particle Density Section -->
+                    <div class="control-section">
+                        <h3 class="section-title">Particle Density</h3>
+                        <div class="control-group">
+                            <label class="control-label" for="densitySlider">
+                                Count: <span id="densityValue">150</span>
+                            </label>
+                            <input type="range" id="densitySlider" class="futuristic-slider" 
+                                   min="10" max="500" value="150" step="10">
+                            <div class="slider-track"></div>
+                        </div>
+                    </div>
+
+                    <!-- Speed Controls -->
+                    <div class="control-section">
+                        <h3 class="section-title">Movement & Speed</h3>
+                        <div class="control-row">
+                            <div class="control-group">
+                                <label class="control-label" for="speedSlider">
+                                    Speed: <span id="speedValue">2</span>
+                                </label>
+                                <input type="range" id="speedSlider" class="futuristic-slider" 
+                                       min="0.1" max="10" value="2" step="0.1">
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label" for="directionSlider">
+                                    Direction: <span id="directionValue">0°</span>
+                                </label>
+                                <input type="range" id="directionSlider" class="futuristic-slider" 
+                                       min="0" max="360" value="0" step="15">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Size Controls -->
+                    <div class="control-section">
+                        <h3 class="section-title">Particle Size</h3>
+                        <div class="control-row">
+                            <div class="control-group">
+                                <label class="control-label" for="sizeSlider">
+                                    Size: <span id="sizeValue">3</span>px
+                                </label>
+                                <input type="range" id="sizeSlider" class="futuristic-slider" 
+                                       min="1" max="20" value="3" step="0.5">
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label" for="sizeVariationSlider">
+                                    Variation: <span id="sizeVariationValue">50</span>%
+                                </label>
+                                <input type="range" id="sizeVariationSlider" class="futuristic-slider" 
+                                       min="0" max="100" value="50" step="5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Opacity & Visual Effects -->
+                    <div class="control-section">
+                        <h3 class="section-title">Visual Effects</h3>
+                        <div class="control-row">
+                            <div class="control-group">
+                                <label class="control-label" for="opacitySlider">
+                                    Opacity: <span id="opacityValue">50</span>%
+                                </label>
+                                <input type="range" id="opacitySlider" class="futuristic-slider" 
+                                       min="10" max="100" value="50" step="5">
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label" for="glowIntensitySlider">
+                                    Glow: <span id="glowIntensityValue">30</span>%
+                                </label>
+                                <input type="range" id="glowIntensitySlider" class="futuristic-slider" 
+                                       min="0" max="100" value="30" step="5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interaction Settings -->
+                    <div class="control-section">
+                        <h3 class="section-title">Interaction</h3>
+                        <div class="control-toggles">
+                            <div class="toggle-group">
+                                <label class="toggle-label" for="mouseInteraction">
+                                    <input type="checkbox" id="mouseInteraction" checked>
+                                    <span class="toggle-switch"></span>
+                                    Mouse Attraction
+                                </label>
+                            </div>
+                            <div class="toggle-group">
+                                <label class="toggle-label" for="connectLines">
+                                    <input type="checkbox" id="connectLines" checked>
+                                    <span class="toggle-switch"></span>
+                                    Connection Lines
+                                </label>
+                            </div>
+                            <div class="toggle-group">
+                                <label class="toggle-label" for="responsiveMode">
+                                    <input type="checkbox" id="responsiveMode" checked>
+                                    <span class="toggle-switch"></span>
+                                    Responsive Mode
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Color & Theme -->
+                    <div class="control-section">
+                        <h3 class="section-title">Color & Theme</h3>
+                        <div class="color-presets" id="colorPresets">
+                            <button class="color-preset active" data-theme="cyber" aria-label="Cyber Theme">
+                                <div class="preset-colors">
+                                    <span style="background: #00f5d4"></span>
+                                    <span style="background: #6c63ff"></span>
+                                    <span style="background: #ff006e"></span>
+                                </div>
+                                <span class="preset-name">Cyber</span>
+                            </button>
+                            <button class="color-preset" data-theme="neon" aria-label="Neon Theme">
+                                <div class="preset-colors">
+                                    <span style="background: #ff0080"></span>
+                                    <span style="background: #00ff80"></span>
+                                    <span style="background: #8000ff"></span>
+                                </div>
+                                <span class="preset-name">Neon</span>
+                            </button>
+                            <button class="color-preset" data-theme="ocean" aria-label="Ocean Theme">
+                                <div class="preset-colors">
+                                    <span style="background: #0066ff"></span>
+                                    <span style="background: #00ccff"></span>
+                                    <span style="background: #0099cc"></span>
+                                </div>
+                                <span class="preset-name">Ocean</span>
+                            </button>
+                            <button class="color-preset" data-theme="fire" aria-label="Fire Theme">
+                                <div class="preset-colors">
+                                    <span style="background: #ff4500"></span>
+                                    <span style="background: #ff6600"></span>
+                                    <span style="background: #ffaa00"></span>
+                                </div>
+                                <span class="preset-name">Fire</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Preset Configurations -->
+                    <div class="control-section">
+                        <h3 class="section-title">Quick Presets</h3>
+                        <div class="preset-buttons">
+                            <button class="preset-btn" data-preset="minimal" aria-label="Minimal Preset">
+                                <span class="preset-icon">◯</span>
+                                Minimal
+                            </button>
+                            <button class="preset-btn" data-preset="intense" aria-label="Intense Preset">
+                                <span class="preset-icon">⚡</span>
+                                Intense
+                            </button>
+                            <button class="preset-btn" data-preset="matrix" aria-label="Matrix Preset">
+                                <span class="preset-icon">▣</span>
+                                Matrix
+                            </button>
+                            <button class="preset-btn" data-preset="cosmic" aria-label="Cosmic Preset">
+                                <span class="preset-icon">✦</span>
+                                Cosmic
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="panel-actions">
+                    <button class="action-btn primary" id="resetBtn" aria-label="Reset to Default">
+                        <span class="btn-icon">🔄</span>
+                        Reset
+                    </button>
+                    <button class="action-btn secondary" id="exportBtn" aria-label="Export Configuration">
+                        <span class="btn-icon">💾</span>
+                        Export
+                    </button>
+                    <button class="action-btn outline" id="fullscreenBtn" aria-label="Toggle Fullscreen">
+                        <span class="btn-icon">⛶</span>
+                        Fullscreen
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Monitor -->
+        <div class="performance-monitor" id="performanceMonitor">
+            <div class="monitor-header">
+                <span class="monitor-title">Performance</span>
+                <button class="monitor-toggle" id="monitorToggle" aria-label="Toggle Performance Monitor">×</button>
+            </div>
+            <div class="monitor-content">
+                <div class="perf-metric">
+                    <span class="metric-label">Render Time</span>
+                    <span class="metric-value" id="renderTime">16ms</span>
+                </div>
+                <div class="perf-metric">
+                    <span class="metric-label">Memory Usage</span>
+                    <span class="metric-value" id="memoryUsage">45MB</span>
+                </div>
+                <div class="perf-metric">
+                    <span class="metric-label">GPU Load</span>
+                    <span class="metric-value" id="gpuLoad">23%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Touch Gesture Indicator (Mobile) -->
+        <div class="touch-indicator" id="touchIndicator">
+            <div class="touch-hint">
+                <span class="touch-icon">👆</span>
+                <span class="touch-text">Touch to interact</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Initializing Particle System...</div>
+            <div class="loading-progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="futuristic-particles.js"></script>
+</body>
+</html>
