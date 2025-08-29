@@ -639,6 +639,33 @@ h3 { font-size: 20px; margin: 0; }
   border-radius: 8px;
 }
 
+/* Enhanced AI state indicators */
+.ai-error {
+  color: #ff4757;
+  background: rgba(255, 71, 87, 0.08);
+  border-left: 4px solid rgba(255, 71, 87, 0.3);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.ai-warning {
+  color: #ffa502;
+  background: rgba(255, 165, 2, 0.08);
+  border-left: 4px solid rgba(255, 165, 2, 0.3);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.ai-success {
+  color: var(--accent-cyan);
+  background: rgba(0, 245, 212, 0.04);
+  border-left: 4px solid rgba(0, 245, 212, 0.18);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
 .title-icon {
   color: var(--accent-cyan);
   font-size: 32px;

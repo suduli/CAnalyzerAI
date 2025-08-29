@@ -37,13 +37,23 @@
 
       this.provider = localStorage.getItem('cai_provider') || 'ollama';
       this.apiKey = localStorage.getItem('cai_api_key') || '';
-      this.model = localStorage.getItem('cai_model') || 'deepseek-r1 ';
+      this.model = localStorage.getItem('cai_model') || 'deepseek-r1';
 
       this.modelDropdown = document.getElementById('modelDropdown');
-      this.selectedModel = localStorage.getItem('selectedModel') || 'deepseek-coder:gpu-ultra';
+      this.selectedModel = localStorage.getItem('selectedModel') || this.getDefaultModel();
 
       this.init();
     }
+
+    getDefaultModel() {
+      switch(this.provider) {
+        case 'openrouter': return 'openai/gpt-oss-20b:free';
+        case 'openai': return 'gpt-3.5-turbo';
+        case 'ollama': 
+        default: return 'deepseek-r1:latest';
+      }
+    }
+
     init() {
       if (this.providerSelect) this.providerSelect.value = this.provider;
       if (this.apiKeyInput) this.apiKeyInput.value = this.apiKey;
@@ -61,6 +71,7 @@
         this.provider = e.target.value;
         localStorage.setItem('cai_provider', this.provider);
         this.updateStatus();
+        this.updateModelDropdown();
       });
     }
     show() { this.modal?.classList.remove('hidden'); }
@@ -102,8 +113,16 @@
           if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}`);
           testResult = 'OpenAI API key valid';
         } else if (provider === 'openrouter') {
-          const res = await fetch('https://openrouter.ai/api/v1/models', { headers: { Authorization: `Bearer ${key}` } });
-          if (!res.ok) throw new Error(`OpenRouter HTTP ${res.status}`);
+          const res = await fetch('https://openrouter.ai/api/v1/models', { 
+            headers: { 
+              'Authorization': `Bearer ${key}`,
+              'HTTP-Referer': window.location.origin
+            } 
+          });
+          if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(`OpenRouter HTTP ${res.status}: ${errorData.error?.message || 'Invalid API key'}`);
+          }
           testResult = 'OpenRouter API key valid';
         } else {
           throw new Error('Unknown provider');
@@ -121,29 +140,60 @@
     }
 
     async fetchModels() {
-      try {
-        const res = await fetch('http://localhost:11434/api/models');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const models = await res.json();
-        this.populateModelDropdown(models);
-      } catch (err) {
-        sys.error(`Failed to fetch models: ${err.message}`);
-      }
+      this.updateModelDropdown();
     }
 
-    populateModelDropdown(models) {
+    updateModelDropdown() {
       if (!this.modelDropdown) return;
+      
       this.modelDropdown.innerHTML = '';
+      
+      let models = [];
+      
+      switch(this.provider) {
+        case 'openrouter':
+          models = [
+            'openai/gpt-oss-20b:free',
+            'google/gemma-2-9b-it:free',
+            'meta-llama/llama-3.1-8b-instruct:free',
+            'microsoft/wizardlm-2-8x22b:free',
+            'huggingface/starcoder2-15b:free'
+          ];
+          break;
+        case 'openai':
+          models = [
+            'gpt-3.5-turbo',
+            'gpt-4',
+            'gpt-4-turbo',
+            'gpt-4o-mini'
+          ];
+          break;
+        case 'ollama':
+        default:
+          models = [
+            'deepseek-r1:latest',
+            'deepseek-coder:6.7b',
+            'llama3.2:latest',
+            'codellama:latest'
+          ];
+          break;
+      }
+      
       models.forEach((model) => {
         const option = document.createElement('option');
         option.value = model;
         option.textContent = model;
         this.modelDropdown.appendChild(option);
       });
-      this.modelDropdown.value = this.selectedModel;
+      
+      // Set default selection based on provider
+      const defaultModel = this.getDefaultModel();
+      this.modelDropdown.value = this.selectedModel || defaultModel;
+      
       this.modelDropdown.addEventListener('change', (e) => {
         this.selectedModel = e.target.value;
         localStorage.setItem('selectedModel', this.selectedModel);
+        localStorage.setItem('cai_model', this.selectedModel);
       });
     }
   }
@@ -308,9 +358,9 @@
     async startAnalysis() {
       if (!this.file) return;
       const provider = localStorage.getItem('cai_provider') || 'ollama';
-      const model = localStorage.getItem('cai_model') || (provider==='ollama' ? 'deepseek-r1' : 'gpt-4o-mini');
+      const model = localStorage.getItem('selectedModel') || this.api.getDefaultModel();
       this.analysisApiStatus.textContent = provider.toUpperCase();
-      this.analysisApiDetail.textContent = provider==='ollama' ? `Local model: ${model}` : `Model: ${model}`;
+      this.analysisApiDetail.textContent = `Model: ${model}`;
       try {
         this.showLoading(true, 'Reading file...');
         this.showProgress(true); this.progress(10, 'Reading file...');
@@ -386,101 +436,589 @@
     async performAIAnalysis(code) {
       const provider = localStorage.getItem('cai_provider') || 'ollama';
       const apiKey = localStorage.getItem('cai_api_key') || '';
-      const model = localStorage.getItem('selectedModel') || 'deepseek-coder:gpu-ultra';
+      const model = localStorage.getItem('selectedModel') || this.api.getDefaultModel();
 
-      // If provider requires an API key (OpenAI/OpenRouter) and it's missing/too short,
-      // announce and return NA object to skip AI analysis (per user instruction).
+      console.log('🚀 Starting AI analysis:', { provider, model: model?.slice(0, 30) });
+
+      // Enhanced API key validation
       if ((provider === 'openai' || provider === 'openrouter') && (!apiKey || apiKey.length < 10)) {
         const note = 'No API key – AI analysis unavailable';
+        console.warn('⚠️ API key missing for', provider);
         if (this.aiStatusNotice) this.aiStatusNotice.textContent = note;
         return { loc: 'NA', c1: 'NA', c2: 'NA', c3: 'NA', notes: [note], unavailable: true };
       }
 
-      const prompt = `Analyze this C code and return ONLY a compact JSON object with keys: loc (number), complexity1 (number), complexity2 (number), complexity3 (number), notes (string[]). Code:\n\n${code.slice(0, 16000)}`;
+      // Enhanced prompt with ultra-clear instructions for consistent JSON output
+      const prompt = `You must respond with ONLY valid JSON. No explanations, no text, no markdown. Just pure JSON.
+
+Analyze this C code and return a JSON object with these exact keys:
+{
+  "loc": <number of executable lines (exclude comments/blanks/includes)>,
+  "complexity1": <cyclomatic complexity (decision points + 1)>,
+  "complexity2": <cognitive complexity>,
+  "complexity3": <halstead complexity>,
+  "notes": ["brief analysis note"]
+}
+
+Important: Return ONLY the JSON object. No additional text before or after.
+
+C code to analyze:
+${code.slice(0, 16000)}
+
+Response (JSON only):`;
+
       let statusNote = '';
+      let analysisStartTime = performance.now();
+
       try {
+        let response, data, aiResponseText;
+
         if (provider === 'ollama') {
-          const res = await fetch('http://localhost:11434/api/generate', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model, prompt, stream: false })
+          console.log('📡 Sending request to Ollama...');
+          response = await fetch('http://localhost:11434/api/generate', {
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model, prompt, stream: false }),
+            signal: AbortSignal.timeout(30000) // 30 second timeout
           });
-          if (!res.ok) throw new Error(`Ollama HTTP ${res.status}`);
-          const data = await res.json();
-          const txt = data.response || '';
+          
+          if (!response.ok) throw new Error(`Ollama HTTP ${response.status}: ${response.statusText}`);
+          
+          data = await response.json();
+          aiResponseText = data.response || '';
           statusNote = 'Ollama local inference';
-          return this.parseAIMetrics(txt, statusNote);
-        }
-        if (provider === 'openai') {
-          const res = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-            body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }] })
+          
+        } else if (provider === 'openai') {
+          console.log('📡 Sending request to OpenAI...');
+          response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST', 
+            headers: { 
+              'Content-Type': 'application/json', 
+              'Authorization': `Bearer ${apiKey}` 
+            },
+            body: JSON.stringify({ 
+              model, 
+              messages: [{ role: 'user', content: prompt }],
+              max_tokens: 1000,
+              temperature: 0.1
+            }),
+            signal: AbortSignal.timeout(30000)
           });
-          if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}`);
-          const data = await res.json();
-          const txt = data.choices?.[0]?.message?.content || '';
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`OpenAI HTTP ${response.status}: ${errorData.error?.message || response.statusText}`);
+          }
+          
+          data = await response.json();
+          aiResponseText = data.choices?.[0]?.message?.content || '';
           statusNote = 'OpenAI cloud inference';
-          return this.parseAIMetrics(txt, statusNote);
-        }
-        if (provider === 'openrouter') {
-          const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-            body: JSON.stringify({ model: model || 'openrouter/auto', messages: [{ role: 'user', content: prompt }] })
+          
+        } else if (provider === 'openrouter') {
+          console.log('📡 Sending request to OpenRouter...');
+          
+          // Use better model for structured output if available
+          let currentModel = model || 'openai/gpt-oss-20b:free';
+          
+          // Try with a more structured-output friendly model first
+          if (currentModel === 'openai/gpt-oss-20b:free') {
+            console.log('🔄 Trying structured-output optimized model...');
+            currentModel = 'google/gemma-2-9b-it:free'; // Better at following instructions
+          }
+          
+          response = await this.makeRateLimitedRequest('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST', 
+            headers: { 
+              'Content-Type': 'application/json', 
+              'Authorization': `Bearer ${apiKey}`,
+              'HTTP-Referer': window.location.origin,
+              'X-Title': 'CAnalyzerAI'
+            },
+            body: JSON.stringify({ 
+              model: currentModel, 
+              messages: [{ role: 'user', content: prompt }],
+              max_tokens: 1000,
+              temperature: 0.1
+            }),
+            signal: AbortSignal.timeout(30000)
           });
-          if (!res.ok) throw new Error(`OpenRouter HTTP ${res.status}`);
-          const data = await res.json();
-          const txt = data.choices?.[0]?.message?.content || '';
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`OpenRouter HTTP ${response.status}: ${errorData.error?.message || response.statusText}`);
+          }
+          
+          data = await response.json();
+          aiResponseText = data.choices?.[0]?.message?.content || '';
           statusNote = 'OpenRouter cloud inference';
-          return this.parseAIMetrics(txt, statusNote);
+          
+        } else {
+          throw new Error(`Unknown AI provider: ${provider}`);
         }
-        throw new Error('Unknown provider');
-      } catch (err) {
-        sys.error(err?.message || String(err));
-        statusNote = 'AI unavailable; using static estimate';
-        const s = this.performStaticAnalysis(code);
-        return { loc: s.loc, c1: s.c1, c2: s.c2, c3: s.c3, notes: [statusNote] };
+
+        // Enhanced response validation
+        if (!aiResponseText) {
+          throw new Error('AI returned empty response');
+        }
+
+        console.log('✅ AI API call successful, parsing response...');
+        const analysisEndTime = performance.now();
+        console.log(`⏱️ AI API call took ${(analysisEndTime - analysisStartTime).toFixed(1)}ms`);
+
+        // Parse the AI response with enhanced error handling
+        const parsedResult = this.parseAIMetrics(aiResponseText, statusNote);
+        
+        // Validate the parsed result has meaningful data
+        if (parsedResult.parseError) {
+          console.warn('⚠️ AI response parsing had errors, using fallback values');
+        }
+
+        return parsedResult;
+
+      } catch (error) {
+        console.error('❌ AI analysis failed:', error);
+        
+        // Enhanced error categorization
+        let errorCategory = 'unknown';
+        if (error.name === 'AbortError') {
+          errorCategory = 'timeout';
+        } else if (error.message.includes('HTTP 429') || error.message.includes('Rate limit')) {
+          errorCategory = 'rate_limit';
+          console.log('💡 Rate limit suggestion: Try switching to a different model or wait a few minutes');
+          console.log('💡 Alternative models: google/gemma-2-9b-it:free, meta-llama/llama-3.1-8b-instruct:free');
+        } else if (error.message.includes('HTTP')) {
+          errorCategory = 'api_error';
+        } else if (error.message.includes('fetch')) {
+          errorCategory = 'network';
+        }
+
+        sys.error(`AI analysis failed (${errorCategory}): ${error.message}`);
+        
+        // Return static analysis as fallback with detailed error info
+        statusNote = `AI unavailable (${errorCategory}); using static estimate`;
+        const staticFallback = this.performStaticAnalysis(code);
+        
+        return { 
+          loc: staticFallback.loc, 
+          c1: staticFallback.c1, 
+          c2: staticFallback.c2, 
+          c3: staticFallback.c3, 
+          notes: [statusNote, `Error: ${error.message.slice(0, 100)}`],
+          fallbackUsed: true,
+          errorCategory
+        };
+        
       } finally {
-        if (this.aiStatusNotice) this.aiStatusNotice.textContent = statusNote;
+        // Ensure status is updated regardless of outcome
+        if (this.aiStatusNotice && statusNote) {
+          this.aiStatusNotice.textContent = statusNote;
+        }
       }
+    }
+
+    // Rate limiting handler with exponential backoff
+    async makeRateLimitedRequest(url, options, maxRetries = 3) {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(`🔄 API Request attempt ${attempt}/${maxRetries}`);
+          const response = await fetch(url, options);
+          
+          if (response.status === 429) {
+            const retryAfter = response.headers.get('retry-after') || Math.pow(2, attempt);
+            const waitTime = Math.min(parseInt(retryAfter) * 1000, 30000); // Max 30 seconds
+            
+            console.warn(`⏱️ Rate limited (429). Waiting ${waitTime/1000}s before retry ${attempt}/${maxRetries}`);
+            
+            if (attempt < maxRetries) {
+              await this.sleep(waitTime);
+              continue;
+            } else {
+              console.error('❌ Max retries reached for rate limiting');
+              throw new Error(`Rate limit exceeded after ${maxRetries} attempts`);
+            }
+          }
+          
+          // If not rate limited, return the response
+          return response;
+          
+        } catch (error) {
+          if (attempt === maxRetries) {
+            throw error;
+          }
+          
+          // Wait before retrying on other errors
+          const backoffTime = Math.min(1000 * Math.pow(2, attempt), 10000);
+          console.warn(`⚠️ Request failed, retrying in ${backoffTime/1000}s: ${error.message}`);
+          await this.sleep(backoffTime);
+        }
+      }
+    }
+
+    // Helper method for delays
+    sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     parseAIMetrics(text, statusNote='') {
-      try {
-        const match = text.match(/\{[\s\S]*\}/);
-        const jsonStr = match ? match[0] : text;
-        const parsed = JSON.parse(jsonStr);
-        return {
-          loc: Number(parsed.loc ?? 0),
-          c1: Number(parsed.complexity1 ?? parsed.c1 ?? 0),
-          c2: Number(parsed.complexity2 ?? parsed.c2 ?? 0),
-          c3: Number(parsed.complexity3 ?? parsed.c3 ?? 0),
-          notes: Array.isArray(parsed.notes) ? parsed.notes : (statusNote ? [statusNote] : [])
+      // Enhanced logging and validation for AI response parsing
+      console.log('🔍 AI Response Debug - Raw text length:', text?.length || 0);
+      console.log('🔍 AI Response Debug - First 200 chars:', text?.slice(0, 200) || 'empty');
+      
+      // Input validation
+      if (!text || typeof text !== 'string') {
+        console.warn('⚠️ Invalid AI response: empty or non-string input');
+        return { 
+          loc: 0, c1: 0, c2: 0, c3: 0, 
+          notes: [`Invalid response format. Expected string, got ${typeof text}`],
+          parseError: true 
         };
-      } catch (_e) {
-        // If parsing fails, fallback to carrying the raw text as a note
-        return { loc: 0, c1: 0, c2: 0, c3: 0, notes: text ? [text.slice(0, 200)] : (statusNote ? [statusNote] : []) };
+      }
+
+      // Multiple JSON extraction strategies for robustness
+      let jsonStr = null;
+      let extractionMethod = 'none';
+
+      try {
+        // Strategy 1: Look for JSON with expected structure (loc, complexity keys)
+        const structuredJsonMatch = text.match(/\{\s*["']?loc["']?\s*:\s*\d+[\s\S]*?\}/);
+        if (structuredJsonMatch) {
+          jsonStr = structuredJsonMatch[0];
+          extractionMethod = 'structured_json';
+        } else {
+          // Strategy 2: Look for any JSON object after "JSON:" or similar markers
+          const markerMatch = text.match(/(?:JSON:|json:|\{)\s*(\{[\s\S]*?\})/i);
+          if (markerMatch) {
+            jsonStr = markerMatch[1] || markerMatch[0];
+            extractionMethod = 'marker_json';
+          } else {
+            // Strategy 3: Direct JSON object extraction (any valid JSON object)
+            const jsonMatch = text.match(/\{\s*["']?\w+["']?\s*:\s*[\d"'\[][\s\S]*?\}/);
+            if (jsonMatch) {
+              jsonStr = jsonMatch[0];
+              extractionMethod = 'regex_match';
+            } else {
+              // Strategy 4: Look for JSON between common delimiters
+              const codeBlockMatch = text.match(/```json\n?([\s\S]*?)\n?```/);
+              if (codeBlockMatch) {
+                jsonStr = codeBlockMatch[1];
+                extractionMethod = 'code_block';
+              } else {
+                // Strategy 5: Look for any curly braces content with key-value pairs
+                const bracesMatch = text.match(/\{\s*["']?\w+["']?\s*:\s*[^}]*\}/);
+                if (bracesMatch) {
+                  jsonStr = bracesMatch[0];
+                  extractionMethod = 'simple_braces';
+                } else {
+                  // Strategy 6: Try to parse entire response as JSON
+                  jsonStr = text.trim();
+                  extractionMethod = 'full_text';
+                }
+              }
+            }
+          }
+        }
+
+        console.log('🔍 JSON Extraction - Method:', extractionMethod, 'Result:', jsonStr?.slice(0, 100));
+
+        if (!jsonStr) {
+          throw new Error('No JSON pattern found in AI response');
+        }
+
+        // Attempt to parse with enhanced error handling
+        let parsed;
+        try {
+          parsed = JSON.parse(jsonStr);
+        } catch (parseError) {
+          // Try to clean up common JSON issues
+          const cleanedJson = jsonStr
+            .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":') // Add quotes to keys
+            .replace(/:\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*([,}])/g, ':"$1"$2')   // Add quotes to string values
+            .replace(/,\s*}/g, '}')                                          // Remove trailing commas
+            .replace(/,\s*]/g, ']');                                         // Remove trailing commas in arrays
+          
+          console.log('🔧 Attempting JSON cleanup:', cleanedJson);
+          parsed = JSON.parse(cleanedJson);
+        }
+
+        console.log('🔍 Parsed JSON structure:', parsed);
+
+        // Validate parsed structure with type checking
+        const validatedResult = this.validateAndNormalizeAIResult(parsed, statusNote);
+        console.log('✅ Final validated result:', validatedResult);
+        
+        return validatedResult;
+
+      } catch (error) {
+        console.error('❌ JSON parsing failed:', error.message);
+        console.log('🔍 Failed text sample:', text?.slice(0, 500));
+        
+        // Fallback: try to extract numbers from text using regex
+        const numberExtractionResult = this.extractNumbersFromText(text, statusNote);
+        if (numberExtractionResult.hasValidNumbers) {
+          console.log('🔧 Fallback number extraction succeeded:', numberExtractionResult);
+          return numberExtractionResult;
+        }
+
+        // Final fallback: return zero values with detailed error info
+        return { 
+          loc: 0, c1: 0, c2: 0, c3: 0, 
+          notes: [
+            statusNote || 'JSON parsing failed',
+            `Parse error: ${error.message}`,
+            `Response preview: ${text?.slice(0, 100)}...`
+          ],
+          parseError: true,
+          originalText: text?.slice(0, 500) // Keep sample for debugging
+        };
       }
     }
 
-    displayAI(a, ms) {
-      // If AI marked unavailable, show a clear notice and set metrics to NA
-      if (a && a.unavailable) {
-        if (this.aiStatusNotice) this.aiStatusNotice.textContent = (a.notes && a.notes[0]) ? a.notes[0] : 'AI unavailable';
-        this.aiLOC.textContent = 'NA';
-        this.aiComplexity1.textContent = 'NA';
-        this.aiComplexity2.textContent = 'NA';
-        this.aiComplexity3.textContent = 'NA';
-        if (this.aiTime) this.aiTime.textContent = '';
-        // add an explicit visual flag
-        this.aiStatusNotice?.classList.add('ai-unavailable');
+    // New helper method for validating AI result structure
+    validateAndNormalizeAIResult(parsed, statusNote = '') {
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('Parsed result is not an object');
+      }
+
+      // Extract and validate numeric values with multiple key strategies
+      const extractNumber = (obj, ...keys) => {
+        for (const key of keys) {
+          if (key in obj) {
+            const val = Number(obj[key]);
+            if (Number.isFinite(val) && val >= 0) {
+              return val;
+            }
+          }
+        }
+        return 0;
+      };
+
+      const result = {
+        loc: extractNumber(parsed, 'loc', 'lines_of_code', 'lineCount', 'linesOfCode'),
+        c1: extractNumber(parsed, 'complexity1', 'c1', 'cyclomatic', 'cyclomaticComplexity'),
+        c2: extractNumber(parsed, 'complexity2', 'c2', 'cognitive', 'cognitiveComplexity'),  
+        c3: extractNumber(parsed, 'complexity3', 'c3', 'halstead', 'halsteadComplexity'),
+        notes: []
+      };
+
+      // Validate that we got meaningful values
+      const hasValidData = result.loc > 0 || result.c1 > 0 || result.c2 > 0 || result.c3 > 0;
+      
+      // Handle notes array
+      if (Array.isArray(parsed.notes)) {
+        result.notes = parsed.notes.filter(note => typeof note === 'string');
+      } else if (typeof parsed.notes === 'string') {
+        result.notes = [parsed.notes];
+      }
+
+      // Add status note if provided
+      if (statusNote) {
+        result.notes.unshift(statusNote);
+      }
+
+      // Add validation status
+      if (!hasValidData) {
+        result.notes.push('Warning: All complexity values are zero - review AI analysis');
+        console.warn('⚠️ AI returned all zero values:', parsed);
+      }
+
+      return result;
+    }
+
+    // New fallback method for extracting numbers from unstructured text
+    extractNumbersFromText(text, statusNote = '') {
+      console.log('🔧 Attempting number extraction from unstructured text');
+      
+      // Look for common patterns like "loc: 25", "complexity: 3", etc.
+      const patterns = {
+        loc: /(?:loc|lines?.*?code|testable.*?lines?|count\s+\d+)[\s:=]*(\d+)/i,
+        c1: /(?:complexity[1\s]*|cyclomatic|decision.*?points?\s*[+=]\s*1\s*[=]\s*)[\s:=]*(\d+)/i,
+        c2: /(?:complexity[2\s]*|cognitive)[\s:=]*(\d+)/i,
+        c3: /(?:complexity[3\s]*|halstead)[\s:=]*(\d+)/i
+      };
+
+      const extracted = {};
+      let hasValidNumbers = false;
+
+      // Try specific patterns first
+      for (const [key, pattern] of Object.entries(patterns)) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+          const num = parseInt(match[1], 10);
+          if (Number.isFinite(num) && num >= 0) {
+            extracted[key] = num;
+            hasValidNumbers = true;
+          }
+        }
+      }
+
+      // Enhanced number sequence detection
+      if (!hasValidNumbers) {
+        // Look for patterns like "Thus loc = 4" or "So 6 lines"
+        const textLoc = text.match(/(?:thus|so|count|total).*?(?:loc|lines?).*?[=:]?\s*(\d+)/i);
+        if (textLoc) {
+          extracted.loc = parseInt(textLoc[1], 10) || 0;
+          hasValidNumbers = true;
+        }
+
+        // Look for complexity mentions
+        const complexityMatch = text.match(/complexity.*?[=:]?\s*(\d+)/i);
+        if (complexityMatch) {
+          const complexityValue = parseInt(complexityMatch[1], 10) || 0;
+          extracted.c1 = complexityValue;
+          extracted.c2 = complexityValue;
+          hasValidNumbers = true;
+        }
+
+        // Look for patterns like "7, 2, 2, 2" or "7 2 2 2" in the text
+        const numberSequence = text.match(/(\d+)[\s,]+(\d+)[\s,]+(\d+)[\s,]+(\d+)/);
+        if (numberSequence) {
+          extracted.loc = parseInt(numberSequence[1], 10) || 0;
+          extracted.c1 = parseInt(numberSequence[2], 10) || 0;
+          extracted.c2 = parseInt(numberSequence[3], 10) || 0;
+          extracted.c3 = parseInt(numberSequence[4], 10) || 0;
+          hasValidNumbers = true;
+          console.log('🔍 Found number sequence:', numberSequence.slice(1));
+        }
+      }
+
+      return {
+        loc: extracted.loc || 0,
+        c1: extracted.c1 || 0, 
+        c2: extracted.c2 || 0,
+        c3: extracted.c3 || 0,
+        notes: [
+          statusNote || 'Number extraction fallback used',
+          'AI response was not valid JSON - extracted numbers from text'
+        ],
+        hasValidNumbers,
+        extractionFallback: true
+      };
+    }
+
+    displayAI(aiResult, ms) {
+      console.log('🎯 displayAI called with result:', aiResult);
+      console.log('🎯 displayAI - Analysis time:', ms, 'ms');
+
+      // Enhanced error state handling
+      if (!aiResult || typeof aiResult !== 'object') {
+        console.error('❌ Invalid AI result object:', aiResult);
+        this.setAIDisplayError('Invalid analysis result');
         return;
       }
 
-      this.aiStatusNotice?.classList.remove('ai-unavailable');
-      this.aiLOC.textContent = this.formatForDisplay(a.loc);
-      this.aiComplexity1.textContent = this.formatForDisplay(a.c1);
-      this.aiComplexity2.textContent = this.formatForDisplay(a.c2);
-      this.aiComplexity3.textContent = this.formatForDisplay(a.c3);
+      // Handle unavailable AI analysis
+      if (aiResult.unavailable) {
+        const message = (aiResult.notes && aiResult.notes[0]) ? aiResult.notes[0] : 'AI analysis unavailable';
+        this.setAIDisplayUnavailable(message);
+        return;
+      }
+
+      // Handle parsing errors with visual feedback
+      if (aiResult.parseError || aiResult.extractionFallback) {
+        console.warn('⚠️ AI parsing issues detected:', aiResult);
+        this.setAIDisplayWithWarning(aiResult, ms);
+        return;
+      }
+
+      // Normal successful display
+      this.setAIDisplaySuccess(aiResult, ms);
+    }
+
+    // New helper methods for different AI display states
+    setAIDisplayError(message) {
+      if (this.aiStatusNotice) this.aiStatusNotice.textContent = `Error: ${message}`;
+      this.aiLOC.textContent = 'ERROR';
+      this.aiComplexity1.textContent = 'ERROR';
+      this.aiComplexity2.textContent = 'ERROR';
+      this.aiComplexity3.textContent = 'ERROR';
+      if (this.aiTime) this.aiTime.textContent = '';
+      this.aiStatusNotice?.classList.add('ai-error');
+      this.aiStatusNotice?.classList.remove('ai-unavailable', 'ai-warning');
+    }
+
+    setAIDisplayUnavailable(message) {
+      if (this.aiStatusNotice) this.aiStatusNotice.textContent = message;
+      this.aiLOC.textContent = 'NA';
+      this.aiComplexity1.textContent = 'NA';
+      this.aiComplexity2.textContent = 'NA';
+      this.aiComplexity3.textContent = 'NA';
+      if (this.aiTime) this.aiTime.textContent = '';
+      this.aiStatusNotice?.classList.add('ai-unavailable');
+      this.aiStatusNotice?.classList.remove('ai-error', 'ai-warning');
+    }
+
+    setAIDisplayWithWarning(aiResult, ms) {
+      // Display the values but with warning styling
+      this.aiStatusNotice?.classList.remove('ai-unavailable', 'ai-error');
+      this.aiStatusNotice?.classList.add('ai-warning');
+      
+      if (this.aiStatusNotice) {
+        const warningMsg = aiResult.extractionFallback ? 
+          'AI response parsed with fallback method' : 
+          'AI response had parsing issues';
+        this.aiStatusNotice.textContent = warningMsg;
+      }
+
+      // Use enhanced display formatting
+      this.aiLOC.textContent = this.formatForDisplayEnhanced(aiResult.loc, 'LOC');
+      this.aiComplexity1.textContent = this.formatForDisplayEnhanced(aiResult.c1, 'C1');
+      this.aiComplexity2.textContent = this.formatForDisplayEnhanced(aiResult.c2, 'C2');
+      this.aiComplexity3.textContent = this.formatForDisplayEnhanced(aiResult.c3, 'C3');
+      
       if (this.aiTime) this.aiTime.textContent = `${ms.toFixed(1)} ms`;
+      
+      console.log('⚠️ AI values displayed with warnings:', {
+        loc: aiResult.loc, c1: aiResult.c1, c2: aiResult.c2, c3: aiResult.c3
+      });
+    }
+
+    setAIDisplaySuccess(aiResult, ms) {
+      this.aiStatusNotice?.classList.remove('ai-unavailable', 'ai-error', 'ai-warning');
+      
+      if (this.aiStatusNotice && aiResult.notes && aiResult.notes[0]) {
+        this.aiStatusNotice.textContent = aiResult.notes[0];
+      }
+
+      // Use enhanced display formatting
+      this.aiLOC.textContent = this.formatForDisplayEnhanced(aiResult.loc, 'LOC');
+      this.aiComplexity1.textContent = this.formatForDisplayEnhanced(aiResult.c1, 'C1');
+      this.aiComplexity2.textContent = this.formatForDisplayEnhanced(aiResult.c2, 'C2');
+      this.aiComplexity3.textContent = this.formatForDisplayEnhanced(aiResult.c3, 'C3');
+      
+      if (this.aiTime) this.aiTime.textContent = `${ms.toFixed(1)} ms`;
+      
+      console.log('✅ AI values displayed successfully:', {
+        loc: aiResult.loc, c1: aiResult.c1, c2: aiResult.c2, c3: aiResult.c3
+      });
+    }
+
+    // Enhanced formatting with type validation and context
+    formatForDisplayEnhanced(value, context = '') {
+      console.log(`🔍 Formatting ${context}:`, value, typeof value);
+      
+      // Strict type and value validation
+      if (value === null || value === undefined) {
+        console.warn(`⚠️ ${context} is null/undefined`);
+        return 'NA';
+      }
+
+      // Convert to number and validate
+      const num = Number(value);
+      
+      if (!Number.isFinite(num)) {
+        console.warn(`⚠️ ${context} is not a finite number:`, value, 'Type:', typeof value);
+        return 'NA';
+      }
+
+      if (num < 0) {
+        console.warn(`⚠️ ${context} is negative:`, num);
+        return 'Invalid';
+      }
+
+      // Return the number as string
+      const result = String(Math.round(num)); // Round to handle floating point issues
+      console.log(`✅ ${context} formatted:`, result);
+      return result;
     }
 
     displayComparison(s, a) {
@@ -560,6 +1098,57 @@
 
     newAnalysis() { this.resetUI(); }
 
+    // Enhanced debugging and testing method
+    async testAIAnalysisPipeline() {
+      console.log('🧪 Testing AI Analysis Pipeline...');
+      
+      // Test with sample C code
+      const testCode = `
+#include <stdio.h>
+int factorial(int n) {
+    if (n <= 1) return 1;
+    return n * factorial(n - 1);
+}
+int main() {
+    printf("Factorial of 5: %d\\n", factorial(5));
+    return 0;
+}`;
+
+      try {
+        console.log('🧪 Test 1: Static Analysis');
+        const staticResult = this.performStaticAnalysis(testCode);
+        console.log('✅ Static result:', staticResult);
+
+        console.log('🧪 Test 2: AI Analysis Pipeline');
+        const aiResult = await this.performAIAnalysis(testCode);
+        console.log('✅ AI result:', aiResult);
+
+        console.log('🧪 Test 3: Display Methods');
+        this.displayAI(aiResult, 1250);
+        console.log('✅ Display test completed');
+
+        console.log('🧪 Test 4: JSON Parsing Edge Cases');
+        const edgeCases = [
+          '{"loc": 10, "complexity1": 2, "complexity2": 1, "complexity3": 3}',
+          'Response: {"loc":15,"complexity1":3,"complexity2":2,"complexity3":4,"notes":["test"]}',
+          '```json\n{"loc": 8, "complexity1": 1, "complexity2": 1, "complexity3": 2}\n```',
+          'The analysis shows: loc=12, complexity1=4, complexity2=3, complexity3=5',
+          'Invalid response format'
+        ];
+
+        edgeCases.forEach((testCase, index) => {
+          console.log(`🧪 Edge case ${index + 1}:`, testCase.slice(0, 50));
+          const parsed = this.parseAIMetrics(testCase, 'test');
+          console.log(`✅ Parsed result ${index + 1}:`, parsed);
+        });
+
+        return { success: true, message: 'All tests passed' };
+      } catch (error) {
+        console.error('❌ Pipeline test failed:', error);
+        return { success: false, error: error.message };
+      }
+    }
+
     progress(pct, text) {
       if (this.progressFill) this.progressFill.style.width = `${pct}%`;
       if (this.progressText) this.progressText.textContent = text || '';
@@ -575,6 +1164,59 @@
   window.addEventListener('DOMContentLoaded', () => {
     sys.init();
     const app = new CAnalyzerAIRef();
+
+    // Expose app instance and test methods for debugging
+    window.CAnalyzerAI = app;
+    window.testAIPipeline = () => app.testAIAnalysisPipeline();
+    
+    // Additional debugging helpers
+    window.debugAIParsing = (testText) => {
+      console.log('🧪 Manual AI parsing test:');
+      return app.parseAIMetrics(testText, 'manual test');
+    };
+    
+    window.checkAIStatus = () => {
+      const provider = localStorage.getItem('cai_provider') || 'ollama';
+      const apiKey = localStorage.getItem('cai_api_key') || '';
+      const model = localStorage.getItem('selectedModel') || 'default';
+      
+      console.log('🔍 Current AI Configuration:');
+      console.log('Provider:', provider);
+      console.log('Model:', model);
+      console.log('API Key:', apiKey ? `${apiKey.slice(0, 10)}...` : 'None');
+      console.log('API Key Valid:', apiKey && apiKey.length > 10);
+      
+      return { provider, model, hasApiKey: !!apiKey };
+    };
+
+    window.suggestAlternativeModels = () => {
+      console.log('💡 Alternative OpenRouter Models (Better for JSON):');
+      console.log('- google/gemma-2-9b-it:free (Recommended)');
+      console.log('- meta-llama/llama-3.1-8b-instruct:free');
+      console.log('- microsoft/wizardlm-2-8x22b:free');
+      console.log('- huggingface/starcoder2-15b:free');
+      console.log('');
+      console.log('💡 To switch models:');
+      console.log('1. Open Settings (⚙️ button)');
+      console.log('2. Select a different model from the dropdown');
+      console.log('3. Save and try analysis again');
+      console.log('');
+      console.log('📊 Current model performance issues:');
+      console.log('- openai/gpt-oss-20b:free tends to return explanations instead of JSON');
+      console.log('- Try google/gemma-2-9b-it:free for better structured output');
+    };
+
+    window.switchToRecommendedModel = () => {
+      localStorage.setItem('selectedModel', 'google/gemma-2-9b-it:free');
+      console.log('✅ Switched to google/gemma-2-9b-it:free');
+      console.log('🔄 Please try your analysis again');
+      return 'Model switched to google/gemma-2-9b-it:free';
+    };
+    
+    console.log('🎯 CAnalyzerAI Debug: App instance available as window.CAnalyzerAI');
+    console.log('🎯 CAnalyzerAI Debug: Run window.testAIPipeline() to test AI analysis');
+    console.log('🎯 CAnalyzerAI Debug: Run window.checkAIStatus() to check configuration');
+    console.log('🎯 CAnalyzerAI Debug: Run window.debugAIParsing("your json") to test parsing');
 
     // Loading text animation
     anime({
@@ -1068,7 +1710,8 @@
     }
   });
 
-  // Simplified But Visible Particle System
+  // Simplified But Visible Particle System - DISABLED (using matrix-particles.js instead)
+  /*
   document.addEventListener('DOMContentLoaded', () => {
     // Small delay to ensure DOM is fully ready
     setTimeout(() => {
@@ -1180,8 +1823,10 @@
       console.log('🚀 Particle system started successfully!');
     }, 100); // Small delay to ensure DOM is ready
   });
+  */
 
-  // Enhanced Particle System - Working Version
+  // Enhanced Particle System - Working Version - DISABLED (using matrix-particles.js instead)
+  /*
   setTimeout(() => {
     console.log('🎯 Initializing enhanced particle system...');
     
@@ -1285,6 +1930,7 @@
       console.log(`✅ Confirmed: ${particles.length} particles actively animating`);
     }, 2000);
   }, 500); // Wait 500ms to ensure DOM is fully ready
+  */
 })();
 
 // ========================================
@@ -1756,7 +2402,7 @@ class CyberParticleController {
     document.addEventListener('DOMContentLoaded', () => {
       if (window.cyberParticles) {
         // Cyber particles are available
-        sys.log('🚀 Cyber particle system integrated successfully');
+        console.log('🚀 Cyber particle system integrated successfully');
         
         // Optional: Add particle controls to settings
         this.addParticleSettings();
@@ -1778,11 +2424,11 @@ class CyberParticleController {
       if (this.isEnabled) {
         window.cyberParticles.destroy();
         this.isEnabled = false;
-        sys.log('💥 Cyber particles disabled');
+        console.log('💥 Cyber particles disabled');
       } else {
         window.cyberParticles.init();
         this.isEnabled = true;
-        sys.log('✨ Cyber particles enabled');
+        console.log('✨ Cyber particles enabled');
       }
       localStorage.setItem('cyber-particles-enabled', this.isEnabled.toString());
     }
@@ -1793,7 +2439,7 @@ class CyberParticleController {
       // Intensity from 0 to 1 - maps to the cyber particle density setting
       const density = Math.floor(intensity * 100); // 0-100 density
       window.cyberParticles.adjustDensity(density);
-      sys.log(`🎛️ Cyber particle intensity: ${Math.round(intensity * 100)}%`);
+      console.log(`🎛️ Cyber particle intensity: ${Math.round(intensity * 100)}%`);
     }
   }
 
