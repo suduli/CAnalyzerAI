@@ -1743,3 +1743,73 @@ const microInteractionStyles = `
 const styleSheet = document.createElement('style');
 styleSheet.textContent = microInteractionStyles;
 document.head.appendChild(styleSheet);
+
+// Matrix Particles Integration - Updated for Cyber Theme
+class CyberParticleController {
+  constructor() {
+    this.isEnabled = localStorage.getItem('cyber-particles-enabled') !== 'false';
+    this.setupControls();
+  }
+
+  setupControls() {
+    // Add particle toggle to header if needed
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.cyberParticles) {
+        // Cyber particles are available
+        sys.log('🚀 Cyber particle system integrated successfully');
+        
+        // Optional: Add particle controls to settings
+        this.addParticleSettings();
+      }
+    });
+  }
+
+  addParticleSettings() {
+    // You can add controls to the settings modal here if desired
+    const settingsModal = document.getElementById('apiKeyModal');
+    if (settingsModal) {
+      // Could add particle intensity slider, enable/disable toggle, etc.
+      // For now, particles will auto-adjust based on theme
+    }
+  }
+
+  toggleParticles() {
+    if (window.cyberParticles) {
+      if (this.isEnabled) {
+        window.cyberParticles.destroy();
+        this.isEnabled = false;
+        sys.log('💥 Cyber particles disabled');
+      } else {
+        window.cyberParticles.init();
+        this.isEnabled = true;
+        sys.log('✨ Cyber particles enabled');
+      }
+      localStorage.setItem('cyber-particles-enabled', this.isEnabled.toString());
+    }
+  }
+
+  adjustParticleIntensity(intensity) {
+    if (window.cyberParticles && this.isEnabled) {
+      // Intensity from 0 to 1 - maps to the cyber particle density setting
+      const density = Math.floor(intensity * 100); // 0-100 density
+      window.cyberParticles.adjustDensity(density);
+      sys.log(`🎛️ Cyber particle intensity: ${Math.round(intensity * 100)}%`);
+    }
+  }
+
+  // New methods for cyber theme features
+  toggleAttraction() {
+    if (window.cyberParticles && this.isEnabled) {
+      window.cyberParticles.toggleAttraction();
+    }
+  }
+
+  setCustomColors(colors) {
+    if (window.cyberParticles && this.isEnabled) {
+      window.cyberParticles.setColors(colors);
+    }
+  }
+}
+
+// Initialize Cyber particle controller
+const cyberController = new CyberParticleController();
