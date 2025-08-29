@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Particles Demo - CAnalyzerAI</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #02001a 0%, #0c0a30 50%, #02001a 100%);
+            color: #00f5d4;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .demo-content {
+            position: relative;
+            z-index: 10;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3em;
+            color: #00f5d4;
+            text-shadow: 
+                0 0 10px #00f5d4,
+                0 0 20px #00f5d4,
+                0 0 30px #00f5d4;
+            margin-bottom: 10px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #00f5d4, 0 0 20px #00f5d4, 0 0 30px #00f5d4; }
+            to { text-shadow: 0 0 20px #00f5d4, 0 0 30px #00f5d4, 0 0 40px #00f5d4; }
+        }
+
+        .subtitle {
+            color: #6c63ff;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+
+        .info-panel {
+            background: rgba(0, 245, 212, 0.1);
+            border: 1px solid #00f5d4;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 
+                0 0 20px rgba(0, 245, 212, 0.3),
+                inset 0 0 20px rgba(0, 245, 212, 0.1);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: rgba(108, 99, 255, 0.1);
+            border: 1px solid #6c63ff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(108, 99, 255, 0.3);
+            border-color: #ff006e;
+        }
+
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .controls-panel {
+            background: rgba(255, 0, 110, 0.1);
+            border: 1px solid #ff006e;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            gap: 15px;
+        }
+
+        .control-label {
+            min-width: 150px;
+            color: #ff006e;
+            font-weight: bold;
+        }
+
+        button {
+            background: linear-gradient(45deg, #00f5d4, #6c63ff);
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #6c63ff, #ff006e);
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 245, 212, 0.4);
+        }
+
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid #00f5d4;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .theme-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .theme-btn {
+            margin: 0 10px;
+            background: transparent;
+            border: 2px solid;
+            color: inherit;
+        }
+
+        .theme-btn.dark {
+            border-color: #00f5d4;
+            color: #00f5d4;
+        }
+
+        .theme-btn.light {
+            border-color: #6c63ff;
+            color: #6c63ff;
+        }
+
+        .interaction-hints {
+            text-align: center;
+            margin: 40px 0;
+            font-size: 1.1em;
+            color: #ff006e;
+        }
+
+        .color-demo {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .color-swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        .color-1 { background: #00f5d4; }
+        .color-2 { background: #6c63ff; }
+        .color-3 { background: #ff006e; }
+    </style>
+</head>
+<body class="dark-theme">
+    <!-- Cyber Particle System -->
+    <div id="particles-js"></div>
+    
+    <div class="demo-content">
+        <div class="header">
+            <h1>CYBER PARTICLES</h1>
+            <div class="subtitle">Advanced Multi-Color Particle System</div>
+            <div class="color-demo">
+                <div class="color-swatch color-1" title="Cyan #00f5d4"></div>
+                <div class="color-swatch color-2" title="Purple #6c63ff"></div>
+                <div class="color-swatch color-3" title="Pink #ff006e"></div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div class="status" id="status">🚀 Loading cyber particle system...</div>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🎨</span>
+                    <h3>Multi-Color System</h3>
+                    <p>Cyan, Purple, and Pink particles creating a vibrant cyber atmosphere</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🧲</span>
+                    <h3>Attraction Effects</h3>
+                    <p>Hover to attract particles, click to repulse them away</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">📱</span>
+                    <h3>Touch Interactive</h3>
+                    <p>Touch and drag on mobile devices to interact with particles</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🔗</span>
+                    <h3>Network Lines</h3>
+                    <p>Dynamic connections between particles create network patterns</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <h3>🎛️ Particle Controls</h3>
+            
+            <div class="control-row">
+                <span class="control-label">System Control:</span>
+                <button onclick="toggleParticles()">Toggle Particles</button>
+                <button onclick="resetSystem()">Reset System</button>
+            </div>
+            
+            <div class="control-row">
+                <span class="control-label">Advanced:</span>
+                <button onclick="toggleAttraction()">Toggle Attraction</button>
+                <button onclick="randomizeColors()">Random Colors</button>
+            </div>
+        </div>
+
+        <div class="theme-buttons">
+            <button class="theme-btn dark" onclick="setTheme('dark')">🌙 Dark Cyber</button>
+            <button class="theme-btn light" onclick="setTheme('light')">☀️ Light Cyber</button>
+        </div>
+
+        <div class="interaction-hints">
+            <strong>💫 Try This:</strong><br>
+            • Hover your mouse over particles to attract them<br>
+            • Click anywhere to create a repulsion effect<br>
+            • On mobile, touch and drag to interact<br>
+            • Watch the dynamic network connections form and break
+        </div>
+
+        <div class="info-panel">
+            <h3>✨ Integration Status</h3>
+            <p>This cyber particle system is now integrated into your CAnalyzerAI application with:</p>
+            <ul>
+                <li><strong>150 particles</strong> with multi-color support (#00f5d4, #6c63ff, #ff006e)</li>
+                <li><strong>Attraction/Repulsion</strong> mouse and touch interactions</li>
+                <li><strong>Network connections</strong> with dynamic opacity</li>
+                <li><strong>Theme adaptation</strong> for dark and light modes</li>
+                <li><strong>Performance optimization</strong> with retina detection</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="matrix-particles.js"></script>
+    
+    <script>
+        let currentTheme = 'dark';
+
+        // Status updates
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            const icons = { info: '🚀', success: '✅', error: '❌', warning: '⚠️' };
+            statusEl.innerHTML = `${icons[type]} ${message}`;
+        }
+
+        // Theme switching
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.body.className = theme + '-theme';
+            
+            if (theme === 'light') {
+                document.body.style.background = 'linear-gradient(135deg, #f6f8ff 0%, #e8ecff 50%, #f6f8ff 100%)';
+                document.body.style.color = '#00b3a6';
+            } else {
+                document.body.style.background = 'linear-gradient(135deg, #02001a 0%, #0c0a30 50%, #02001a 100%)';
+                document.body.style.color = '#00f5d4';
+            }
+            
+            updateStatus(`Switched to ${theme} cyber theme`, 'success');
+        }
+
+        // Particle controls
+        function toggleParticles() {
+            if (window.cyberParticles) {
+                if (window.pJSDom && window.pJSDom.length > 0) {
+                    window.cyberParticles.destroy();
+                    updateStatus('Cyber particles disabled', 'warning');
+                } else {
+                    window.cyberParticles.init();
+                    updateStatus('Cyber particles enabled', 'success');
+                }
+            }
+        }
+
+        function resetSystem() {
+            if (window.cyberParticles) {
+                window.cyberParticles.destroy();
+                setTimeout(() => {
+                    window.cyberParticles.init();
+                    updateStatus('Cyber particle system reset', 'success');
+                }, 200);
+            }
+        }
+
+        function toggleAttraction() {
+            if (window.cyberParticles) {
+                window.cyberParticles.toggleAttraction();
+                updateStatus('Attraction mode toggled', 'info');
+            }
+        }
+
+        function randomizeColors() {
+            const colors = [
+                ['#ff0080', '#00ff80', '#8000ff'],
+                ['#ff4040', '#40ff40', '#4040ff'],
+                ['#ffaa00', '#aa00ff', '#00aaff'],
+                ['#00f5d4', '#6c63ff', '#ff006e'] // Back to original
+            ];
+            const randomSet = colors[Math.floor(Math.random() * colors.length)];
+            
+            if (window.cyberParticles) {
+                window.cyberParticles.setColors(randomSet);
+                updateStatus(`Colors set to: ${randomSet.join(', ')}`, 'success');
+            }
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            updateStatus('Cyber particle system loaded successfully! 🎉', 'success');
+            
+            // Add particle count info
+            setTimeout(() => {
+                if (window.pJSDom && window.pJSDom.length > 0) {
+                    const pJS = window.pJSDom[0].pJS;
+                    const count = pJS.particles.array.length;
+                    updateStatus(`${count} cyber particles active with attraction effects`, 'info');
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

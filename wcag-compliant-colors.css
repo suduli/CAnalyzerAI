@@ -1,0 +1,234 @@
+/* WCAG 2.1 AA/AAA Compliant Color Improvements for CAnalyzerAI */
+
+/* 
+WCAG Color Contrast Analysis Results:
+- Original dark theme had several contrast issues
+- Original light theme had minor contrast issues  
+- These improvements ensure minimum 4.5:1 for AA and 7:1 for AAA compliance
+*/
+
+/* Enhanced Dark Theme - WCAG AA/AAA Compliant */
+:root {
+  /* Enhanced text colors for better contrast */
+  --text-primary: #f0f0ff;           /* Improved from #e0e0ff - AAA compliant on dark backgrounds */
+  --text-secondary: #b8b8d8;         /* Improved from #a0a0cc - AA compliant */
+  --text-muted: #8a8aaa;             /* Improved from #6a6a8a - AA large text compliant */
+  
+  /* Enhanced background colors */
+  --bg-primary: #0a0814;             /* Slightly lighter than #02001a for better contrast */
+  --bg-secondary: rgba(16, 12, 44, 0.65);   /* Improved transparency */
+  --bg-glass: rgba(20, 16, 56, 0.75);       /* Better contrast for glass elements */
+  --bg-glass-light: rgba(28, 24, 68, 0.45);
+  --bg-glass-elevated: rgba(20, 16, 56, 0.9);
+  
+  /* Enhanced surface colors */
+  --surface: rgba(255, 255, 255, 0.08);     /* Improved visibility */
+  --surface-elevated: rgba(255, 255, 255, 0.12);
+  --card-bg: rgba(255, 255, 255, 0.1);      /* Better card visibility */
+  --card-bg-hover: rgba(255, 255, 255, 0.15);
+  
+  /* Enhanced border colors */
+  --muted-border: rgba(255, 255, 255, 0.15);     /* More visible borders */
+  --muted-border-hover: rgba(255, 255, 255, 0.25);
+  --border-color: rgba(108, 99, 255, 0.3);       /* Improved accent border visibility */
+  --border-color-hover: rgba(108, 99, 255, 0.45);
+  
+  /* Enhanced accent colors - verified for accessibility */
+  --accent-glow: #7c73ff;           /* Slightly lighter for better contrast */
+  --accent-cyan: #1ff5d4;           /* Brighter cyan for better visibility */
+  --accent-magenta: #ff1aff;        /* Adjusted magenta for better contrast */
+  
+  /* Enhanced RGB values for calculations */
+  --accent-rgb: 124, 115, 255;      /* For rgba() usage */
+  --cyan-rgb: 31, 245, 212;
+  --magenta-rgb: 255, 26, 255;
+  --text-primary-rgb: 240, 240, 255;
+  --border-rgb: 255, 255, 255;
+}
+
+/* WCAG Compliant Light Theme */
+[data-theme="light"] {
+  /* Enhanced text colors for light theme */
+  --text-primary: #0a0f1a;           /* Darker for better contrast - AAA compliant */
+  --text-secondary: #1a2332;         /* Improved from #31405a - AA compliant */
+  --text-muted: #3a4a5a;             /* Better contrast than #51607a */
+  
+  /* Enhanced background colors */
+  --bg-primary: #fafbff;             /* Slightly adjusted for better contrast */
+  --bg-secondary: rgba(248, 250, 255, 0.8);
+  --bg-glass: rgba(255, 255, 255, 0.9);
+  --bg-glass-light: rgba(255, 255, 255, 0.75);
+  --bg-glass-elevated: rgba(255, 255, 255, 0.95);
+  
+  /* Enhanced surface colors */
+  --surface: rgba(255, 255, 255, 0.9);
+  --surface-elevated: rgba(255, 255, 255, 0.95);
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-bg-hover: rgba(255, 255, 255, 0.98);
+  
+  /* Enhanced border colors */
+  --muted-border: rgba(16, 24, 40, 0.12);        /* More visible borders */
+  --muted-border-hover: rgba(16, 24, 40, 0.2);
+  --border-color: rgba(0, 102, 255, 0.15);       /* Better visibility */
+  --border-color-hover: rgba(0, 102, 255, 0.25);
+  
+  /* Enhanced accent colors for light theme */
+  --accent-glow: #0052e6;           /* Darker blue for better contrast */
+  --accent-cyan: #0066cc;           /* Adjusted cyan for AA compliance */
+  --accent-magenta: #d63384;        /* Better contrast magenta */
+  
+  /* Enhanced RGB values */
+  --accent-rgb: 0, 82, 230;
+  --cyan-rgb: 0, 102, 204;
+  --magenta-rgb: 214, 51, 132;
+  --text-primary-rgb: 10, 15, 26;
+  --border-rgb: 16, 24, 40;
+  
+  /* Light theme specific shadows for better visibility */
+  --glow-shadow-light: 0 0 8px rgba(0, 82, 230, 0.15), 0 0 16px rgba(0, 82, 230, 0.08);
+  --glow-shadow-medium: 0 0 16px rgba(0, 82, 230, 0.2), 0 0 32px rgba(0, 82, 230, 0.1);
+  --glow-shadow-heavy: 0 0 24px rgba(0, 82, 230, 0.25), 0 0 48px rgba(0, 82, 230, 0.15);
+}
+
+/* Auto theme system preference detection - enhanced */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --text-primary: #0a0f1a;
+    --text-secondary: #1a2332;
+    --text-muted: #3a4a5a;
+    --bg-primary: #fafbff;
+    --bg-secondary: rgba(248, 250, 255, 0.8);
+    --bg-glass: rgba(255, 255, 255, 0.9);
+    --accent-glow: #0052e6;
+    --accent-cyan: #0066cc;
+    --accent-magenta: #d63384;
+    --border-color: rgba(0, 102, 255, 0.15);
+    --surface: rgba(255, 255, 255, 0.9);
+    --card-bg: rgba(255, 255, 255, 0.92);
+    --muted-border: rgba(16, 24, 40, 0.12);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --text-primary: #f0f0ff;
+    --text-secondary: #b8b8d8;
+    --text-muted: #8a8aaa;
+    --bg-primary: #0a0814;
+    --bg-secondary: rgba(16, 12, 44, 0.65);
+    --bg-glass: rgba(20, 16, 56, 0.75);
+    --accent-glow: #7c73ff;
+    --accent-cyan: #1ff5d4;
+    --accent-magenta: #ff1aff;
+    --border-color: rgba(108, 99, 255, 0.3);
+    --surface: rgba(255, 255, 255, 0.08);
+    --card-bg: rgba(255, 255, 255, 0.1);
+    --muted-border: rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* Enhanced focus states for better accessibility */
+*:focus-visible {
+  outline: 3px solid var(--accent-glow);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Ensure minimum touch target sizes for mobile accessibility */
+button, .btn, input, select, textarea, [role="button"], [tabindex] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Enhanced theme toggle accessibility */
+.theme-toggle:focus-visible {
+  outline: 3px solid var(--accent-glow);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(var(--accent-rgb), 0.2);
+}
+
+.theme-option:focus-visible {
+  outline: 2px solid var(--accent-glow);
+  outline-offset: 1px;
+  background: rgba(var(--accent-rgb), 0.1);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --text-primary: #ffffff !important;
+    --text-secondary: #e0e0e0 !important;
+    --bg-primary: #000000 !important;
+    --border-color: #ffffff !important;
+    --accent-glow: #00ffff !important;
+    --accent-cyan: #00ffff !important;
+    --accent-magenta: #ff00ff !important;
+  }
+  
+  [data-theme="light"] {
+    --text-primary: #000000 !important;
+    --text-secondary: #333333 !important;
+    --bg-primary: #ffffff !important;
+    --border-color: #000000 !important;
+    --accent-glow: #0000ff !important;
+    --accent-cyan: #0000ff !important;
+    --accent-magenta: #ff0000 !important;
+  }
+  
+  /* Remove transparent backgrounds in high contrast mode */
+  .glass-effect,
+  .card-bg,
+  .surface,
+  .bg-glass {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--bg-primary) !important;
+    border: 2px solid var(--border-color) !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all animations and transitions for users who prefer reduced motion */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  /* Keep essential focus transitions for accessibility */
+  *:focus-visible {
+    transition: outline 0.1s ease !important;
+  }
+}
+
+/* Print styles for accessibility */
+@media print {
+  :root {
+    --text-primary: #000000 !important;
+    --text-secondary: #333333 !important;
+    --bg-primary: #ffffff !important;
+    --border-color: #000000 !important;
+    --accent-glow: #000000 !important;
+    --accent-cyan: #000000 !important;
+    --accent-magenta: #000000 !important;
+  }
+  
+  /* Remove backgrounds and use high contrast for printing */
+  .glass-effect,
+  .card-bg,
+  .surface {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Ensure text is readable when printed */
+  .theme-toggle-container {
+    display: none !important;
+  }
+}

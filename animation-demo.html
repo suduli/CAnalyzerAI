@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Animation System Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.6s ease;
+        }
+
+        body.dark-theme {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #4a9eff, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .demo-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .demo-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #4a9eff;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .demo-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .demo-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .demo-card h3 {
+            color: #4a9eff;
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-card p {
+            opacity: 0.8;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #4a9eff, #00d4ff);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(74, 158, 255, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn.danger {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a5a);
+        }
+
+        .btn.success {
+            background: linear-gradient(45deg, #51cf66, #40c057);
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0;
+            justify-content: center;
+        }
+
+        .performance-panel {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            z-index: 1001;
+            min-width: 200px;
+            backdrop-filter: blur(10px);
+        }
+
+        .performance-panel h4 {
+            color: #4a9eff;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.25rem 0;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .status-good { background: #51cf66; }
+        .status-warning { background: #ffd43b; }
+        .status-critical { background: #ff6b6b; }
+
+        .input-demo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-group label {
+            color: #4a9eff;
+            font-weight: 500;
+        }
+
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #4a9eff;
+            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
+        }
+
+        .animation-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.9;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.2);
+            margin-top: 3rem;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            z-index: 1002;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: rgba(81, 207, 102, 0.9);
+        }
+
+        .toast.error {
+            background: rgba(255, 107, 107, 0.9);
+        }
+
+        .toast.warning {
+            background: rgba(255, 212, 59, 0.9);
+        }
+
+        @media (max-width: 768px) {
+            .theme-toggle {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin: 1rem auto;
+                display: block;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .performance-panel {
+                position: relative;
+                right: auto;
+                top: auto;
+                transform: none;
+                margin: 1rem 0;
+                width: 100%;
+            }
+
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="animation-canvas" class="animation-canvas"></canvas>
+    
+    <div class="performance-panel" id="performance-panel">
+        <h4>🚀 Performance Monitor</h4>
+        <div class="metric">
+            <span>FPS:</span>
+            <span id="fps-display">60</span>
+        </div>
+        <div class="metric">
+            <span>Particles:</span>
+            <span id="particles-display">0</span>
+        </div>
+        <div class="metric">
+            <span>Animations:</span>
+            <span id="animations-display">0</span>
+        </div>
+        <div class="metric">
+            <span>Memory:</span>
+            <span id="memory-display">--</span>
+        </div>
+        <div class="metric">
+            <span>Status:</span>
+            <span><span class="status-indicator status-good"></span>Good</span>
+        </div>
+    </div>
+
+    <header class="header">
+        <h1>🎨 Enhanced Animation System</h1>
+        <p>Advanced sprite animations, particle effects, and performance optimization</p>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙 Toggle Theme</button>
+    </header>
+
+    <div class="container">
+        <div class="demo-section">
+            <h2>🚀 Quick Demo Controls</h2>
+            <div class="controls">
+                <button class="btn" onclick="triggerThemeTransition()">🎭 Theme Transition Effect</button>
+                <button class="btn secondary" onclick="createFireworks()">🎆 Fireworks</button>
+                <button class="btn success" onclick="createRainEffect()">🌧️ Rain Effect</button>
+                <button class="btn" onclick="createMagicSparkles()">✨ Magic Sparkles</button>
+                <button class="btn secondary" onclick="startPerformanceTest()">📊 Performance Test</button>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🎮 Interactive Particle Effects</h2>
+            <p>Click anywhere on the screen to create particle effects. Try different combinations!</p>
+            <div class="demo-grid">
+                <div class="demo-card" onclick="showNotification('Fire effect enabled! Click anywhere on screen.', 'success'); setClickEffect('fire')">
+                    <h3>🔥 Fire Effect</h3>
+                    <p>Create fire particles with realistic physics and color transitions</p>
+                </div>
+                <div class="demo-card" onclick="showNotification('Snow effect enabled! Click anywhere on screen.', 'success'); setClickEffect('snow')">
+                    <h3>❄️ Snow Effect</h3>
+                    <p>Generate gentle snowfall with wind physics</p>
+                </div>
+                <div class="demo-card" onclick="showNotification('Explosion effect enabled! Click anywhere on screen.', 'success'); setClickEffect('explosion')">
+                    <h3>💥 Explosion Effect</h3>
+                    <p>Create dramatic explosion with debris and force fields</p>
+                </div>
+                <div class="demo-card" onclick="showNotification('Sparkle effect enabled! Click anywhere on screen.', 'success'); setClickEffect('sparkle')">
+                    <h3>✨ Sparkle Effect</h3>
+                    <p>Magical sparkles with twinkling animations</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🎛️ Animation Controls</h2>
+            <div class="input-demo">
+                <div class="input-group">
+                    <label for="particle-count">Particle Count</label>
+                    <input type="range" id="particle-count" min="10" max="500" value="100" onchange="updateParticleCount(this.value)">
+                    <span id="particle-count-display">100</span>
+                </div>
+                <div class="input-group">
+                    <label for="animation-speed">Animation Speed</label>
+                    <input type="range" id="animation-speed" min="0.1" max="3" step="0.1" value="1" onchange="updateAnimationSpeed(this.value)">
+                    <span id="speed-display">1x</span>
+                </div>
+                <div class="input-group">
+                    <label for="effect-intensity">Effect Intensity</label>
+                    <input type="range" id="effect-intensity" min="0.1" max="2" step="0.1" value="1" onchange="updateEffectIntensity(this.value)">
+                    <span id="intensity-display">1x</span>
+                </div>
+                <div class="input-group">
+                    <label for="blend-mode">Blend Mode</label>
+                    <select id="blend-mode" onchange="updateBlendMode(this.value)">
+                        <option value="normal">Normal</option>
+                        <option value="screen">Screen</option>
+                        <option value="multiply">Multiply</option>
+                        <option value="overlay">Overlay</option>
+                        <option value="color-dodge">Color Dodge</option>
+                        <option value="color-burn">Color Burn</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🧪 Performance Testing</h2>
+            <p>Test the animation system performance with different configurations</p>
+            <div class="controls">
+                <button class="btn" onclick="runQuickTest('Basic UI Animations')">Basic Test</button>
+                <button class="btn" onclick="runQuickTest('Moderate Particle Effects')">Moderate Test</button>
+                <button class="btn" onclick="runQuickTest('Heavy Animation Load')">Heavy Test</button>
+                <button class="btn danger" onclick="runQuickTest('Stress Test')">Stress Test</button>
+                <button class="btn secondary" onclick="runFullTestSuite()">Full Test Suite</button>
+            </div>
+            <div id="test-results"></div>
+        </div>
+
+        <div class="demo-section">
+            <h2>📝 UI Form Demo</h2>
+            <p>Experience enhanced form interactions with animation feedback</p>
+            <div class="input-demo">
+                <div class="input-group">
+                    <label for="demo-name">Your Name</label>
+                    <input type="text" id="demo-name" placeholder="Enter your name">
+                </div>
+                <div class="input-group">
+                    <label for="demo-email">Email Address</label>
+                    <input type="email" id="demo-email" placeholder="your@email.com">
+                </div>
+                <div class="input-group">
+                    <label for="demo-message">Message</label>
+                    <textarea id="demo-message" rows="4" placeholder="Share your thoughts..."></textarea>
+                </div>
+            </div>
+            <div class="controls">
+                <button class="btn success" onclick="submitForm()">Submit with Animation</button>
+                <button class="btn secondary" onclick="clearForm()">Clear Form</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Enhanced Animation System Demo - Built with performance and accessibility in mind</p>
+    </footer>
+
+    <div id="toast" class="toast"></div>
+
+    <!-- Animation System Scripts -->
+    <script src="animation-engine.js"></script>
+    <script src="animation-classes.js"></script>
+    <script src="particle-system.js"></script>
+    <script src="ui-animation-integration.js"></script>
+    <script src="animation-performance-tester.js"></script>
+
+    <script>
+        // Global variables
+        let animationEngine = null;
+        let performanceTester = null;
+        let currentClickEffect = 'sparkle';
+        let particleCount = 100;
+        let animationSpeed = 1;
+        let effectIntensity = 1;
+        let currentBlendMode = 'normal';
+        let performanceMonitor = null;
+
+        // Initialize animation system
+        async function initializeAnimationSystem() {
+            try {
+                const canvas = document.getElementById('animation-canvas');
+                
+                // Initialize animation engine
+                animationEngine = new AnimationEngine(canvas, {
+                    pixelRatio: window.devicePixelRatio || 1,
+                    antialias: true,
+                    alpha: true
+                });
+
+                // Initialize performance tester
+                performanceTester = new AnimationPerformanceTester();
+
+                // Start the animation engine
+                animationEngine.start();
+
+                // Setup performance monitoring
+                setupPerformanceMonitoring();
+
+                // Setup click handlers for interactive effects
+                setupClickHandlers();
+
+                // Start ambient background effects
+                startAmbientEffects();
+
+                console.log('✅ Animation system initialized successfully');
+                showNotification('Animation system ready!', 'success');
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize animation system:', error);
+                showNotification('Failed to initialize animation system', 'error');
+            }
+        }
+
+        function setupPerformanceMonitoring() {
+            let frameCount = 0;
+            let lastTime = performance.now();
+
+            const updatePerformance = () => {
+                const currentTime = performance.now();
+                frameCount++;
+
+                if (currentTime - lastTime >= 1000) {
+                    const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                    
+                    // Update FPS display
+                    document.getElementById('fps-display').textContent = fps;
+                    
+                    // Update particle count
+                    const totalParticles = Array.from(animationEngine.particleSystems.values())
+                        .reduce((total, system) => total + system.getParticleCount(), 0);
+                    document.getElementById('particles-display').textContent = totalParticles;
+                    
+                    // Update animation count
+                    const totalAnimations = animationEngine.propertyAnimations.size + 
+                                          animationEngine.timelines.size + 
+                                          animationEngine.animationGroups.size;
+                    document.getElementById('animations-display').textContent = totalAnimations;
+                    
+                    // Update memory usage
+                    if (performance.memory) {
+                        const memoryMB = Math.round(performance.memory.usedJSHeapSize / 1024 / 1024);
+                        document.getElementById('memory-display').textContent = memoryMB + ' MB';
+                    }
+                    
+                    // Update status indicator
+                    const statusIndicator = document.querySelector('.status-indicator');
+                    const statusText = statusIndicator.nextSibling;
+                    
+                    if (fps >= 55) {
+                        statusIndicator.className = 'status-indicator status-good';
+                        statusText.textContent = 'Excellent';
+                    } else if (fps >= 30) {
+                        statusIndicator.className = 'status-indicator status-warning';
+                        statusText.textContent = 'Good';
+                    } else {
+                        statusIndicator.className = 'status-indicator status-critical';
+                        statusText.textContent = 'Poor';
+                    }
+
+                    frameCount = 0;
+                    lastTime = currentTime;
+                }
+
+                requestAnimationFrame(updatePerformance);
+            };
+
+            updatePerformance();
+        }
+
+        function setupClickHandlers() {
+            document.addEventListener('click', (e) => {
+                // Don't trigger on UI elements
+                if (e.target.tagName !== 'CANVAS' && 
+                    !e.target.closest('.demo-section') && 
+                    !e.target.closest('button')) {
+                    createClickEffect(e.clientX, e.clientY);
+                }
+            });
+
+            // Add mouse move effects
+            let mouseMoveTimeout;
+            document.addEventListener('mousemove', (e) => {
+                clearTimeout(mouseMoveTimeout);
+                mouseMoveTimeout = setTimeout(() => {
+                    if (Math.random() < 0.1) { // 10% chance
+                        createSubtleSparkle(e.clientX, e.clientY);
+                    }
+                }, 100);
+            });
+        }
+
+        function createClickEffect(x, y) {
+            if (!animationEngine) return;
+
+            const particleSystem = animationEngine.getParticleSystem('ui-particles') || 
+                                 animationEngine.createParticleSystem('ui-particles', {
+                                     maxParticles: 1000,
+                                     blendMode: currentBlendMode
+                                 });
+
+            switch (currentClickEffect) {
+                case 'fire':
+                    ParticleEffects.createFireEffect(x, y, particleSystem);
+                    break;
+                case 'snow':
+                    createSnowClick(x, y, particleSystem);
+                    break;
+                case 'explosion':
+                    createExplosionEffect(x, y, particleSystem);
+                    break;
+                case 'sparkle':
+                default:
+                    ParticleEffects.createSparkleEffect(x, y, particleSystem);
+                    break;
+            }
+        }
+
+        function createSnowClick(x, y, particleSystem) {
+            const emitter = particleSystem.createEmitter({
+                x, y,
+                shape: 'circle',
+                width: 50,
+                burstCount: 30,
+                particleLife: { min: 2, max: 4 },
+                particleSize: { min: 1, max: 4 },
+                particleColor: '#ffffff',
+                particleOpacity: { min: 0.6, max: 1 },
+                velocity: {
+                    x: { min: -30, max: 30 },
+                    y: { min: 10, max: 60 }
+                },
+                gravity: 30,
+                angularVelocity: { min: -2, max: 2 },
+                opacityOverTime: { end: 0 }
+            });
+            
+            emitter.burst(particleSystem);
+        }
+
+        function createExplosionEffect(x, y, particleSystem) {
+            const emitter = particleSystem.createEmitter({
+                x, y,
+                shape: 'point',
+                burstCount: 50 * effectIntensity,
+                particleLife: { min: 1, max: 3 },
+                particleSize: { min: 2, max: 8 },
+                particleColor: '#ff6b35',
+                particleOpacity: { min: 0.8, max: 1 },
+                velocity: {
+                    x: { min: -150 * effectIntensity, max: 150 * effectIntensity },
+                    y: { min: -150 * effectIntensity, max: 150 * effectIntensity }
+                },
+                gravity: 80,
+                friction: 0.02,
+                opacityOverTime: { end: 0 },
+                scaleOverTime: { end: 0.1 },
+                colorOverTime: '#ff0000'
+            });
+            
+            emitter.burst(particleSystem);
+            
+            // Add force field for explosion effect
+            const forceField = particleSystem.createForceField({
+                x, y,
+                radius: 100,
+                strength: -200 * effectIntensity,
+                type: 'radial',
+                falloff: 'quadratic'
+            });
+            
+            // Remove force field after short time
+            setTimeout(() => {
+                const index = particleSystem.forceFields.indexOf(forceField);
+                if (index > -1) {
+                    particleSystem.forceFields.splice(index, 1);
+                }
+            }, 500);
+        }
+
+        function createSubtleSparkle(x, y) {
+            if (!animationEngine) return;
+            
+            const particleSystem = animationEngine.getParticleSystem('ui-particles') || 
+                                 animationEngine.createParticleSystem('ui-particles', {
+                                     maxParticles: 1000
+                                 });
+
+            const emitter = particleSystem.createEmitter({
+                x, y,
+                shape: 'point',
+                burstCount: 3,
+                particleLife: { min: 0.5, max: 1.5 },
+                particleSize: { min: 1, max: 2 },
+                particleColor: '#4a9eff',
+                particleOpacity: { min: 0.3, max: 0.6 },
+                velocity: {
+                    x: { min: -20, max: 20 },
+                    y: { min: -20, max: 20 }
+                },
+                friction: 0.05,
+                opacityOverTime: { end: 0 }
+            });
+            
+            emitter.burst(particleSystem);
+        }
+
+        function startAmbientEffects() {
+            if (!animationEngine) return;
+
+            const particleSystem = animationEngine.createParticleSystem('ambient-particles', {
+                maxParticles: 50,
+                blendMode: 'screen'
+            });
+
+            // Gentle floating particles
+            const ambientEmitter = particleSystem.createEmitter({
+                x: window.innerWidth / 2,
+                y: window.innerHeight,
+                shape: 'line',
+                width: window.innerWidth,
+                emissionRate: 1,
+                maxParticles: 30,
+                particleLife: { min: 10, max: 20 },
+                particleSize: { min: 1, max: 2 },
+                particleColor: '#4a9eff',
+                particleOpacity: { min: 0.1, max: 0.3 },
+                velocity: {
+                    x: { min: -10, max: 10 },
+                    y: { min: -30, max: -10 }
+                },
+                friction: 0.001
+            });
+        }
+
+        // Demo functions
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            triggerThemeTransition();
+        }
+
+        function triggerThemeTransition() {
+            if (!animationEngine) return;
+            
+            // Create ripple effect
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            createRippleTransition(centerX, centerY);
+            showNotification('Theme transition activated!', 'success');
+        }
+
+        function createRippleTransition(x, y) {
+            const maxRadius = Math.max(window.innerWidth, window.innerHeight) * 1.2;
+            
+            const ripple = animationEngine.createPropertyAnimation('theme-ripple', {
+                target: { radius: 0, opacity: 0.3 },
+                properties: {
+                    radius: { to: maxRadius, easing: 'easeOutCubic' },
+                    opacity: { to: 0, easing: 'easeOutQuad', delay: 600 }
+                },
+                duration: 1000,
+                onUpdate: (values) => {
+                    animationEngine.context.save();
+                    animationEngine.context.globalAlpha = values.opacity;
+                    animationEngine.context.fillStyle = document.body.classList.contains('dark-theme') 
+                        ? 'rgba(26, 26, 46, 0.8)' 
+                        : 'rgba(255, 255, 255, 0.8)';
+                    animationEngine.context.beginPath();
+                    animationEngine.context.arc(x, y, values.radius, 0, Math.PI * 2);
+                    animationEngine.context.fill();
+                    animationEngine.context.restore();
+                },
+                onComplete: () => {
+                    animationEngine.removePropertyAnimation('theme-ripple');
+                }
+            });
+            
+            ripple.start();
+        }
+
+        function createFireworks() {
+            if (!animationEngine) return;
+            
+            const particleSystem = animationEngine.getParticleSystem('ui-particles') || 
+                                 animationEngine.createParticleSystem('ui-particles', {
+                                     maxParticles: 1000,
+                                     blendMode: 'screen'
+                                 });
+            
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd'];
+            
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * window.innerWidth;
+                    const y = Math.random() * window.innerHeight * 0.5 + window.innerHeight * 0.2;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    const emitter = particleSystem.createEmitter({
+                        x, y,
+                        shape: 'point',
+                        burstCount: 60,
+                        particleLife: { min: 2, max: 4 },
+                        particleSize: { min: 2, max: 6 },
+                        particleColor: color,
+                        particleOpacity: { min: 0.8, max: 1 },
+                        velocity: {
+                            x: { min: -120, max: 120 },
+                            y: { min: -120, max: 120 }
+                        },
+                        gravity: 60,
+                        friction: 0.01,
+                        opacityOverTime: { end: 0 },
+                        scaleOverTime: { end: 0.2 }
+                    });
+                    
+                    emitter.burst(particleSystem);
+                }, i * 500);
+            }
+            
+            showNotification('🎆 Fireworks launched!', 'success');
+        }
+
+        function createRainEffect() {
+            if (!animationEngine) return;
+            
+            const particleSystem = animationEngine.getParticleSystem('rain-particles') || 
+                                 animationEngine.createParticleSystem('rain-particles', {
+                                     maxParticles: 500
+                                 });
+            
+            const rainEmitter = ParticleEffects.createSnowEffect(
+                window.innerWidth / 2, 
+                -20, 
+                window.innerWidth, 
+                particleSystem
+            );
+            
+            // Change properties for rain
+            rainEmitter.particleColor = '#87ceeb';
+            rainEmitter.velocity.y = { min: 200, max: 400 };
+            rainEmitter.particleSize = { min: 0.5, max: 2 };
+            rainEmitter.emissionRate = 100;
+            
+            showNotification('🌧️ Rain effect started!', 'success');
+            
+            // Stop rain after 10 seconds
+            setTimeout(() => {
+                rainEmitter.stop();
+                showNotification('Rain effect stopped', 'info');
+            }, 10000);
+        }
+
+        function createMagicSparkles() {
+            if (!animationEngine) return;
+            
+            const particleSystem = animationEngine.getParticleSystem('ui-particles') || 
+                                 animationEngine.createParticleSystem('ui-particles', {
+                                     maxParticles: 1000,
+                                     blendMode: 'screen'
+                                 });
+            
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * window.innerWidth;
+                    const y = Math.random() * window.innerHeight;
+                    
+                    ParticleEffects.createSparkleEffect(x, y, particleSystem);
+                }, i * 200);
+            }
+            
+            showNotification('✨ Magic sparkles activated!', 'success');
+        }
+
+        function setClickEffect(effect) {
+            currentClickEffect = effect;
+        }
+
+        function updateParticleCount(value) {
+            particleCount = parseInt(value);
+            document.getElementById('particle-count-display').textContent = value;
+            
+            // Update all particle systems max particles
+            if (animationEngine) {
+                animationEngine.particleSystems.forEach(system => {
+                    system.setMaxParticles(particleCount);
+                });
+            }
+        }
+
+        function updateAnimationSpeed(value) {
+            animationSpeed = parseFloat(value);
+            document.getElementById('speed-display').textContent = value + 'x';
+            
+            // Update animation engine speed
+            if (animationEngine) {
+                animationEngine.timeScale = animationSpeed;
+            }
+        }
+
+        function updateEffectIntensity(value) {
+            effectIntensity = parseFloat(value);
+            document.getElementById('intensity-display').textContent = value + 'x';
+        }
+
+        function updateBlendMode(value) {
+            currentBlendMode = value;
+            
+            // Update all particle systems blend mode
+            if (animationEngine) {
+                animationEngine.particleSystems.forEach(system => {
+                    system.blendMode = value;
+                });
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function submitForm() {
+            const name = document.getElementById('demo-name').value;
+            const email = document.getElementById('demo-email').value;
+            const message = document.getElementById('demo-message').value;
+            
+            if (!name || !email || !message) {
+                showNotification('Please fill in all fields', 'warning');
+                return;
+            }
+            
+            // Create success effect
+            const submitBtn = event.target;
+            const rect = submitBtn.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            
+            createClickEffect(x, y);
+            showNotification('Form submitted successfully! ✨', 'success');
+            
+            // Clear form after animation
+            setTimeout(() => {
+                clearForm();
+            }, 1000);
+        }
+
+        function clearForm() {
+            document.getElementById('demo-name').value = '';
+            document.getElementById('demo-email').value = '';
+            document.getElementById('demo-message').value = '';
+            showNotification('Form cleared', 'info');
+        }
+
+        // Performance testing functions
+        function startPerformanceTest() {
+            showNotification('Performance monitoring started...', 'info');
+        }
+
+        async function runQuickTest(testName) {
+            if (!performanceTester || !animationEngine) {
+                showNotification('Performance tester not ready', 'error');
+                return;
+            }
+            
+            showNotification(`Running ${testName}...`, 'info');
+            
+            try {
+                const result = await performanceTester.quickTest(animationEngine, testName);
+                displayTestResult(result);
+                showNotification(`${testName} completed!`, 'success');
+            } catch (error) {
+                console.error('Test failed:', error);
+                showNotification('Performance test failed', 'error');
+            }
+        }
+
+        async function runFullTestSuite() {
+            if (!performanceTester || !animationEngine) {
+                showNotification('Performance tester not ready', 'error');
+                return;
+            }
+            
+            showNotification('Running full test suite... This may take a few minutes.', 'info');
+            
+            try {
+                const report = await performanceTester.runAllTests(animationEngine);
+                showNotification(`Full test suite completed! Grade: ${report.performanceGrade}`, 'success');
+            } catch (error) {
+                console.error('Test suite failed:', error);
+                showNotification('Test suite failed', 'error');
+            }
+        }
+
+        function displayTestResult(result) {
+            const resultsDiv = document.getElementById('test-results');
+            const summary = result.summary;
+            
+            resultsDiv.innerHTML = `
+                <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                    <h4>📊 ${result.config.name} Results</h4>
+                    <p><strong>Average FPS:</strong> ${summary.frameRate?.average?.toFixed(1) || 'N/A'}</p>
+                    <p><strong>Min FPS:</strong> ${summary.frameRate?.min || 'N/A'}</p>
+                    <p><strong>Memory Usage:</strong> ${summary.memory?.averageUsed?.toFixed(1) || 'N/A'} MB</p>
+                </div>
+            `;
+        }
+
+        // Initialize everything when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎨 Initializing Enhanced Animation System Demo...');
+            initializeAnimationSystem();
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (animationEngine) {
+                animationEngine.resize();
+            }
+        });
+    </script>
+</body>
+</html>

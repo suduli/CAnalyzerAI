@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particle Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #02001a;
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+            text-align: center;
+            margin-top: 200px;
+        }
+        .debug {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 255, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    <div class="content">
+        <h1>Particle System Test</h1>
+        <p>You should see floating particles in the background</p>
+    </div>
+    <div id="debug" class="debug">Loading...</div>
+
+    <script>
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        const debugDiv = document.getElementById('debug');
+        
+        let particlesArray = [];
+        let animationId;
+        let frameCount = 0;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+
+        class TestParticle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.size = Math.random() * 4 + 2;
+                this.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
+                this.life = 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Wrap around screen
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+
+                // Draw particle
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                
+                // Outer glow
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 3, 0, Math.PI * 2);
+                ctx.fillStyle = this.color.replace('70%', '20%');
+                ctx.fill();
+                
+                // Main particle
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        function init() {
+            particlesArray = [];
+            for (let i = 0; i < 50; i++) {
+                particlesArray.push(new TestParticle());
+            }
+            debugDiv.textContent = `${particlesArray.length} particles created`;
+        }
+
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+            frameCount++;
+            
+            // Clear canvas
+            ctx.fillStyle = 'rgba(2, 0, 26, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update particles
+            particlesArray.forEach(particle => particle.update());
+            
+            // Update debug info
+            if (frameCount % 60 === 0) {
+                debugDiv.textContent = `${particlesArray.length} particles | Frame: ${frameCount}`;
+            }
+        }
+
+        // Start
+        init();
+        animate();
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            init();
+        });
+    </script>
+</body>
+</html>
