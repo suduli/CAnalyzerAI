@@ -14,7 +14,7 @@ if (typeof window.CAnalyzerAI === 'object') {
 
 // Test 2: Set up OpenRouter configuration
 console.log('\nTest 2: OpenRouter Configuration');
-const apiKey = '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';
+const apiKey = '';
 const provider = 'openrouter';
 const model = 'google/gemma-2-9b-it:free';
 
