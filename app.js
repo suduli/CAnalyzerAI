@@ -47,7 +47,7 @@
 
     getDefaultModel() {
       switch(this.provider) {
-        case 'openrouter': return 'openai/gpt-oss-20b:free';
+        case 'openrouter': return 'google/gemma-2-9b-it:free';
         case 'openai': return 'gpt-3.5-turbo';
         case 'ollama': 
         default: return 'deepseek-r1:latest';
@@ -248,6 +248,7 @@
       this.file = null;
       this.fileText = '';
       this.api = new APIKeyManager();
+      this.cfgCalculator = new CFGCalculator();
 
       this.bind();
       this.resetUI();
@@ -422,7 +423,20 @@
       const c2 = Math.max(1, decisionPoints + 1);
       const c3 = Math.max(1, Math.round(c1));
 
-      return { loc, c1, c2, c3, decisionPoints, nestingDepth: maxDepth };
+      // Perform CFG Analysis
+      const cfgResult = this.cfgCalculator.analyze(code);
+      const cfgComplexity = cfgResult.success ? cfgResult.metrics.cyclomaticComplexity : c1;
+
+      return { 
+        loc, 
+        c1: cfgComplexity, // Use CFG complexity for primary metric
+        c2, 
+        c3, 
+        decisionPoints, 
+        nestingDepth: maxDepth,
+        cfgMetrics: cfgResult.success ? cfgResult.metrics : null,
+        cfgError: cfgResult.error
+      };
     }
 
     displayStatic(s, ms) {
@@ -431,6 +445,14 @@
   this.staticComplexity2.textContent = this.formatForDisplay(s.c2);
   this.staticComplexity3.textContent = this.formatForDisplay(s.c3);
       if (this.staticTime) this.staticTime.textContent = `${ms.toFixed(1)} ms`;
+      
+      // Log CFG analysis results
+      if (s.cfgMetrics) {
+        console.log('🎯 CFG Analysis Results:', s.cfgMetrics);
+        console.log('📊 Nodes:', s.cfgMetrics.nodes, 'Edges:', s.cfgMetrics.edges, 'Complexity:', s.cfgMetrics.cyclomaticComplexity);
+      } else if (s.cfgError) {
+        console.warn('⚠️ CFG Analysis Error:', s.cfgError);
+      }
     }
 
     async performAIAnalysis(code) {
@@ -449,23 +471,23 @@
       }
 
       // Enhanced prompt with ultra-clear instructions for consistent JSON output
-      const prompt = `You must respond with ONLY valid JSON. No explanations, no text, no markdown. Just pure JSON.
+      const prompt = `You are a code complexity analyzer. Your task is to analyze C programming language code and return ONLY a JSON response.
 
-Analyze this C code and return a JSON object with these exact keys:
+CRITICAL: You must return ONLY valid JSON. No explanations, no code examples, no markdown, no additional text.
+
+Analyze the provided C code and return this exact JSON structure:
 {
-  "loc": <number of executable lines (exclude comments/blanks/includes)>,
-  "complexity1": <cyclomatic complexity (decision points + 1)>,
-  "complexity2": <cognitive complexity>,
-  "complexity3": <halstead complexity>,
-  "notes": ["brief analysis note"]
+  "loc": number_of_executable_lines_excluding_comments_and_blank_lines,
+  "complexity1": cyclomatic_complexity_as_integer,
+  "complexity2": cognitive_complexity_as_integer,
+  "complexity3": halstead_complexity_as_integer,
+  "notes": ["brief_note_about_analysis"]
 }
 
-Important: Return ONLY the JSON object. No additional text before or after.
-
-C code to analyze:
+C CODE TO ANALYZE:
 ${code.slice(0, 16000)}
 
-Response (JSON only):`;
+Return ONLY the JSON object with the exact keys above. Do not include any other text, explanations, or code examples.`;
 
       let statusNote = '';
       let analysisStartTime = performance.now();
@@ -518,11 +540,11 @@ Response (JSON only):`;
           console.log('📡 Sending request to OpenRouter...');
           
           // Use better model for structured output if available
-          let currentModel = model || 'openai/gpt-oss-20b:free';
+          let currentModel = model || 'google/gemma-2-9b-it:free';
           
-          // Try with a more structured-output friendly model first
+          // Always prefer the better model for JSON output
           if (currentModel === 'openai/gpt-oss-20b:free') {
-            console.log('🔄 Trying structured-output optimized model...');
+            console.log('🔄 Switching to better model for JSON output...');
             currentModel = 'google/gemma-2-9b-it:free'; // Better at following instructions
           }
           
@@ -734,8 +756,9 @@ Response (JSON only):`;
             .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":') // Add quotes to keys
             .replace(/:\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*([,}])/g, ':"$1"$2')   // Add quotes to string values
             .replace(/,\s*}/g, '}')                                          // Remove trailing commas
-            .replace(/,\s*]/g, ']');                                         // Remove trailing commas in arrays
-          
+            .replace(/,\s*]/g, ']')                                          // Remove trailing commas in arrays
+            .replace(/}\s*$/, '}');                                          // Ensure proper closing
+            
           console.log('🔧 Attempting JSON cleanup:', cleanedJson);
           parsed = JSON.parse(cleanedJson);
         }
@@ -783,9 +806,25 @@ Response (JSON only):`;
       const extractNumber = (obj, ...keys) => {
         for (const key of keys) {
           if (key in obj) {
-            const val = Number(obj[key]);
-            if (Number.isFinite(val) && val >= 0) {
+            const val = obj[key];
+
+            // Handle different value types
+            if (typeof val === 'number' && Number.isFinite(val) && val >= 0) {
               return val;
+            } else if (typeof val === 'string') {
+              // Try to convert written numbers to digits
+              const numFromText = this.convertWrittenNumberToDigit(val);
+              if (Number.isFinite(numFromText) && numFromText >= 0) {
+                return numFromText;
+              }
+              // Try direct number conversion
+              const directNum = Number(val);
+              if (Number.isFinite(directNum) && directNum >= 0) {
+                return directNum;
+              }
+            } else if (typeof val === 'object' && val !== null) {
+              // Handle object values (e.g., complexity3 with nested properties)
+              return this.extractNumberFromObject(val);
             }
           }
         }
@@ -795,14 +834,14 @@ Response (JSON only):`;
       const result = {
         loc: extractNumber(parsed, 'loc', 'lines_of_code', 'lineCount', 'linesOfCode'),
         c1: extractNumber(parsed, 'complexity1', 'c1', 'cyclomatic', 'cyclomaticComplexity'),
-        c2: extractNumber(parsed, 'complexity2', 'c2', 'cognitive', 'cognitiveComplexity'),  
+        c2: extractNumber(parsed, 'complexity2', 'c2', 'cognitive', 'cognitiveComplexity'),
         c3: extractNumber(parsed, 'complexity3', 'c3', 'halstead', 'halsteadComplexity'),
         notes: []
       };
 
       // Validate that we got meaningful values
       const hasValidData = result.loc > 0 || result.c1 > 0 || result.c2 > 0 || result.c3 > 0;
-      
+
       // Handle notes array
       if (Array.isArray(parsed.notes)) {
         result.notes = parsed.notes.filter(note => typeof note === 'string');
@@ -824,13 +863,80 @@ Response (JSON only):`;
       return result;
     }
 
-    // New fallback method for extracting numbers from unstructured text
+    // Convert written numbers to digits (e.g., "forty-seven" -> 47)
+    convertWrittenNumberToDigit(text) {
+      if (!text || typeof text !== 'string') return NaN;
+
+      const lowerText = text.toLowerCase().trim();
+
+      // Handle hyphenated numbers (e.g., "forty-seven")
+      if (lowerText.includes('-')) {
+        const parts = lowerText.split('-');
+        if (parts.length === 2) {
+          const first = this.wordToNumber(parts[0].trim());
+          const second = this.wordToNumber(parts[1].trim());
+          if (first >= 0 && second >= 0 && second < 10) {
+            return first + second;
+          }
+        }
+      }
+
+      // Handle single word numbers
+      return this.wordToNumber(lowerText);
+    }
+
+    // Convert word to number
+    wordToNumber(word) {
+      const numberWords = {
+        'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+        'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+        'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15,
+        'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19, 'twenty': 20,
+        'thirty': 30, 'forty': 40, 'fifty': 50, 'sixty': 60, 'seventy': 70,
+        'eighty': 80, 'ninety': 90
+      };
+
+      return numberWords[word] !== undefined ? numberWords[word] : NaN;
+    }
+
+    // Extract meaningful number from object (e.g., complexity3 object)
+    extractNumberFromObject(obj) {
+      if (!obj || typeof obj !== 'object') return 0;
+
+      // Priority order for extracting meaningful complexity values
+      const priorityKeys = [
+        'effort', 'volume', 'difficulty', 'complexity', 'value', 'score',
+        'halstead', 'cognitive', 'cyclomatic'
+      ];
+
+      for (const key of priorityKeys) {
+        if (key in obj) {
+          const val = Number(obj[key]);
+          if (Number.isFinite(val) && val >= 0) {
+            console.log(`🔍 Extracted ${key}: ${val} from object`);
+            return val;
+          }
+        }
+      }
+
+      // If no priority key found, try any numeric value
+      for (const [key, value] of Object.entries(obj)) {
+        const num = Number(value);
+        if (Number.isFinite(num) && num >= 0) {
+          console.log(`🔍 Extracted ${key}: ${num} from object (fallback)`);
+          return num;
+        }
+      }
+
+      console.warn('⚠️ Could not extract meaningful number from object:', obj);
+      return 0;
+    }    // New fallback method for extracting numbers from unstructured text
     extractNumbersFromText(text, statusNote = '') {
       console.log('🔧 Attempting number extraction from unstructured text');
       
       // Look for common patterns like "loc: 25", "complexity: 3", etc.
       const patterns = {
-        loc: /(?:loc|lines?.*?code|testable.*?lines?|count\s+\d+)[\s:=]*(\d+)/i,
+        loc: /(?:loc|lines?.*?code|testable.*?lines?|count\s+\d+)[\s:=]*(\d+|"[^"]*"|'[^']*')/i,
         c1: /(?:complexity[1\s]*|cyclomatic|decision.*?points?\s*[+=]\s*1\s*[=]\s*)[\s:=]*(\d+)/i,
         c2: /(?:complexity[2\s]*|cognitive)[\s:=]*(\d+)/i,
         c3: /(?:complexity[3\s]*|halstead)[\s:=]*(\d+)/i
@@ -843,7 +949,25 @@ Response (JSON only):`;
       for (const [key, pattern] of Object.entries(patterns)) {
         const match = text.match(pattern);
         if (match && match[1]) {
-          const num = parseInt(match[1], 10);
+          let value = match[1];
+          
+          // Handle quoted values (could be numbers or written numbers)
+          if ((value.startsWith('"') && value.endsWith('"')) || 
+              (value.startsWith("'") && value.endsWith("'"))) {
+            value = value.slice(1, -1); // Remove quotes
+            
+            // Try to convert written numbers to digits
+            const numFromText = this.convertWrittenNumberToDigit(value);
+            if (Number.isFinite(numFromText) && numFromText >= 0) {
+              extracted[key] = numFromText;
+              hasValidNumbers = true;
+              console.log(`🔍 Extracted written number ${key}: "${value}" -> ${numFromText}`);
+              continue;
+            }
+          }
+          
+          // Try direct number conversion
+          const num = parseInt(value, 10);
           if (Number.isFinite(num) && num >= 0) {
             extracted[key] = num;
             hasValidNumbers = true;
@@ -854,10 +978,20 @@ Response (JSON only):`;
       // Enhanced number sequence detection
       if (!hasValidNumbers) {
         // Look for patterns like "Thus loc = 4" or "So 6 lines"
-        const textLoc = text.match(/(?:thus|so|count|total).*?(?:loc|lines?).*?[=:]?\s*(\d+)/i);
+        const textLoc = text.match(/(?:thus|so|count|total).*?(?:loc|lines?).*?[=:]?\s*(\d+|"[^"]*")/i);
         if (textLoc) {
-          extracted.loc = parseInt(textLoc[1], 10) || 0;
-          hasValidNumbers = true;
+          let value = textLoc[1];
+          if (value.startsWith('"') && value.endsWith('"')) {
+            value = value.slice(1, -1);
+            const numFromText = this.convertWrittenNumberToDigit(value);
+            if (Number.isFinite(numFromText) && numFromText >= 0) {
+              extracted.loc = numFromText;
+              hasValidNumbers = true;
+            }
+          } else {
+            extracted.loc = parseInt(value, 10) || 0;
+            hasValidNumbers = true;
+          }
         }
 
         // Look for complexity mentions

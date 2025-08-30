@@ -79,48 +79,87 @@ class CFGCalculator {
   }
 
   /**
-   * Parse C code into basic blocks
+   * Parse C code into basic blocks with improved function detection
    * @param {string} code - C source code
    */
   parseCodeIntoBlocks(code) {
-    // This is a simplified implementation
-    // In a real implementation, we would use a proper C parser
-    
-    // Split code into lines
-    const lines = code.split(/\r?\n/);
-    
+    // Split code into lines and remove comments
+    const lines = code.split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('//') && !line.startsWith('/*'))
+      .map(line => line.replace(/\/\*.*?\*\//g, '').trim())
+      .filter(line => line);
+
     // Create initial basic block
     let currentBlock = {
       id: 0,
       statements: [],
       successors: [],
-      predecessors: []
+      predecessors: [],
+      type: 'entry'
     };
     
     this.nodes.push(currentBlock);
     this.entryNode = currentBlock;
     
-    // Simple parsing logic for demonstration
     let blockId = 1;
+    let braceDepth = 0;
+    let inFunction = false;
+    let functionName = '';
+    
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
+      const line = lines[i];
       
-      // Skip empty lines and comments
-      if (!line || line.startsWith('//') || line.startsWith('/*')) {
+      // Skip preprocessor directives
+      if (line.startsWith('#')) continue;
+      
+      // Detect function definitions
+      const functionMatch = line.match(/^(\w+)\s+(\w+)\s*\([^)]*\)\s*\{?$/);
+      if (functionMatch) {
+        // Close previous block if it has statements
+        if (currentBlock.statements.length > 0) {
+          const nextBlock = {
+            id: blockId++,
+            statements: [],
+            successors: [],
+            predecessors: [currentBlock.id],
+            type: 'function_entry'
+          };
+          
+          this.edges.push({
+            from: currentBlock.id,
+            to: nextBlock.id,
+            type: 'sequential'
+          });
+          
+          currentBlock.successors.push(nextBlock.id);
+          this.nodes.push(nextBlock);
+          currentBlock = nextBlock;
+        }
+        
+        inFunction = true;
+        functionName = functionMatch[2];
+        currentBlock.statements.push(line);
         continue;
       }
       
-      // Add statement to current block
-      currentBlock.statements.push(line);
+      // Track brace depth
+      const openBraces = (line.match(/\{/g) || []).length;
+      const closeBraces = (line.match(/\}/g) || []).length;
+      braceDepth += openBraces - closeBraces;
       
-      // Check for control flow statements
+      // Check for control flow statements with improved detection
       if (this.isControlFlowStatement(line)) {
+        // Add current line to current block
+        currentBlock.statements.push(line);
+        
         // Create new block for after the control flow statement
         const nextBlock = {
           id: blockId++,
           statements: [],
           successors: [],
-          predecessors: [currentBlock.id]
+          predecessors: [currentBlock.id],
+          type: 'control_flow'
         };
         
         // Add edge from current block to next block
@@ -134,58 +173,183 @@ class CFGCalculator {
         currentBlock.successors.push(nextBlock.id);
         this.nodes.push(nextBlock);
         currentBlock = nextBlock;
+      } else {
+        // Add statement to current block
+        currentBlock.statements.push(line);
+        
+        // If we hit a return or exit statement, create a new block
+        if (line.includes('return') || line.includes('exit(') || line.includes('break') || line.includes('continue')) {
+          const nextBlock = {
+            id: blockId++,
+            statements: [],
+            successors: [],
+            predecessors: [currentBlock.id],
+            type: 'exit'
+          };
+          
+          this.edges.push({
+            from: currentBlock.id,
+            to: nextBlock.id,
+            type: 'flow'
+          });
+          
+          currentBlock.successors.push(nextBlock.id);
+          this.nodes.push(nextBlock);
+          currentBlock = nextBlock;
+        }
       }
     }
     
     // Set exit node
     this.exitNode = currentBlock;
+    this.exitNode.type = 'exit';
   }
 
   /**
-   * Check if a line contains a control flow statement
+   * Check if a line contains a control flow statement with improved detection
    * @param {string} line - Code line
    * @returns {boolean} True if line contains control flow statement
    */
   isControlFlowStatement(line) {
-    // Check for control flow keywords
-    const controlFlowKeywords = [
-      'if', 'else', 'for', 'while', 'do', 
-      'switch', 'case', 'default', 'goto',
-      'return', 'break', 'continue'
+    // Enhanced control flow keywords with better pattern matching
+    const controlFlowPatterns = [
+      /\bif\s*\(/,           // if statements
+      /\belse\s*\{/,         // else blocks
+      /\bfor\s*\(/,          // for loops
+      /\bwhile\s*\(/,        // while loops
+      /\bdo\s*\{/,           // do-while loops
+      /\bswitch\s*\(/,       // switch statements
+      /\bcase\s+.*:/,        // case labels
+      /\bdefault\s*:/,       // default case
+      /\bgoto\s+\w+/,        // goto statements
+      /\breturn\b/,          // return statements
+      /\bbreak\b/,           // break statements
+      /\bcontinue\b/,        // continue statements
+      /\?\s*.*\s*:/,         // ternary operator
+      /\|\||\&\&/,           // logical operators in conditions
     ];
     
-    for (const keyword of controlFlowKeywords) {
-      if (line.includes(keyword)) {
-        // Simple check - in a real implementation we would need more precise parsing
-        return true;
-      }
-    }
-    
-    return false;
+    // Check if line matches any control flow pattern
+    return controlFlowPatterns.some(pattern => pattern.test(line));
   }
 
   /**
-   * Build control flow graph from basic blocks
+   * Build control flow graph from basic blocks with improved logic
    */
   buildControlFlowGraph() {
-    // This is a simplified implementation
-    // In a real implementation, we would analyze the control flow structure
-    
-    // Connect blocks based on control flow statements
-    for (let i = 0; i < this.nodes.length - 1; i++) {
+    // Connect blocks based on control flow analysis
+    for (let i = 0; i < this.nodes.length; i++) {
       const currentBlock = this.nodes[i];
-      const nextBlock = this.nodes[i + 1];
       
-      // If there's no explicit edge, add a sequential flow edge
-      if (!currentBlock.successors.includes(nextBlock.id)) {
-        this.edges.push({
-          from: currentBlock.id,
-          to: nextBlock.id,
-          type: 'sequential'
-        });
-        currentBlock.successors.push(nextBlock.id);
-        nextBlock.predecessors.push(currentBlock.id);
+      // Analyze statements in current block to determine successors
+      for (const statement of currentBlock.statements) {
+        if (statement.includes('if')) {
+          // If statement creates a branch
+          this.createBranch(currentBlock, i);
+          break; // Only process first control statement
+        } else if (statement.includes('for') || statement.includes('while')) {
+          // Loop creates a cycle
+          this.createLoop(currentBlock, i);
+          break; // Only process first control statement
+        } else if (statement.includes('return') || statement.includes('break') || statement.includes('continue')) {
+          // Exit statements
+          this.createExit(currentBlock, i);
+          break; // Only process first control statement
+        }
       }
+      
+      // If no explicit control flow, connect to next block sequentially
+      if (currentBlock.successors.length === 0 && i < this.nodes.length - 1) {
+        const nextBlock = this.nodes[i + 1];
+        if (!currentBlock.successors.includes(nextBlock.id)) {
+          this.edges.push({
+            from: currentBlock.id,
+            to: nextBlock.id,
+            type: 'sequential'
+          });
+          currentBlock.successors.push(nextBlock.id);
+          nextBlock.predecessors.push(currentBlock.id);
+        }
+      }
+    }
+  }
+
+  /**
+   * Create a branch for if statements
+   */
+  createBranch(block, index) {
+    // Create true and false branches
+    const trueBlock = {
+      id: this.nodes.length,
+      statements: [],
+      successors: [],
+      predecessors: [block.id],
+      type: 'branch_true'
+    };
+    
+    const falseBlock = {
+      id: this.nodes.length + 1,
+      statements: [],
+      successors: [],
+      predecessors: [block.id],
+      type: 'branch_false'
+    };
+    
+    // Add edges for both branches
+    this.edges.push(
+      { from: block.id, to: trueBlock.id, type: 'true_branch' },
+      { from: block.id, to: falseBlock.id, type: 'false_branch' }
+    );
+    
+    block.successors.push(trueBlock.id, falseBlock.id);
+    this.nodes.push(trueBlock, falseBlock);
+  }
+
+  /**
+   * Create a loop structure
+   */
+  createLoop(block, index) {
+    // Create loop body
+    const loopBody = {
+      id: this.nodes.length,
+      statements: [],
+      successors: [],
+      predecessors: [block.id],
+      type: 'loop_body'
+    };
+    
+    // Add edge from loop header to body
+    this.edges.push({
+      from: block.id,
+      to: loopBody.id,
+      type: 'loop_entry'
+    });
+    
+    // Add back edge from body to header (for loop continuation)
+    this.edges.push({
+      from: loopBody.id,
+      to: block.id,
+      type: 'loop_back'
+    });
+    
+    block.successors.push(loopBody.id);
+    loopBody.successors.push(block.id); // Back edge
+    this.nodes.push(loopBody);
+  }
+
+  /**
+   * Create exit connection
+   */
+  createExit(block, index) {
+    // Connect to exit node if not already connected
+    if (this.exitNode && !block.successors.includes(this.exitNode.id)) {
+      this.edges.push({
+        from: block.id,
+        to: this.exitNode.id,
+        type: 'exit'
+      });
+      block.successors.push(this.exitNode.id);
+      this.exitNode.predecessors.push(block.id);
     }
   }
 
