@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Light Theme Particle System Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        /* Light theme */
+        [data-theme="light"] {
+            background-color: #f6f8ff;
+            color: #071023;
+        }
+        
+        /* Dark theme */
+        [data-theme="dark"] {
+            background-color: #02001a;
+            color: #e0e0ff;
+        }
+        
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        [data-theme="dark"] .controls {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+        }
+        
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .light-btn {
+            background: #007bff;
+            color: white;
+        }
+        
+        .dark-btn {
+            background: #6c63ff;
+            color: white;
+        }
+        
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            font-size: 12px;
+        }
+        
+        [data-theme="dark"] .status {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .content {
+            position: relative;
+            z-index: 10;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+        
+        [data-theme="dark"] .content {
+            background: rgba(0, 0, 0, 0.8);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    
+    <div class="controls">
+        <h3>Theme Test</h3>
+        <button class="light-btn" onclick="setTheme('light')">☀️ Light</button>
+        <button class="dark-btn" onclick="setTheme('dark')">🌙 Dark</button>
+        
+        <div class="status" id="status">
+            <strong>Theme:</strong> <span id="currentTheme">light</span><br>
+            <strong>Light Particles:</strong> <span id="lightParticles">-</span><br>
+            <strong>Dark Particles:</strong> <span id="darkParticles">-</span>
+        </div>
+    </div>
+    
+    <div class="content">
+        <h1>🎯 Particle System Test</h1>
+        <p>Testing the implementation of light theme particles using the provided JSON configuration.</p>
+        
+        <h2>Expected Behavior:</h2>
+        <ul>
+            <li><strong>Light Theme:</strong> Black particles with blue connecting lines (repulse on hover, push on click)</li>
+            <li><strong>Dark Theme:</strong> Existing matrix-style cyber particles (colorful, attraction effects)</li>
+        </ul>
+        
+        <div style="background: rgba(0,0,0,0.1); padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h3>JSON Configuration Applied:</h3>
+            <ul>
+                <li>80 black circular particles</li>
+                <li>Blue connecting lines (#1e3eaa)</li>
+                <li>Repulsion on hover (200px distance)</li>
+                <li>Push particles on click (+4 particles)</li>
+                <li>Attraction physics enabled</li>
+            </ul>
+        </div>
+        
+        <p><strong>Instructions:</strong> Switch between themes using the buttons above. The particles should only appear in the light theme and should be completely hidden in the dark theme.</p>
+    </div>
+
+    <!-- Particle Systems -->
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="matrix-particles.js"></script>
+    <script src="light-theme-particles.js"></script>
+    
+    <script>
+        // Theme management
+        function setTheme(theme) {
+            console.log(`🎨 Setting theme to: ${theme}`);
+            
+            document.documentElement.setAttribute('data-theme', theme);
+            document.body.setAttribute('data-theme', theme);
+            document.getElementById('currentTheme').textContent = theme;
+            
+            // Trigger theme change event for particle systems
+            window.dispatchEvent(new CustomEvent('themechange', {
+                detail: { 
+                    theme: theme, 
+                    effectiveTheme: theme,
+                    systemPreference: 'light'
+                }
+            }));
+            
+            // Update status after a delay to allow particles to initialize
+            setTimeout(updateStatus, 1000);
+        }
+        
+        function updateStatus() {
+            const lightContainer = document.getElementById('light-theme-particles');
+            const darkContainer = document.getElementById('particles-js');
+            
+            let lightStatus = 'Not Found';
+            let darkStatus = 'Not Found';
+            
+            if (lightContainer) {
+                const computedOpacity = window.getComputedStyle(lightContainer).opacity;
+                lightStatus = parseFloat(computedOpacity) > 0 ? '✅ Active' : '❌ Hidden';
+            }
+            
+            if (darkContainer) {
+                const computedOpacity = window.getComputedStyle(darkContainer).opacity;
+                darkStatus = parseFloat(computedOpacity) > 0 ? '✅ Active' : '❌ Hidden';
+            }
+            
+            document.getElementById('lightParticles').textContent = lightStatus;
+            document.getElementById('darkParticles').textContent = darkStatus;
+            
+            // Debug info
+            console.log('📊 Particle Status:', {
+                lightContainer: !!lightContainer,
+                darkContainer: !!darkContainer,
+                lightOpacity: lightContainer ? window.getComputedStyle(lightContainer).opacity : 'N/A',
+                darkOpacity: darkContainer ? window.getComputedStyle(darkContainer).opacity : 'N/A',
+                pJSDom: window.pJSDom ? window.pJSDom.length : 0,
+                lightThemeParticles: !!window.lightThemeParticles
+            });
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Test page loaded, initializing light theme');
+            
+            // Start with light theme to show particles
+            setTimeout(() => {
+                setTheme('light');
+                
+                // Update status periodically
+                setInterval(updateStatus, 3000);
+            }, 500);
+        });
+        
+        // Additional debugging
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                console.log('🔍 Debug info after page load:');
+                console.log('- Light theme particles API:', window.lightThemeParticles);
+                console.log('- Cyber particles API:', window.cyberParticles);
+                console.log('- ParticlesJS instances:', window.pJSDom);
+                
+                updateStatus();
+            }, 2000);
+        });
+        
+        // Log theme changes
+        window.addEventListener('themechange', (e) => {
+            console.log('🎨 Theme change event received:', e.detail);
+        });
+    </script>
+</body>
+</html>

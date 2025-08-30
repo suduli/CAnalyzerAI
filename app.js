@@ -19,6 +19,9 @@
     error(msg) { this.log(`ERROR: ${msg}`); }
   };
 
+  // Make sys available globally
+  window.sys = sys;
+
   class APIKeyManager {
     constructor() {
       this.modal = document.getElementById('apiKeyModal');

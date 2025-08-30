@@ -112,14 +112,6 @@ function initCyberParticles() {
             return;
         }
 
-        // Ensure pJSDom array is properly initialized
-        if (!window.pJSDom) {
-            window.pJSDom = [];
-        }
-
-        // Clear any existing content in container
-        container.innerHTML = '';
-
         console.log('✅ Container found, using dark cyber theme');
         
         // Use cyber theme by default (dark theme)
@@ -181,11 +173,7 @@ function updateCyberTheme() {
         console.log('🌙 Dark theme active - initializing cyber particles');
         // Reinitialize particles after a brief delay to ensure cleanup
         setTimeout(() => {
-            try {
-                initCyberParticles();
-            } catch (initError) {
-                console.error('❌ Error during delayed initialization:', initError);
-            }
+            initCyberParticles();
         }, 100);
     } else {
         console.log('☀️ Light theme active - hiding cyber particles');
@@ -219,10 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mutations.forEach((mutation) => {
             if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
                 console.log('🎨 Cyber particles: data-theme attribute changed');
-                // Add small delay to avoid race conditions
-                setTimeout(() => {
-                    updateCyberTheme();
-                }, 10); // Earlier than light particles to ensure proper cleanup order
+                updateCyberTheme();
             }
         });
     });

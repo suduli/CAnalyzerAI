@@ -8,6 +8,12 @@ class FuturisticParticleSystem {
     constructor() {
         this.isInitialized = false;
         this.currentTheme = 'cyber';
+        this.isLightMode = false;
+        this.useCustomColors = false;
+        this.customColors = {
+            particles: ['#00f5d4', '#6c63ff', '#ff006e'],
+            connections: '#00f5d4'
+        };
         this.particleConfig = this.getDefaultConfig();
         this.performanceMonitor = new PerformanceMonitor();
         this.touchHandler = new TouchHandler();
@@ -22,8 +28,15 @@ class FuturisticParticleSystem {
 
     async init() {
         try {
+            // Load saved preferences
+            this.loadSavedSettings();
+            
             this.showLoadingScreen();
             await this.loadParticles();
+            
+            // Apply theme after particles are loaded
+            this.applyColorTheme(this.currentTheme);
+            
             this.setupControls();
             this.setupEventListeners();
             this.applyResponsiveSettings();
@@ -39,6 +52,8 @@ class FuturisticParticleSystem {
     }
 
     getDefaultConfig() {
+        const themeColors = this.getThemeColors(this.currentTheme);
+        
         return {
             particles: {
                 number: {
@@ -49,7 +64,7 @@ class FuturisticParticleSystem {
                     }
                 },
                 color: {
-                    value: ["#00f5d4", "#6c63ff", "#ff006e"]
+                    value: [themeColors.primary, themeColors.secondary, themeColors.accent]
                 },
                 shape: {
                     type: "circle",
@@ -81,7 +96,7 @@ class FuturisticParticleSystem {
                 line_linked: {
                     enable: true,
                     distance: 150,
-                    color: "#00f5d4",
+                    color: themeColors.primary,
                     opacity: 0.3,
                     width: 1
                 },
@@ -229,6 +244,12 @@ class FuturisticParticleSystem {
         // Color presets
         this.setupColorPresets();
         
+        // Theme toggle
+        this.setupThemeToggle();
+        
+        // Custom color controls
+        this.setupCustomColorControls();
+        
         // Quick presets
         this.setupQuickPresets();
         
@@ -265,6 +286,183 @@ class FuturisticParticleSystem {
         });
     }
 
+    setupThemeToggle() {
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('change', (e) => {
+                this.toggleLightMode(e.target.checked);
+            });
+        }
+    }
+
+    async getLightModeConfig() {
+        try {
+            const response = await fetch('particlesjs-config.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const config = await response.json();
+            console.log('✅ Light mode particle config loaded successfully');
+            return config;
+        } catch (error) {
+            console.error('❌ Failed to load light mode particle config:', error);
+            // Fallback to default config if loading fails
+            return this.getDefaultConfig();
+        }
+    }
+
+    async toggleLightMode(enabled) {
+        this.isLightMode = enabled;
+
+        if (enabled) {
+            this.particleConfig = await this.getLightModeConfig();
+        } else {
+            this.particleConfig = this.getDefaultConfig();
+        }
+
+        // Destroy existing particle instance
+        if (window.pJSDom && window.pJSDom[0] && window.pJSDom[0].pJS) {
+            window.pJSDom[0].pJS.fn.vendors.destroypJS();
+            // Ensure the pJSDom array is cleared
+            window.pJSDom = [];
+        }
+        
+        // Re-initialize particles with the new config
+        await this.loadParticles();
+
+        if (enabled) {
+            // Switch to light mode
+            document.documentElement.classList.add('light-mode');
+            document.body.classList.add('light-mode');
+            
+            // Update CSS variables for light mode
+            document.documentElement.style.setProperty('--glass-bg', 'var(--glass-bg-light)');
+            document.documentElement.style.setProperty('--glass-border', 'var(--glass-border-light)');
+            document.documentElement.style.setProperty('--cyber-bg', 'var(--cyber-bg-light)');
+            document.documentElement.style.setProperty('--cyber-surface', 'var(--cyber-surface-light)');
+        } else {
+            // Switch to dark mode
+            document.documentElement.classList.remove('light-mode');
+            document.body.classList.remove('light-mode');
+            
+            // Update CSS variables for dark mode
+            document.documentElement.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.05)');
+            document.documentElement.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.1)');
+            document.documentElement.style.setProperty('--cyber-bg', '#02001a');
+            document.documentElement.style.setProperty('--cyber-surface', 'rgba(12, 10, 48, 0.8)');
+        }
+        
+        // Re-apply current theme to update colors for the new mode
+        this.applyColorTheme(this.currentTheme);
+        
+        // Update gradient overlay
+        const themeColors = this.getThemeColors(this.currentTheme);
+        this.updateGradientOverlay(themeColors);
+        
+        // Save preference
+        localStorage.setItem('futuristicParticlesLightMode', enabled.toString());
+        
+        console.log(`🌙 Switched to ${enabled ? 'light' : 'dark'} mode`);
+    }
+
+    setupCustomColorControls() {
+        // Particle color inputs
+        for (let i = 1; i <= 3; i++) {
+            const colorInput = document.getElementById(`particleColor${i}`);
+            const hexInput = document.getElementById(`particleColor${i}Hex`);
+            const valueDisplay = document.getElementById(`particleColor${i}Value`);
+            
+            if (colorInput && hexInput && valueDisplay) {
+                // Initialize values
+                colorInput.value = this.customColors.particles[i-1];
+                hexInput.value = this.customColors.particles[i-1];
+                valueDisplay.textContent = this.customColors.particles[i-1];
+                
+                // Color picker event
+                colorInput.addEventListener('input', (e) => {
+                    const color = e.target.value;
+                    hexInput.value = color;
+                    valueDisplay.textContent = color;
+                    this.updateParticleColor(i-1, color);
+                });
+                
+                // Hex input event
+                hexInput.addEventListener('input', (e) => {
+                    const color = e.target.value;
+                    if (this.isValidHex(color)) {
+                        colorInput.value = color;
+                        valueDisplay.textContent = color;
+                        this.updateParticleColor(i-1, color);
+                    }
+                });
+                
+                hexInput.addEventListener('blur', (e) => {
+                    const color = e.target.value;
+                    if (!this.isValidHex(color)) {
+                        // Reset to current color if invalid
+                        const currentColor = this.customColors.particles[i-1];
+                        e.target.value = currentColor;
+                        colorInput.value = currentColor;
+                        valueDisplay.textContent = currentColor;
+                    }
+                });
+            }
+        }
+        
+        // Connection color inputs
+        const connectionColorInput = document.getElementById('connectionColor');
+        const connectionHexInput = document.getElementById('connectionColorHex');
+        const connectionValueDisplay = document.getElementById('connectionColorValue');
+        
+        if (connectionColorInput && connectionHexInput && connectionValueDisplay) {
+            // Initialize values
+            connectionColorInput.value = this.customColors.connections;
+            connectionHexInput.value = this.customColors.connections;
+            connectionValueDisplay.textContent = this.customColors.connections;
+            
+            // Color picker event
+            connectionColorInput.addEventListener('input', (e) => {
+                const color = e.target.value;
+                connectionHexInput.value = color;
+                connectionValueDisplay.textContent = color;
+                this.updateConnectionColor(color);
+            });
+            
+            // Hex input event
+            connectionHexInput.addEventListener('input', (e) => {
+                const color = e.target.value;
+                if (this.isValidHex(color)) {
+                    connectionColorInput.value = color;
+                    connectionValueDisplay.textContent = color;
+                    this.updateConnectionColor(color);
+                }
+            });
+            
+            connectionHexInput.addEventListener('blur', (e) => {
+                const color = e.target.value;
+                if (!this.isValidHex(color)) {
+                    // Reset to current color if invalid
+                    const currentColor = this.customColors.connections;
+                    e.target.value = currentColor;
+                    connectionColorInput.value = currentColor;
+                    connectionValueDisplay.textContent = currentColor;
+                }
+            });
+        }
+        
+        // Color action buttons
+        const randomizeBtn = document.getElementById('randomizeColors');
+        const resetBtn = document.getElementById('resetColors');
+        
+        if (randomizeBtn) {
+            randomizeBtn.addEventListener('click', () => this.randomizeColors());
+        }
+        
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => this.resetToThemeColors());
+        }
+    }
+
     setupQuickPresets() {
         const presetButtons = document.querySelectorAll('.preset-btn');
         presetButtons.forEach(button => {
@@ -284,6 +482,10 @@ class FuturisticParticleSystem {
 
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         fullscreenBtn?.addEventListener('click', () => this.toggleFullscreen());
+
+        // Custom colors toggle button
+        const toggleCustomColorsBtn = document.getElementById('toggleCustomColors');
+        toggleCustomColorsBtn?.addEventListener('click', () => this.toggleCustomColors());
 
         // Panel toggle
         const panelToggle = document.getElementById('panelToggle');
@@ -434,58 +636,436 @@ class FuturisticParticleSystem {
         document.documentElement.style.setProperty('--cyber-secondary', themeColors.secondary);
         document.documentElement.style.setProperty('--cyber-accent', themeColors.accent);
         
-        // Update particles
+        // Update particles - use custom colors if enabled, otherwise use theme colors
         if (window.pJSDom?.[0]?.pJS) {
             const pJS = window.pJSDom[0].pJS;
-            pJS.particles.color.value = [themeColors.primary, themeColors.secondary, themeColors.accent];
-            pJS.particles.line_linked.color = themeColors.primary;
+            
+            if (this.useCustomColors) {
+                pJS.particles.color.value = this.customColors.particles;
+                pJS.particles.line_linked.color = this.customColors.connections;
+            } else {
+                pJS.particles.color.value = [themeColors.primary, themeColors.secondary, themeColors.accent];
+                pJS.particles.line_linked.color = themeColors.primary;
+            }
             
             pJS.particles.array.forEach(particle => {
-                const colors = [themeColors.primary, themeColors.secondary, themeColors.accent];
+                const colors = this.useCustomColors ? this.customColors.particles : [themeColors.primary, themeColors.secondary, themeColors.accent];
                 particle.color.value = colors[Math.floor(Math.random() * colors.length)];
             });
         }
         
         // Update gradient overlay
         this.updateGradientOverlay(themeColors);
+        
+        // Update theme class for light mode
+        if (this.isLightMode) {
+            document.documentElement.classList.remove('theme-cyber', 'theme-neon', 'theme-ocean', 'theme-fire');
+            document.documentElement.classList.add(`theme-${theme}`);
+        }
+        
+        // Save theme preference
+        localStorage.setItem('futuristicParticlesTheme', theme);
+        
+        // Update UI to reflect theme colors if not using custom colors
+        if (!this.useCustomColors) {
+            this.updateColorUIFromTheme(themeColors);
+        }
     }
 
     getThemeColors(theme) {
         const themes = {
             cyber: {
-                primary: '#00f5d4',
-                secondary: '#6c63ff',
-                accent: '#ff006e'
+                dark: {
+                    primary: '#00f5d4',
+                    secondary: '#6c63ff',
+                    accent: '#ff006e'
+                },
+                light: {
+                    primary: '#00a8a0',
+                    secondary: '#4a4aff',
+                    accent: '#cc0044'
+                }
             },
             neon: {
-                primary: '#ff0080',
-                secondary: '#00ff80',
-                accent: '#8000ff'
+                dark: {
+                    primary: '#ff0080',
+                    secondary: '#00ff80',
+                    accent: '#8000ff'
+                },
+                light: {
+                    primary: '#cc0066',
+                    secondary: '#00cc66',
+                    accent: '#6600cc'
+                }
             },
             ocean: {
-                primary: '#0066ff',
-                secondary: '#00ccff',
-                accent: '#0099cc'
+                dark: {
+                    primary: '#0066ff',
+                    secondary: '#00ccff',
+                    accent: '#0099cc'
+                },
+                light: {
+                    primary: '#0044cc',
+                    secondary: '#0099cc',
+                    accent: '#006699'
+                }
             },
             fire: {
-                primary: '#ff4500',
-                secondary: '#ff6600',
-                accent: '#ffaa00'
+                dark: {
+                    primary: '#ff4500',
+                    secondary: '#ff6600',
+                    accent: '#ffaa00'
+                },
+                light: {
+                    primary: '#cc3300',
+                    secondary: '#cc5500',
+                    accent: '#cc8800'
+                }
             }
         };
         
-        return themes[theme] || themes.cyber;
+        const themeData = themes[theme] || themes.cyber;
+        return this.isLightMode ? themeData.light : themeData.dark;
     }
 
     updateGradientOverlay(colors) {
         const overlay = document.getElementById('gradientOverlay');
         if (overlay) {
+            const alpha = this.isLightMode ? 0.06 : 0.1;
             const gradient = `linear-gradient(135deg, 
-                ${colors.primary}10 0%, 
+                ${colors.primary}${Math.round(alpha * 255).toString(16).padStart(2, '0')} 0%, 
                 transparent 25%, 
                 transparent 75%, 
-                ${colors.secondary}10 100%)`;
+                ${colors.secondary}${Math.round(alpha * 255).toString(16).padStart(2, '0')} 100%)`;
             overlay.style.background = gradient;
+        }
+    }
+
+    updateConnectionColor(color) {
+        this.customColors.connections = color;
+        this.useCustomColors = true;
+        
+        if (window.pJSDom?.[0]?.pJS) {
+            const pJS = window.pJSDom[0].pJS;
+            pJS.particles.line_linked.color = color;
+            
+            // Update existing particles
+            pJS.particles.array.forEach(particle => {
+                if (particle.line_linked) {
+                    particle.line_linked.color = color;
+                }
+            });
+        }
+        
+        // Update CSS variable for glow effects
+        document.documentElement.style.setProperty('--connection-color', color);
+        
+        // Save to localStorage
+        localStorage.setItem('futuristicParticlesCustomColors', JSON.stringify(this.customColors));
+        localStorage.setItem('futuristicParticlesUseCustomColors', 'true');
+    }
+
+    updateParticleColor(index, color) {
+        this.customColors.particles[index] = color;
+        this.useCustomColors = true;
+        
+        if (window.pJSDom?.[0]?.pJS) {
+            const pJS = window.pJSDom[0].pJS;
+            
+            // Update particle colors array
+            pJS.particles.color.value = this.customColors.particles;
+            
+            // Update existing particles
+            pJS.particles.array.forEach(particle => {
+                const colors = this.customColors.particles;
+                particle.color.value = colors[Math.floor(Math.random() * colors.length)];
+                particle.color.rgb = this.hexToRgb(particle.color.value);
+            });
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('futuristicParticlesCustomColors', JSON.stringify(this.customColors));
+        localStorage.setItem('futuristicParticlesUseCustomColors', 'true');
+    }
+
+    isValidHex(color) {
+        return /^#[0-9A-F]{6}$/i.test(color);
+    }
+
+    hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+
+    randomizeColors() {
+        // Generate random vibrant colors
+        const randomColor = () => {
+            const hue = Math.random() * 360;
+            const saturation = 70 + Math.random() * 30; // 70-100%
+            const lightness = 50 + Math.random() * 20; // 50-70%
+            return this.hslToHex(hue, saturation, lightness);
+        };
+        
+        // Update particle colors
+        for (let i = 0; i < 3; i++) {
+            const color = randomColor();
+            this.updateParticleColor(i, color);
+            
+            // Update UI
+            const colorInput = document.getElementById(`particleColor${i+1}`);
+            const hexInput = document.getElementById(`particleColor${i+1}Hex`);
+            const valueDisplay = document.getElementById(`particleColor${i+1}Value`);
+            
+            if (colorInput) colorInput.value = color;
+            if (hexInput) hexInput.value = color;
+            if (valueDisplay) valueDisplay.textContent = color;
+        }
+        
+        // Update connection color
+        const connectionColor = randomColor();
+        this.updateConnectionColor(connectionColor);
+        
+        // Update UI
+        const connectionColorInput = document.getElementById('connectionColor');
+        const connectionHexInput = document.getElementById('connectionColorHex');
+        const connectionValueDisplay = document.getElementById('connectionColorValue');
+        
+        if (connectionColorInput) connectionColorInput.value = connectionColor;
+        if (connectionHexInput) connectionHexInput.value = connectionColor;
+        if (connectionValueDisplay) connectionValueDisplay.textContent = connectionColor;
+    }
+
+    resetToThemeColors() {
+        this.useCustomColors = false;
+        
+        // Get current theme colors
+        const themeColors = this.getThemeColors(this.currentTheme);
+        
+        // Reset particle colors
+        this.customColors.particles = [themeColors.primary, themeColors.secondary, themeColors.accent];
+        this.customColors.connections = themeColors.primary;
+        
+        // Apply theme colors
+        this.applyColorTheme(this.currentTheme);
+        
+        // Update UI
+        for (let i = 0; i < 3; i++) {
+            const color = this.customColors.particles[i];
+            const colorInput = document.getElementById(`particleColor${i+1}`);
+            const hexInput = document.getElementById(`particleColor${i+1}Hex`);
+            const valueDisplay = document.getElementById(`particleColor${i+1}Value`);
+            
+            if (colorInput) colorInput.value = color;
+            if (hexInput) hexInput.value = color;
+            if (valueDisplay) valueDisplay.textContent = color;
+        }
+        
+        // Update connection color UI
+        const connectionColorInput = document.getElementById('connectionColor');
+        const connectionHexInput = document.getElementById('connectionColorHex');
+        const connectionValueDisplay = document.getElementById('connectionColorValue');
+        
+        if (connectionColorInput) connectionColorInput.value = this.customColors.connections;
+        if (connectionHexInput) connectionHexInput.value = this.customColors.connections;
+        if (connectionValueDisplay) connectionValueDisplay.textContent = this.customColors.connections;
+        
+        // Save to localStorage
+        localStorage.setItem('futuristicParticlesUseCustomColors', 'false');
+    }
+
+    hslToHex(h, s, l) {
+        l /= 100;
+        const a = s * Math.min(l, 1 - l) / 100;
+        const f = n => {
+            const k = (n + h / 30) % 12;
+            const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+            return Math.round(255 * color).toString(16).padStart(2, '0');
+        };
+        return `#${f(0)}${f(8)}${f(4)}`;
+    }
+
+    updateColorUIFromTheme(themeColors) {
+        // Update particle color UI
+        const particleColors = [themeColors.primary, themeColors.secondary, themeColors.accent];
+        
+        for (let i = 0; i < 3; i++) {
+            const color = particleColors[i];
+            const colorInput = document.getElementById(`particleColor${i+1}`);
+            const hexInput = document.getElementById(`particleColor${i+1}Hex`);
+            const valueDisplay = document.getElementById(`particleColor${i+1}Value`);
+            
+            if (colorInput) colorInput.value = color;
+            if (hexInput) hexInput.value = color;
+            if (valueDisplay) valueDisplay.textContent = color;
+        }
+        
+        // Update connection color UI
+        const connectionColorInput = document.getElementById('connectionColor');
+        const connectionHexInput = document.getElementById('connectionColorHex');
+        const connectionValueDisplay = document.getElementById('connectionColorValue');
+        
+        if (connectionColorInput) connectionColorInput.value = themeColors.primary;
+        if (connectionHexInput) connectionHexInput.value = themeColors.primary;
+        if (connectionValueDisplay) connectionValueDisplay.textContent = themeColors.primary;
+        
+        // Update custom colors array
+        this.customColors.particles = particleColors;
+        this.customColors.connections = themeColors.primary;
+    }
+
+    updateCustomColorsIndicator() {
+        const customColorsSection = document.getElementById('customColorsSection');
+        if (customColorsSection) {
+            if (this.useCustomColors) {
+                customColorsSection.classList.add('custom-colors-active');
+            } else {
+                customColorsSection.classList.remove('custom-colors-active');
+            }
+        }
+    }
+
+    toggleCustomColors() {
+        this.useCustomColors = !this.useCustomColors;
+        
+        const toggleBtn = document.getElementById('toggleCustomColors');
+        const customColorsSection = document.getElementById('customColorsSection');
+        
+        if (this.useCustomColors) {
+            // Enable custom colors
+            toggleBtn.textContent = 'Disable Custom Colors';
+            toggleBtn.classList.add('active');
+            customColorsSection.classList.add('active');
+            
+            // Apply custom colors to particles
+            this.applyCustomColors();
+        } else {
+            // Disable custom colors and revert to theme
+            toggleBtn.textContent = 'Enable Custom Colors';
+            toggleBtn.classList.remove('active');
+            customColorsSection.classList.remove('active');
+            
+            // Revert to theme colors
+            this.applyThemeColors();
+        }
+        
+        // Update the indicator
+        this.updateCustomColorsIndicator();
+        
+        // Save preference
+        this.saveSettings();
+    }
+
+    applyCustomColors() {
+        if (window.pJSDom?.[0]?.pJS) {
+            const pJS = window.pJSDom[0].pJS;
+            
+            // Apply custom particle colors
+            pJS.particles.color.value = this.customColors.particles;
+            
+            // Apply custom connection color
+            pJS.particles.line_linked.color = this.customColors.connections;
+            
+            // Update existing particles
+            pJS.particles.array.forEach(particle => {
+                const colors = this.customColors.particles;
+                particle.color.value = colors[Math.floor(Math.random() * colors.length)];
+                particle.color.rgb = this.hexToRgb(particle.color.value);
+                
+                if (particle.line_linked) {
+                    particle.line_linked.color = this.customColors.connections;
+                }
+            });
+        }
+        
+        // Update CSS variables for glow effects
+        document.documentElement.style.setProperty('--connection-color', this.customColors.connections);
+    }
+
+    applyThemeColors() {
+        const themeColors = this.getThemeColors(this.currentTheme);
+        
+        if (window.pJSDom?.[0]?.pJS) {
+            const pJS = window.pJSDom[0].pJS;
+            
+            // Apply theme particle colors
+            pJS.particles.color.value = [themeColors.primary, themeColors.secondary, themeColors.accent];
+            
+            // Apply theme connection color
+            pJS.particles.line_linked.color = themeColors.primary;
+            
+            // Update existing particles
+            pJS.particles.array.forEach(particle => {
+                const colors = [themeColors.primary, themeColors.secondary, themeColors.accent];
+                particle.color.value = colors[Math.floor(Math.random() * colors.length)];
+                particle.color.rgb = this.hexToRgb(particle.color.value);
+                
+                if (particle.line_linked) {
+                    particle.line_linked.color = themeColors.primary;
+                }
+            });
+        }
+        
+        // Update CSS variables for glow effects
+        document.documentElement.style.setProperty('--connection-color', themeColors.primary);
+    }
+
+    saveSettings() {
+        localStorage.setItem('futuristicParticlesUseCustomColors', this.useCustomColors.toString());
+        localStorage.setItem('futuristicParticlesCustomColors', JSON.stringify(this.customColors));
+        localStorage.setItem('futuristicParticlesTheme', this.currentTheme);
+        localStorage.setItem('futuristicParticlesLightMode', this.isLightMode.toString());
+    }
+
+    loadSavedSettings() {
+        // Load theme preference
+        const savedTheme = localStorage.getItem('futuristicParticlesTheme');
+        if (savedTheme) {
+            this.currentTheme = savedTheme;
+        }
+        
+        // Load light mode preference
+        const savedLightMode = localStorage.getItem('futuristicParticlesLightMode');
+        if (savedLightMode === 'true') {
+            this.isLightMode = true;
+            document.documentElement.classList.add('light-mode');
+            document.body.classList.add('light-mode');
+            // Checkbox will be set after DOM is ready
+            setTimeout(() => {
+                const themeToggle = document.getElementById('themeToggle');
+                if (themeToggle) themeToggle.checked = true;
+            }, 100);
+        }
+        
+        // Load custom colors preference
+        const savedUseCustomColors = localStorage.getItem('futuristicParticlesUseCustomColors');
+        if (savedUseCustomColors === 'true') {
+            this.useCustomColors = true;
+            const savedCustomColors = localStorage.getItem('futuristicParticlesCustomColors');
+            if (savedCustomColors) {
+                this.customColors = JSON.parse(savedCustomColors);
+            }
+            
+            // Update UI to reflect custom colors state (will be done after DOM is ready)
+            setTimeout(() => {
+                const toggleBtn = document.getElementById('toggleCustomColors');
+                const customColorsSection = document.getElementById('customColorsSection');
+                
+                if (toggleBtn) {
+                    toggleBtn.textContent = 'Disable Custom Colors';
+                    toggleBtn.classList.add('active');
+                }
+                
+                if (customColorsSection) {
+                    customColorsSection.classList.add('active');
+                }
+                
+                // Update the indicator
+                this.updateCustomColorsIndicator();
+            }, 100);
         }
     }
 
@@ -671,6 +1251,36 @@ class FuturisticParticleSystem {
         this.loadParticles();
         this.resetControlValues();
         this.applyColorTheme('cyber');
+        
+        // Reset theme toggle
+        this.isLightMode = false;
+        document.documentElement.classList.remove('light-mode');
+        document.body.classList.remove('light-mode');
+        document.getElementById('themeToggle').checked = false;
+        localStorage.setItem('futuristicParticlesLightMode', false);
+        
+        // Reset custom colors
+        this.useCustomColors = false;
+        this.customColors = {
+            particles: ['#00f5d4', '#6c63ff', '#ff006e'],
+            connections: '#00f5d4'
+        };
+        
+        // Update UI for custom colors
+        const toggleBtn = document.getElementById('toggleCustomColors');
+        const customColorsSection = document.getElementById('customColorsSection');
+        
+        if (toggleBtn) {
+            toggleBtn.textContent = 'Enable Custom Colors';
+            toggleBtn.classList.remove('active');
+        }
+        
+        if (customColorsSection) {
+            customColorsSection.classList.remove('active');
+        }
+        
+        this.updateCustomColorsIndicator();
+        this.saveSettings();
     }
 
     resetControlValues() {
@@ -702,6 +1312,9 @@ class FuturisticParticleSystem {
     exportConfiguration() {
         const config = {
             theme: this.currentTheme,
+            lightMode: this.isLightMode,
+            useCustomColors: this.useCustomColors,
+            customColors: this.customColors,
             particles: this.particleConfig,
             settings: {
                 density: document.getElementById('densitySlider')?.value,

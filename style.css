@@ -1,4 +1,4 @@
-/* Cyber Particle System Styles */
+/* Particle System Styles */
 .matrix-particles {
   position: fixed;
   top: 0;
@@ -10,7 +10,28 @@
   background: transparent;
 }
 
+.light-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  background: transparent;
+}
+
 #particles-js {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#light-particles-js {
   position: fixed;
   top: 0;
   left: 0;
@@ -393,6 +414,31 @@
 
 /* Dark explicit (matches defaults) */
 [data-theme="dark"] { --theme-mode: dark; /* explicit dark theme placeholder - use [data-color-scheme] for full overrides */ }
+
+/* FALLBACK: Class-based theme selectors (in case data-attribute method fails) */
+.theme-light {
+  --bg-primary: #fafbff;
+  --bg-secondary: rgba(248, 250, 255, 0.8);
+  --bg-glass: rgba(255, 255, 255, 0.9);
+  --text-primary: #0a0f1a;
+  --text-secondary: #1a2332;
+  --text-muted: #3a4a5a;
+  --accent-glow: #0052e6;
+  --accent-cyan: #0066cc;
+  --border-color: rgba(0, 82, 230, 0.15);
+}
+
+.theme-dark {
+  --bg-primary: #02001a;
+  --bg-secondary: rgba(10, 8, 38, 0.45);
+  --bg-glass: rgba(12, 10, 48, 0.65);
+  --text-primary: #f0f0ff;
+  --text-secondary: #b8b8d8;
+  --text-muted: #8a8aaa;
+  --accent-glow: #7c73ff;
+  --accent-cyan: #1ff5d4;
+  --border-color: rgba(108, 99, 255, 0.3);
+}
 
 /* Also support the reference repo's attribute name */
 [data-color-scheme="light"] {

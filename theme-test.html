@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme System Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        /* Default dark theme */
+        :root {
+            --bg-color: #02001a;
+            --text-color: #f0f0ff;
+            --accent-color: #6c63ff;
+        }
+        
+        /* Light theme override */
+        [data-theme="light"] {
+            --bg-color: #fafbff;
+            --text-color: #0a0f1a;
+            --accent-color: #0052e6;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        
+        .test-box {
+            background: var(--accent-color);
+            color: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        
+        button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Theme System Diagnostic Test</h1>
+    
+    <div class="test-box">
+        <h2>Current Theme Status</h2>
+        <p id="themeStatus">Checking...</p>
+        <p id="attributeStatus">Checking attributes...</p>
+        <p id="computedStatus">Checking computed styles...</p>
+    </div>
+    
+    <button onclick="setTheme('light')">Test Light Theme</button>
+    <button onclick="setTheme('dark')">Test Dark Theme</button>
+    <button onclick="setTheme('auto')">Test Auto Theme</button>
+    <button onclick="clearTheme()">Clear Theme</button>
+    <button onclick="runComprehensiveTest()">🧪 Run Full Test</button>
+    
+    <div class="test-box">
+        <h3>Debug Information</h3>
+        <pre id="debugInfo"></pre>
+    </div>
+
+    <script>
+        function updateStatus() {
+            const dataTheme = document.documentElement.getAttribute('data-theme');
+            const dataThemePref = document.documentElement.getAttribute('data-theme-preference');
+            const computedBg = getComputedStyle(document.body).backgroundColor;
+            const computedColor = getComputedStyle(document.body).color;
+            
+            document.getElementById('themeStatus').textContent = 
+                `data-theme: ${dataTheme || 'not set'}, preference: ${dataThemePref || 'not set'}`;
+            
+            document.getElementById('attributeStatus').textContent = 
+                `HTML attributes: ${document.documentElement.getAttributeNames().join(', ')}`;
+            
+            document.getElementById('computedStatus').textContent = 
+                `Computed: bg=${computedBg}, color=${computedColor}`;
+            
+            const debugData = {
+                localStorage: {
+                    themePreference: localStorage.getItem('theme-preference'),
+                    themeTimestamp: localStorage.getItem('theme-timestamp')
+                },
+                system: {
+                    prefersDark: window.matchMedia('(prefers-color-scheme: dark)').matches,
+                    prefersLight: window.matchMedia('(prefers-color-scheme: light)').matches
+                },
+                document: {
+                    dataTheme: dataTheme,
+                    dataThemePreference: dataThemePref,
+                    classList: Array.from(document.documentElement.classList)
+                },
+                window: {
+                    themeManager: typeof window.themeManager !== 'undefined'
+                }
+            };
+            
+            document.getElementById('debugInfo').textContent = JSON.stringify(debugData, null, 2);
+        }
+        
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.setAttribute('data-theme-preference', theme);
+            localStorage.setItem('theme-preference', theme);
+            updateStatus();
+        }
+        
+        function clearTheme() {
+            document.documentElement.removeAttribute('data-theme');
+            document.documentElement.removeAttribute('data-theme-preference');
+            localStorage.removeItem('theme-preference');
+            updateStatus();
+        }
+        
+        async function runComprehensiveTest() {
+            const results = [];
+            
+            // Test 1: Light theme
+            setTheme('light');
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const lightBg = getComputedStyle(document.body).backgroundColor;
+            results.push(`Light theme background: ${lightBg}`);
+            
+            // Test 2: Dark theme
+            setTheme('dark');
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const darkBg = getComputedStyle(document.body).backgroundColor;
+            results.push(`Dark theme background: ${darkBg}`);
+            
+            // Test 3: Auto theme
+            setTheme('auto');
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const autoBg = getComputedStyle(document.body).backgroundColor;
+            results.push(`Auto theme background: ${autoBg}`);
+            
+            // Test 4: Responsive behavior
+            const mediaQuery = window.matchMedia('(max-width: 640px)');
+            results.push(`Mobile breakpoint active: ${mediaQuery.matches}`);
+            
+            // Test 5: localStorage persistence
+            const storedTheme = localStorage.getItem('theme-preference');
+            results.push(`Stored theme: ${storedTheme}`);
+            
+            // Test 6: CSS custom properties
+            const rootStyles = getComputedStyle(document.documentElement);
+            const accentColor = rootStyles.getPropertyValue('--accent-color');
+            results.push(`CSS custom property --accent-color: ${accentColor}`);
+            
+            alert('Test Results:\n\n' + results.join('\n'));
+        }
+        
+        // Update status immediately and every second
+        updateStatus();
+        setInterval(updateStatus, 1000);
+    </script>
+</body>
+</html>
