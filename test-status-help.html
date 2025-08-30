@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Status Help System Test - CAnalyzerAI</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .test-container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: var(--bg-primary);
+      border-radius: 12px;
+    }
+    
+    .test-section {
+      margin-bottom: 40px;
+      padding: 20px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+    
+    .test-title {
+      color: var(--accent-glow);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .status-demo {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg-glass);
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+    
+    .demo-indicator {
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <header>
+      <h1 class="app-title">
+        <span class="title-icon">🧪</span> 
+        Status Help System Test
+      </h1>
+      <p>This page demonstrates the enhanced status indicators with tooltips and help buttons.</p>
+    </header>
+    
+    <div class="test-section">
+      <h2 class="test-title">
+        <span>🔧</span> API Configuration Status Examples
+      </h2>
+      <div class="status-demo">
+        <div class="status-item">
+          <div class="status-indicator not-set demo-indicator" title="API Configuration Status: Not configured yet. Click the ⚙️ settings button to set up your API key for AI-powered analysis.">
+            <div class="status-dot" style="background: #8892b0;"></div>
+            <div class="status-info">
+              <span class="status-text">No API Key</span>
+              <span class="status-detail" title="Configuration History: Never configured - No API key has been set up. AI analysis requires an API key from OpenAI, OpenRouter, or a local Ollama installation.">Never configured ⚙️</span>
+            </div>
+            <button class="status-help-btn" title="Click to learn about API configuration status indicators" aria-label="API Status Help">
+              <span class="help-icon">?</span>
+            </button>
+          </div>
+          <span>← Hover for tooltips, click ? for detailed help</span>
+        </div>
+        
+        <div class="status-item">
+          <div class="status-indicator ready demo-indicator" title="API Configuration Status: Ready and validated. The system can connect to the AI service for analysis.">
+            <div class="status-dot" style="background: #39ff14;"></div>
+            <div class="status-info">
+              <span class="status-text">Ready</span>
+              <span class="status-detail" title="Configuration History: API key was successfully saved and validated at this time.">Updated ${new Date().toLocaleString()}</span>
+            </div>
+            <button class="status-help-btn" title="Click to learn about API configuration status indicators" aria-label="API Status Help">
+              <span class="help-icon">?</span>
+            </button>
+          </div>
+          <span>← Example of ready state</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="test-title">
+        <span>🧪</span> Test Status Examples
+      </h2>
+      <div class="status-demo">
+        <div class="status-item">
+          <div class="test-status status-pending demo-indicator" title="Current test status: Pending - Test has not run yet. This verifies the basic functionality works correctly.">
+            <span>⏳</span> Pending
+          </div>
+          <span>← Pending test status</span>
+        </div>
+        
+        <div class="status-item">
+          <div class="test-status status-pass demo-indicator" title="Current test status: Pass - Test completed successfully. All checks passed.">
+            <span>✅</span> Pass
+          </div>
+          <span>← Successful test</span>
+        </div>
+        
+        <div class="status-item">
+          <div class="test-status status-fail demo-indicator" title="Current test status: Fail - Test failed. Check logs for details and retry.">
+            <span>❌</span> Fail
+          </div>
+          <span>← Failed test</span>
+        </div>
+        
+        <div class="status-item">
+          <div class="test-status status-testing demo-indicator" title="Current test status: Testing - Test is currently running. Please wait for completion.">
+            <span>🔄</span> Testing
+          </div>
+          <span>← Test in progress</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="test-title">
+        <span>📊</span> Status Legend Button
+      </h2>
+      <div class="status-demo">
+        <div class="status-item">
+          <div class="api-info-content">
+            <span class="api-info-label">Analysis Configuration:</span>
+            <span class="api-info-status">Demo Mode</span>
+            <span class="api-info-detail">Testing environment</span>
+            <button class="status-legend-btn" id="statusLegendBtn" title="View status indicator explanations" aria-label="Status Legend">
+              <span class="legend-icon">ℹ️</span>
+            </button>
+          </div>
+          <span>← Click the ℹ️ button to see the comprehensive status legend</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="test-title">
+        <span>🎯</span> Interactive Elements
+      </h2>
+      <div class="status-demo">
+        <p>All status indicators in this test page are interactive:</p>
+        <ul>
+          <li><strong>Hover:</strong> Shows enhanced tooltips with context</li>
+          <li><strong>Help buttons (?):</strong> Click for detailed explanations</li>
+          <li><strong>Legend button (ℹ️):</strong> Opens comprehensive status guide</li>
+          <li><strong>Status indicators:</strong> Provide immediate visual feedback</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Include the main app.js for tooltip functionality -->
+  <script src="app.js"></script>
+  
+  <script>
+    // Initialize tooltips for demo elements
+    document.addEventListener('DOMContentLoaded', () => {
+      // Add some demo-specific functionality
+      console.log('🧪 Status Help System Test initialized');
+      
+      // Test that all tooltips are working
+      const elementsWithTooltips = document.querySelectorAll('[title]');
+      console.log(`Found ${elementsWithTooltips.length} elements with tooltips`);
+      
+      // Test status help button functionality
+      const helpButtons = document.querySelectorAll('.status-help-btn');
+      helpButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          alert('Status help functionality is working! In the real app, this would show detailed explanations.');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

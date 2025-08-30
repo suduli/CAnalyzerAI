@@ -22,12 +22,15 @@
         </div>
         <div class="header-right">
           <div class="api-key-status">
-            <div class="status-indicator not-set" id="apiKeyStatus">
+            <div class="status-indicator not-set" id="apiKeyStatus" title="API Configuration Status: Not configured yet. Click the ⚙️ settings button to set up your API key for AI-powered analysis.">
               <div class="status-dot"></div>
               <div class="status-info">
                 <span class="status-text">No API Key</span>
-                <span class="status-detail" id="lastValidated">Never configured</span>
+                <span class="status-detail" id="lastValidated" title="Configuration History: Never configured - No API key has been set up. AI analysis requires an API key from OpenAI, OpenRouter, or a local Ollama installation.">Never configured</span>
               </div>
+              <button class="status-help-btn" id="apiStatusHelp" title="Click to learn about API configuration status indicators" aria-label="API Status Help">
+                <span class="help-icon">?</span>
+              </button>
             </div>
             <div class="header-actions">
               <button class="settings-btn" id="settingsBtn" title="API Configuration" tabindex="0" aria-label="API Configuration"><span class="settings-icon">⚙️</span></button>
@@ -155,15 +158,16 @@
         </div>
       </div>
 
-      <div class="api-key-info">
-        <div class="api-info-content">
-          <span class="api-info-label">Analysis Configuration:</span>
-          <span class="api-info-status" id="analysisApiStatus">Unknown</span>
-          <span class="api-info-detail" id="analysisApiDetail"></span>
-        </div>
-      </div>
-
-      <div class="results-grid">
+        <div class="api-key-info">
+          <div class="api-info-content">
+            <span class="api-info-label">Analysis Configuration:</span>
+            <span class="api-info-status" id="analysisApiStatus">Unknown</span>
+            <span class="api-info-detail" id="analysisApiDetail"></span>
+            <button class="status-legend-btn" id="statusLegendBtn" title="View status indicator explanations" aria-label="Status Legend">
+              <span class="legend-icon">ℹ️</span>
+            </button>
+          </div>
+        </div>      <div class="results-grid">
         <div class="analysis-panel">
           <div class="panel-header"><h3 class="panel-title"><span class="panel-icon">🔧</span> Static Analysis</h3><div class="analysis-time" id="staticTime"></div></div>
           <div class="panel-content">

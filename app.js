@@ -42,6 +42,9 @@
       this.modelDropdown = document.getElementById('modelDropdown');
       this.selectedModel = localStorage.getItem('selectedModel') || this.getDefaultModel();
 
+      // Initialize status help system
+      this.initStatusHelp();
+
       this.init();
     }
 
@@ -98,6 +101,43 @@
       if (this.statusDot) this.statusDot.style.background = ok ? '#39ff14' : '#8892b0';
       if (this.statusText) this.statusText.textContent = ok ? 'Ready' : 'No API Key';
       if (validated && this.lastValidated) this.lastValidated.textContent = `Updated ${new Date().toLocaleString()}`;
+      
+      // Update status-specific tooltips
+      this.updateStatusTooltips(ok, validated);
+    }
+
+    updateStatusTooltips(isReady, wasValidated) {
+      const statusElement = document.getElementById('apiKeyStatus');
+      const lastValidatedElement = document.getElementById('lastValidated');
+      
+      if (statusElement) {
+        // Update main status indicator tooltip
+        let statusTooltip = '';
+        if (isReady) {
+          statusTooltip = 'API Configuration is ready. The system can connect to the AI service for analysis.';
+        } else {
+          statusTooltip = 'API Key required. Configure your API key to enable AI-powered code analysis.';
+        }
+        statusElement.setAttribute('title', statusTooltip);
+      }
+      
+      if (lastValidatedElement) {
+        // Update last validated tooltip based on current text
+        const currentText = lastValidatedElement.textContent;
+        let validatedTooltip = '';
+        
+        if (currentText === 'Never configured') {
+          validatedTooltip = 'API Key has not been configured yet. Click the ⚙️ button to set up your API key.';
+        } else if (currentText.startsWith('Updated')) {
+          validatedTooltip = 'API Key was successfully saved and validated at this time.';
+        } else if (currentText.startsWith('Tested')) {
+          validatedTooltip = 'API Key was successfully tested and verified at this time.';
+        } else if (currentText.startsWith('Failed')) {
+          validatedTooltip = 'API Key test failed at this time. Check your key and internet connection.';
+        }
+        
+        lastValidatedElement.setAttribute('title', validatedTooltip);
+      }
     }
     async test() {
       const provider = this.providerSelect?.value || 'ollama';
@@ -195,6 +235,131 @@
         localStorage.setItem('selectedModel', this.selectedModel);
         localStorage.setItem('cai_model', this.selectedModel);
       });
+    }
+
+    initStatusHelp() {
+      const helpBtn = document.getElementById('apiStatusHelp');
+      if (helpBtn) {
+        helpBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.showStatusHelpModal();
+        });
+      }
+    }
+
+    showStatusHelpModal() {
+      // Create status help modal if it doesn't exist
+      if (!document.getElementById('statusHelpModal')) {
+        this.createStatusHelpModal();
+      }
+      
+      const modal = document.getElementById('statusHelpModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('show');
+      }
+    }
+
+    createStatusHelpModal() {
+      const modalHTML = `
+        <div class="modal" id="statusHelpModal">
+          <div class="modal-backdrop"></div>
+          <div class="modal-content status-help-modal">
+            <div class="modal-header">
+              <h2 class="modal-title">
+                <span class="modal-icon">💡</span> API Status Indicators Guide
+              </h2>
+              <button class="modal-close" onclick="document.getElementById('statusHelpModal').classList.add('hidden')">&times;</button>
+            </div>
+            <div class="modal-body">
+              <div class="status-help-section">
+                <h3 class="help-section-title">📊 Status Indicators Explained</h3>
+                
+                <div class="status-example">
+                  <div class="status-indicator ready-example">
+                    <div class="status-dot" style="background: #39ff14;"></div>
+                    <div class="status-info">
+                      <span class="status-text">Ready</span>
+                      <span class="status-detail">Updated ${new Date().toLocaleString()}</span>
+                    </div>
+                  </div>
+                  <div class="status-explanation">
+                    <strong>✅ Ready:</strong> API key is configured and working. The system can connect to the AI service for code analysis.
+                  </div>
+                </div>
+
+                <div class="status-example">
+                  <div class="status-indicator not-set-example">
+                    <div class="status-dot" style="background: #8892b0;"></div>
+                    <div class="status-info">
+                      <span class="status-text">No API Key</span>
+                      <span class="status-detail">Never configured ⚙️</span>
+                    </div>
+                  </div>
+                  <div class="status-explanation">
+                    <strong>⚙️ Never configured:</strong> No API key has been set up yet. Click the settings button (⚙️) to configure your API key and enable AI analysis.
+                  </div>
+                </div>
+
+                <div class="status-example">
+                  <div class="status-indicator">
+                    <div class="status-dot" style="background: #39ff14;"></div>
+                    <div class="status-info">
+                      <span class="status-text">Ready</span>
+                      <span class="status-detail">Tested ${new Date().toLocaleString()}</span>
+                    </div>
+                  </div>
+                  <div class="status-explanation">
+                    <strong>🧪 Tested:</strong> API key was manually tested and verified successfully.
+                  </div>
+                </div>
+
+                <div class="status-example">
+                  <div class="status-indicator">
+                    <div class="status-dot" style="background: #ff4757;"></div>
+                    <div class="status-info">
+                      <span class="status-text">Test Failed</span>
+                      <span class="status-detail">Failed ${new Date().toLocaleString()}</span>
+                    </div>
+                  </div>
+                  <div class="status-explanation">
+                    <strong>❌ Failed:</strong> API key test failed. Check your key, internet connection, or service status.
+                  </div>
+                </div>
+              </div>
+
+              <div class="status-help-section">
+                <h3 class="help-section-title">🔧 Quick Actions</h3>
+                <div class="quick-actions">
+                  <button class="help-action-btn" onclick="document.getElementById('settingsBtn').click(); document.getElementById('statusHelpModal').classList.add('hidden');">
+                    ⚙️ Configure API Key
+                  </button>
+                  <button class="help-action-btn" onclick="this.closest('.modal').classList.add('hidden');">
+                    ❌ Close Help
+                  </button>
+                </div>
+              </div>
+
+              <div class="status-help-section">
+                <h3 class="help-section-title">📝 Supported Services</h3>
+                <div class="service-list">
+                  <div class="service-item">
+                    <strong>🤖 Ollama (Local):</strong> No API key required. Runs models locally on your machine.
+                  </div>
+                  <div class="service-item">
+                    <strong>🧠 OpenAI:</strong> Requires OpenAI API key. High-quality analysis with GPT models.
+                  </div>
+                  <div class="service-item">
+                    <strong>🌐 OpenRouter:</strong> Requires OpenRouter API key. Access to multiple AI models.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
     }
   }
 
@@ -1295,9 +1460,158 @@ int main() {
     }
   }
 
+  // Status Legend System
+  function initStatusLegend() {
+    const legendBtn = document.getElementById('statusLegendBtn');
+    if (legendBtn) {
+      legendBtn.addEventListener('click', showStatusLegend);
+    }
+  }
+
+  function showStatusLegend() {
+    if (!document.getElementById('statusLegendModal')) {
+      createStatusLegendModal();
+    }
+    
+    const modal = document.getElementById('statusLegendModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('show');
+    }
+  }
+
+  function createStatusLegendModal() {
+    const modalHTML = `
+      <div class="modal" id="statusLegendModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content status-legend-modal">
+          <div class="modal-header">
+            <h2 class="modal-title">
+              <span class="modal-icon">📊</span> Status Indicators Reference Guide
+            </h2>
+            <button class="modal-close" onclick="document.getElementById('statusLegendModal').classList.add('hidden')">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="legend-section">
+              <h3 class="legend-section-title">🔑 Universal Status Meanings</h3>
+              <div class="legend-grid">
+                <div class="legend-item">
+                  <div class="legend-indicator">
+                    <div class="status-dot" style="background: #39ff14;"></div>
+                  </div>
+                  <div class="legend-content">
+                    <strong>🟢 Ready/Pass/Success</strong>
+                    <p>System is working correctly or test passed</p>
+                  </div>
+                </div>
+                
+                <div class="legend-item">
+                  <div class="legend-indicator">
+                    <div class="status-dot" style="background: #8892b0;"></div>
+                  </div>
+                  <div class="legend-content">
+                    <strong>⚫ Not Set/Inactive</strong>
+                    <p>Feature not configured or inactive</p>
+                  </div>
+                </div>
+                
+                <div class="legend-item">
+                  <div class="legend-indicator">
+                    <div class="status-dot" style="background: #ffa502;"></div>
+                  </div>
+                  <div class="legend-content">
+                    <strong>🟡 Pending/Warning</strong>
+                    <p>Test queued, in progress, or needs attention</p>
+                  </div>
+                </div>
+                
+                <div class="legend-item">
+                  <div class="legend-indicator">
+                    <div class="status-dot" style="background: #ff4757;"></div>
+                  </div>
+                  <div class="legend-content">
+                    <strong>🔴 Failed/Error</strong>
+                    <p>Test failed or system error occurred</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="legend-section">
+              <h3 class="legend-section-title">⚙️ Configuration Status</h3>
+              <div class="status-examples">
+                <div class="status-example-compact">
+                  <span class="status-badge ready">Ready</span>
+                  <span>API key configured and validated</span>
+                </div>
+                <div class="status-example-compact">
+                  <span class="status-badge not-set">Never configured ⚙️</span>
+                  <span>Click settings button to configure</span>
+                </div>
+                <div class="status-example-compact">
+                  <span class="status-badge tested">Tested [timestamp]</span>
+                  <span>API key manually tested and verified</span>
+                </div>
+                <div class="status-example-compact">
+                  <span class="status-badge failed">Failed [timestamp]</span>
+                  <span>Test failed - check connection/key</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="legend-section">
+              <h3 class="legend-section-title">🧪 Testing Status</h3>
+              <div class="status-examples">
+                <div class="status-example-compact">
+                  <span class="status-badge pending">⏳ Pending</span>
+                  <span>Test not started yet</span>
+                </div>
+                <div class="status-example-compact">
+                  <span class="status-badge testing">🔄 Testing</span>
+                  <span>Test currently running</span>
+                </div>
+                <div class="status-example-compact">
+                  <span class="status-badge pass">✅ Pass</span>
+                  <span>Test completed successfully</span>
+                </div>
+                <div class="status-example-compact">
+                  <span class="status-badge fail">❌ Fail</span>
+                  <span>Test failed - issues found</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="legend-section">
+              <h3 class="legend-section-title">💡 Getting Help</h3>
+              <div class="help-grid">
+                <div class="help-item">
+                  <strong>? Help Buttons:</strong> Click for detailed explanations
+                </div>
+                <div class="help-item">
+                  <strong>🔄 Hover Tooltips:</strong> Hover over status indicators for quick info
+                </div>
+                <div class="help-item">
+                  <strong>⚙️ Configuration:</strong> Use settings buttons to fix "Not Set" statuses
+                </div>
+                <div class="help-item">
+                  <strong>🔍 Detailed View:</strong> Click status indicators for more information
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+  }
+
   window.addEventListener('DOMContentLoaded', () => {
     sys.init();
     const app = new CAnalyzerAIRef();
+
+    // Initialize status legend system
+    initStatusLegend();
 
     // Expose app instance and test methods for debugging
     window.CAnalyzerAI = app;
@@ -2392,14 +2706,22 @@ class MicroInteractions {
       
       const tooltip = document.createElement('div');
       tooltip.className = 'custom-tooltip';
-      tooltip.textContent = title;
+      
+      // Enhanced tooltip content for status indicators
+      if (element.classList.contains('test-status') || element.classList.contains('status-indicator') || element.id.includes('status')) {
+        tooltip.innerHTML = this.getEnhancedStatusTooltip(title, element);
+        tooltip.classList.add('status-tooltip');
+      } else {
+        tooltip.textContent = title;
+      }
+      
       tooltip.style.cssText = `
         position: absolute;
         background: var(--bg-glass-elevated);
         color: var(--text-primary);
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 12px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 13px;
         pointer-events: none;
         z-index: 1000;
         opacity: 0;
@@ -2408,7 +2730,16 @@ class MicroInteractions {
         backdrop-filter: blur(10px);
         border: 1px solid var(--muted-border);
         box-shadow: var(--glass-shadow-sm);
+        max-width: 300px;
+        line-height: 1.4;
       `;
+      
+      // Enhanced styling for status tooltips
+      if (tooltip.classList.contains('status-tooltip')) {
+        tooltip.style.background = 'var(--bg-glass)';
+        tooltip.style.border = '1px solid var(--accent-glow)';
+        tooltip.style.boxShadow = '0 8px 32px rgba(108, 99, 255, 0.2)';
+      }
       
       document.body.appendChild(tooltip);
       
@@ -2425,6 +2756,38 @@ class MicroInteractions {
         tooltip.style.transform = 'translateY(10px)';
       });
     });
+  }
+
+  getEnhancedStatusTooltip(title, element) {
+    // Extract status type from element classes or content
+    const elementText = element.textContent.trim().toLowerCase();
+    const statusIcon = this.getStatusIcon(elementText);
+    
+    let enhancedContent = `<div class="tooltip-header">${statusIcon} <strong>Status Information</strong></div>`;
+    enhancedContent += `<div class="tooltip-content">${title}</div>`;
+    
+    // Add contextual help based on status type
+    if (elementText.includes('pending')) {
+      enhancedContent += `<div class="tooltip-tip">💡 Tip: This test hasn't started yet. Tests will run automatically or can be triggered manually.</div>`;
+    } else if (elementText.includes('pass') || elementText.includes('ready')) {
+      enhancedContent += `<div class="tooltip-tip">✅ This indicates successful completion or ready state.</div>`;
+    } else if (elementText.includes('fail') || elementText.includes('error')) {
+      enhancedContent += `<div class="tooltip-tip">❌ This indicates an issue that needs attention. Check logs for details.</div>`;
+    } else if (elementText.includes('never configured')) {
+      enhancedContent += `<div class="tooltip-tip">⚙️ Action needed: Click the settings button to configure this feature.</div>`;
+    }
+    
+    return enhancedContent;
+  }
+
+  getStatusIcon(statusText) {
+    if (statusText.includes('pending')) return '⏳';
+    if (statusText.includes('pass') || statusText.includes('ready')) return '✅';
+    if (statusText.includes('fail') || statusText.includes('error')) return '❌';
+    if (statusText.includes('warning')) return '⚠️';
+    if (statusText.includes('never configured')) return '⚙️';
+    if (statusText.includes('testing')) return '🧪';
+    return '📊';
   }
 
   // File Upload Interactions
