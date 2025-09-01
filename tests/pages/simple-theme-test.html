@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Toggle Test</title>
+    <style>
+        [data-theme="dark"] { background: #1a1a1a; color: #fff; }
+        [data-theme="light"] { background: #fff; color: #000; }
+        .theme-test { padding: 20px; text-align: center; }
+        button { padding: 10px 20px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <div class="theme-test">
+        <h1>Theme Toggle Test</h1>
+        <p>Current theme: <span id="current-theme">unknown</span></p>
+        <button onclick="setTheme('light')">Light Theme</button>
+        <button onclick="setTheme('dark')">Dark Theme</button>
+        <button onclick="setTheme('auto')">Auto Theme</button>
+        <p>Console shows theme changes and any errors.</p>
+    </div>
+
+    <script>
+        function setTheme(theme) {
+            console.log('Setting theme to:', theme);
+            
+            if (theme === 'auto') {
+                const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                theme = systemPrefersDark ? 'dark' : 'light';
+                console.log('Auto detected theme:', theme);
+            }
+            
+            document.documentElement.setAttribute('data-theme', theme);
+            document.getElementById('current-theme').textContent = theme;
+            console.log('Theme applied successfully');
+        }
+
+        // Initialize with dark theme
+        setTheme('dark');
+        
+        // Test theme switching
+        console.log('Theme test page loaded. Try the buttons above.');
+    </script>
+</body>
+</html>

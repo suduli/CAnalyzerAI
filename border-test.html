@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Border Test</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="enhanced-data-display.css" />
+  <link rel="stylesheet" href="enhanced-light-theme.css" />
+  <link rel="stylesheet" href="glassmorphic-effects.css" />
+  <style>
+    body { margin: 20px; background: var(--bg-primary); color: var(--text-primary); }
+    .test-container { margin: 20px 0; padding: 20px; background: var(--bg-secondary); }
+  </style>
+</head>
+<body data-theme="dark">
+  <h1>Border Test Page</h1>
+  
+  <div class="test-container">
+    <h2>Status Indicators</h2>
+    <div class="status-indicator">
+      <div class="status-dot" style="background: red;"></div>
+      <span>Test Status Indicator</span>
+    </div>
+  </div>
+
+  <div class="test-container">
+    <h2>Modal Elements</h2>
+    <div class="modal-content">
+      <h3>Test Modal Content</h3>
+      <p>This should have transparent borders</p>
+    </div>
+  </div>
+
+  <div class="test-container">
+    <h2>Status Examples</h2>
+    <div class="status-example">
+      <span>Test Status Example</span>
+    </div>
+  </div>
+
+  <div class="test-container">
+    <h2>Service Items</h2>
+    <div class="service-item">
+      <span>Test Service Item</span>
+    </div>
+  </div>
+
+  <div class="test-container">
+    <h2>Legend Items</h2>
+    <div class="legend-item">
+      <span>Test Legend Item</span>
+    </div>
+  </div>
+
+  <div class="test-container">
+    <h2>Help Items</h2>
+    <div class="help-item">
+      <span>Test Help Item</span>
+    </div>
+  </div>
+
+  <div class="test-container">
+    <h2>Theme Toggle</h2>
+    <button onclick="toggleTheme()">Toggle Light/Dark Theme</button>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const body = document.body;
+      const currentTheme = body.getAttribute('data-theme');
+      body.setAttribute('data-theme', currentTheme === 'dark' ? 'light' : 'dark');
+    }
+  </script>
+</body>
+</html>

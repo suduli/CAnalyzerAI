@@ -92,53 +92,12 @@ const cyberConfig = {
     retina_detect: true
 };
 
-// Helper: dynamically ensure particles.js is loaded (fallback to alternative CDNs)
-function ensureParticlesLib(onReady) {
-    if (typeof particlesJS !== 'undefined') { onReady && onReady(); return; }
-
-    // Prevent duplicate loading attempts
-    if (window.__particlesLibLoading) {
-        const check = () => {
-            if (typeof particlesJS !== 'undefined') onReady && onReady();
-            else setTimeout(check, 100);
-        };
-        check();
-        return;
-    }
-
-    window.__particlesLibLoading = true;
-    const sources = [
-        // Alternate CDNs in case the primary script tag failed to load
-        'https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js',
-        'https://unpkg.com/particles.js@2.0.0/particles.min.js'
-    ];
-
-    let idx = 0;
-    const tryNext = () => {
-        if (typeof particlesJS !== 'undefined') { onReady && onReady(); return; }
-        if (idx >= sources.length) { console.warn('particles.js could not be loaded from fallback CDNs'); return; }
-
-        const src = sources[idx++];
-        const s = document.createElement('script');
-        s.src = src;
-        s.async = true;
-        s.onload = () => { console.log('Loaded particles.js from', src); onReady && onReady(); };
-        s.onerror = () => { console.warn('Failed to load', src); tryNext(); };
-        document.head.appendChild(s);
-    };
-    tryNext();
-}
-
 // Advanced initialization for cyber theme
 function initCyberParticles() {
     console.log('🚀 Initializing Cyber Theme particles...');
     
     if (typeof particlesJS === 'undefined') {
-        console.warn('⚠️ particles.js library not available yet, attempting fallback load...');
-        ensureParticlesLib(() => {
-            // Re-check and proceed
-            if (typeof particlesJS !== 'undefined') initCyberParticles();
-        });
+        console.warn('⚠️ particles.js library not available yet');
         return;
     }
 
@@ -152,14 +111,6 @@ function initCyberParticles() {
             console.warn('⚠️ Particles container not found');
             return;
         }
-
-        // Ensure pJSDom array is properly initialized
-        if (!window.pJSDom) {
-            window.pJSDom = [];
-        }
-
-        // Clear any existing content in container
-        container.innerHTML = '';
 
         console.log('✅ Container found, using dark cyber theme');
         
@@ -222,11 +173,7 @@ function updateCyberTheme() {
         console.log('🌙 Dark theme active - initializing cyber particles');
         // Reinitialize particles after a brief delay to ensure cleanup
         setTimeout(() => {
-            try {
-                initCyberParticles();
-            } catch (initError) {
-                console.error('❌ Error during delayed initialization:', initError);
-            }
+            initCyberParticles();
         }, 100);
     } else {
         console.log('☀️ Light theme active - hiding cyber particles');
@@ -248,8 +195,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof particlesJS !== 'undefined') {
             setTimeout(initCyberParticles, 100);
         } else {
-            console.log('⏳ particles.js not ready, trying fallback loader...');
-            ensureParticlesLib(() => setTimeout(initCyberParticles, 100));
+            console.log('⏳ particles.js not ready, retrying...');
+            setTimeout(checkAndInit, 100);
         }
     };
     
@@ -260,10 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mutations.forEach((mutation) => {
             if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
                 console.log('🎨 Cyber particles: data-theme attribute changed');
-                // Add small delay to avoid race conditions
-                setTimeout(() => {
-                    updateCyberTheme();
-                }, 10); // Earlier than light particles to ensure proper cleanup order
+                updateCyberTheme();
             }
         });
     });

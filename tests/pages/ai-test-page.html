@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Analysis Test Page</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+            color: #ffffff;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin: 5px;
+        }
+
+        .status-success { background: #00d4aa; color: #000; }
+        .status-error { background: #ff4757; color: #fff; }
+        .status-warning { background: #ffa502; color: #000; }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00d4aa;
+        }
+
+        .code-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4aa, #667eea);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .notes-list {
+            margin: 15px 0;
+        }
+
+        .note-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+        }
+
+        .error-message {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid #ff4757;
+            color: #ff6b7d;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 CAnalyzerAI - AI Analysis Test</h1>
+        <p>Test the AI analysis functionality with OpenRouter API</p>
+    </div>
+
+    <div class="container">
+        <h2>📋 Test Configuration</h2>
+        <div class="metric-grid">
+            <div class="metric-card">
+                <div class="metric-label">Provider</div>
+                <div class="metric-value" id="configProvider">openrouter</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Model</div>
+                <div class="metric-value" id="configModel">google/gemma-2-9b-it:free</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">API Key Status</div>
+                <div class="metric-value" id="configApiKey">✅ Set</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📄 Test Code</h2>
+        <div class="code-display" id="testCode"></div>
+        <button class="btn" onclick="runAnalysis()">🚀 Run AI Analysis</button>
+        <button class="btn" onclick="clearResults()">🗑️ Clear Results</button>
+    </div>
+
+    <div class="container">
+        <h2>📊 Analysis Results</h2>
+        <div class="status-indicator status-warning" id="statusIndicator">Ready to analyze</div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="metric-grid">
+            <div class="metric-card">
+                <div class="metric-label">Lines of Code</div>
+                <div class="metric-value" id="resultLOC">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Complexity C1</div>
+                <div class="metric-value" id="resultC1">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Complexity C2</div>
+                <div class="metric-value" id="resultC2">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Complexity C3</div>
+                <div class="metric-value" id="resultC3">--</div>
+            </div>
+        </div>
+
+        <div class="notes-list" id="notesList"></div>
+        <div id="errorMessage"></div>
+    </div>
+
+    <script>
+        // Test configuration
+        const CONFIG = {
+            provider: 'openrouter',
+            apiKey: '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',
+            model: 'google/gemma-2-9b-it:free'
+        };
+
+        // Sample C code for testing
+        const TEST_CODE = `#include "acutest.h"
+
+void test_tutorial(void) {
+    void* mem;
+    mem = malloc(10);
+    TEST_CHECK(mem != NULL);
+    mem = realloc(mem, 20);
+    TEST_CHECK(mem != NULL);
+    free(mem);
+}
+
+void test_fail(void) {
+    int a, b;
+    a = 1;
+    b = 2;
+    TEST_CHECK(a + b == 5);
+    if(!TEST_CHECK(a + b == 5)) {
+        TEST_MSG("a: %d", a);
+        TEST_MSG("b: %d", b);
+    }
+    TEST_CHECK(a + b == 3);
+}
+
+TEST_LIST = {
+    { "tutorial", test_tutorial },
+    { "fail",     test_fail },
+    { NULL, NULL }
+};`;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('testCode').textContent = TEST_CODE;
+            updateStatus('Ready to analyze', 'status-warning');
+        });
+
+        // Update status indicator
+        function updateStatus(message, statusClass) {
+            const indicator = document.getElementById('statusIndicator');
+            indicator.textContent = message;
+            indicator.className = `status-indicator ${statusClass}`;
+        }
+
+        // Update progress bar
+        function updateProgress(percent) {
+            document.getElementById('progressFill').style.width = percent + '%';
+        }
+
+        // Clear results
+        function clearResults() {
+            document.getElementById('resultLOC').textContent = '--';
+            document.getElementById('resultC1').textContent = '--';
+            document.getElementById('resultC2').textContent = '--';
+            document.getElementById('resultC3').textContent = '--';
+            document.getElementById('notesList').innerHTML = '';
+            document.getElementById('errorMessage').innerHTML = '';
+            updateStatus('Results cleared', 'status-warning');
+            updateProgress(0);
+        }
+
+        // Run AI analysis
+        async function runAnalysis() {
+            const analyzeBtn = document.querySelector('button[onclick="runAnalysis()"]');
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = '🔄 Analyzing...';
+
+            updateStatus('Starting analysis...', 'status-warning');
+            updateProgress(10);
+
+            try {
+                updateProgress(30);
+                updateStatus('Sending request to OpenRouter...', 'status-warning');
+
+                const prompt = `You must respond with ONLY valid JSON. No explanations, no text, no markdown. Just pure JSON.
+
+Analyze this C code and return a JSON object with these exact keys:
+{
+  "loc": <number of executable lines (exclude comments/blanks/includes)>,
+  "complexity1": <cyclomatic complexity (decision points + 1)>,
+  "complexity2": <cognitive complexity>,
+  "complexity3": <halstead complexity>,
+  "notes": ["brief analysis note"]
+}
+
+Important: Return ONLY the JSON object. No additional text before or after.
+
+C code to analyze:
+${TEST_CODE.slice(0, 16000)}
+
+Response (JSON only):`;
+
+                updateProgress(50);
+
+                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${CONFIG.apiKey}`,
+                        'HTTP-Referer': window.location.origin,
+                        'X-Title': 'CAnalyzerAI'
+                    },
+                    body: JSON.stringify({
+                        model: CONFIG.model,
+                        messages: [{ role: 'user', content: prompt }],
+                        max_tokens: 1000,
+                        temperature: 0.1
+                    }),
+                    signal: AbortSignal.timeout(30000)
+                });
+
+                updateProgress(70);
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(`OpenRouter HTTP ${response.status}: ${errorData.error?.message || response.statusText}`);
+                }
+
+                const data = await response.json();
+                const aiResponseText = data.choices?.[0]?.message?.content || '';
+
+                updateProgress(90);
+                updateStatus('Parsing response...', 'status-warning');
+
+                // Parse the response
+                const result = parseAIResponse(aiResponseText);
+
+                updateProgress(100);
+                updateStatus('Analysis complete!', 'status-success');
+
+                // Display results
+                document.getElementById('resultLOC').textContent = result.loc;
+                document.getElementById('resultC1').textContent = result.c1;
+                document.getElementById('resultC2').textContent = result.c2;
+                document.getElementById('resultC3').textContent = result.c3;
+
+                // Display notes
+                const notesList = document.getElementById('notesList');
+                notesList.innerHTML = '';
+                result.notes.forEach(note => {
+                    const noteDiv = document.createElement('div');
+                    noteDiv.className = 'note-item';
+                    noteDiv.textContent = note;
+                    notesList.appendChild(noteDiv);
+                });
+
+                console.log('✅ Analysis successful:', result);
+
+            } catch (error) {
+                updateStatus('Analysis failed', 'status-error');
+                document.getElementById('errorMessage').innerHTML =
+                    `<div class="error-message">❌ Error: ${error.message}</div>`;
+                console.error('❌ Analysis failed:', error);
+            } finally {
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = '🚀 Run AI Analysis';
+            }
+        }
+
+        // Parse AI response (simplified version of app.js logic)
+        function parseAIResponse(text) {
+            try {
+                // Try to extract JSON
+                let jsonStr = null;
+
+                // Strategy 1: Look for JSON with expected structure
+                const structuredJsonMatch = text.match(/\{\s*["']?loc["']?\s*:\s*\d+[\s\S]*?\}/);
+                if (structuredJsonMatch) {
+                    jsonStr = structuredJsonMatch[0];
+                } else {
+                    // Strategy 2: Look for any JSON object
+                    const jsonMatch = text.match(/\{\s*["']?\w+["']?\s*:\s*[\d"'\[][\s\S]*?\}/);
+                    if (jsonMatch) {
+                        jsonStr = jsonMatch[0];
+                    } else {
+                        jsonStr = text.trim();
+                    }
+                }
+
+                const parsed = JSON.parse(jsonStr);
+
+                return {
+                    loc: parsed.loc || 0,
+                    c1: parsed.complexity1 || parsed.c1 || 0,
+                    c2: parsed.complexity2 || parsed.c2 || 0,
+                    c3: parsed.complexity3 || parsed.c3 || 0,
+                    notes: Array.isArray(parsed.notes) ? parsed.notes : [parsed.notes || 'Analysis complete']
+                };
+
+            } catch (error) {
+                // Fallback parsing
+                const patterns = {
+                    loc: /(?:loc|lines?.*?code|testable.*?lines?|count\s+\d+)[\s:=]*(\d+)/i,
+                    c1: /(?:complexity[1\s]*|cyclomatic|decision.*?points?\s*[+=]\s*1\s*[=]\s*)[\s:=]*(\d+)/i,
+                    c2: /(?:complexity[2\s]*|cognitive)[\s:=]*(\d+)/i,
+                    c3: /(?:complexity[3\s]*|halstead)[\s:=]*(\d+)/i
+                };
+
+                const extracted = {};
+                for (const [key, pattern] of Object.entries(patterns)) {
+                    const match = text.match(pattern);
+                    if (match && match[1]) {
+                        extracted[key] = parseInt(match[1], 10);
+                    }
+                }
+
+                return {
+                    loc: extracted.loc || 0,
+                    c1: extracted.c1 || 0,
+                    c2: extracted.c2 || 0,
+                    c3: extracted.c3 || 0,
+                    notes: ['Fallback parsing used', `Parse error: ${error.message}`]
+                };
+            }
+        }
+    </script>
+</body>
+</html>

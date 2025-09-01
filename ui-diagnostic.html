@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Diagnostic Tool</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5; 
+            line-height: 1.6;
+        }
+        .diagnostic-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .fail { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            border: 1px solid #e9ecef;
+        }
+        .step {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 UI Functionality Diagnostic Tool</h1>
+    
+    <div class="diagnostic-panel">
+        <h2>🚨 Current Issues Detected</h2>
+        <div id="issuesList"></div>
+    </div>
+
+    <div class="diagnostic-panel">
+        <h2>🧪 Interactive Tests</h2>
+        <button onclick="testThemeToggle()">Test Theme Toggle</button>
+        <button onclick="testEventListeners()">Test Event Listeners</button>
+        <button onclick="testJavaScriptErrors()">Check JavaScript Errors</button>
+        <button onclick="testCSSVariables()">Test CSS Variables</button>
+        <button onclick="runFullDiagnostic()">🔍 Run Full Diagnostic</button>
+        
+        <div id="testResults"></div>
+    </div>
+
+    <div class="diagnostic-panel">
+        <h2>📋 Step-by-Step Troubleshooting Plan</h2>
+        <div id="troubleshootingSteps"></div>
+    </div>
+
+    <div class="diagnostic-panel">
+        <h2>🔧 Quick Fixes</h2>
+        <button onclick="applyQuickFix('clearCache')">Clear Browser Cache</button>
+        <button onclick="applyQuickFix('resetTheme')">Reset Theme to Default</button>
+        <button onclick="applyQuickFix('reinitializeJS')">Reinitialize JavaScript</button>
+        <button onclick="applyQuickFix('checkPermissions')">Check Permissions</button>
+        
+        <div id="quickFixResults"></div>
+    </div>
+
+    <script>
+        let diagnosticResults = {};
+        
+        function addResult(test, status, message, details = '') {
+            const container = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${status}`;
+            resultDiv.innerHTML = `
+                <strong>${test}:</strong> ${message}
+                ${details ? `<br><small>${details}</small>` : ''}
+            `;
+            container.appendChild(resultDiv);
+            diagnosticResults[test] = { status, message, details };
+        }
+
+        function testThemeToggle() {
+            document.getElementById('testResults').innerHTML = '';
+            
+            // Test 1: Check if main page elements exist
+            try {
+                const iframe = document.createElement('iframe');
+                iframe.src = 'http://localhost:8019/index.html';
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                
+                iframe.onload = function() {
+                    const doc = iframe.contentDocument;
+                    
+                    // Check theme toggle exists
+                    const themeToggle = doc.getElementById('themeToggle');
+                    if (themeToggle) {
+                        addResult('Theme Toggle Element', 'pass', 'Theme toggle found in DOM');
+                        
+                        // Check if it has event listeners
+                        const hasClick = themeToggle.onclick !== null;
+                        const hasEventListeners = themeToggle.addEventListener !== undefined;
+                        
+                        if (hasEventListeners) {
+                            addResult('Event Listeners', 'pass', 'addEventListener method available');
+                        } else {
+                            addResult('Event Listeners', 'fail', 'addEventListener not available');
+                        }
+                        
+                        // Check data-theme attribute
+                        const dataTheme = doc.documentElement.getAttribute('data-theme');
+                        if (dataTheme) {
+                            addResult('Theme Attribute', 'pass', `data-theme="${dataTheme}"`);
+                        } else {
+                            addResult('Theme Attribute', 'fail', 'No data-theme attribute found');
+                        }
+                        
+                        // Check ThemeManager
+                        const hasThemeManager = iframe.contentWindow.themeManager !== undefined;
+                        if (hasThemeManager) {
+                            addResult('ThemeManager', 'pass', 'ThemeManager instance found');
+                        } else {
+                            addResult('ThemeManager', 'fail', 'ThemeManager not initialized');
+                        }
+                        
+                    } else {
+                        addResult('Theme Toggle Element', 'fail', 'Theme toggle not found in DOM');
+                    }
+                    
+                    document.body.removeChild(iframe);
+                };
+                
+            } catch (error) {
+                addResult('Frame Test', 'fail', 'Could not load main page', error.message);
+            }
+        }
+
+        function testEventListeners() {
+            // Test if we can simulate events
+            addResult('Event Simulation', 'pass', 'Starting event listener tests...');
+            
+            // Check for common JavaScript errors
+            const originalError = window.onerror;
+            let jsErrors = [];
+            
+            window.onerror = function(msg, url, line, col, error) {
+                jsErrors.push(`${msg} at ${url}:${line}:${col}`);
+                return false;
+            };
+            
+            setTimeout(() => {
+                if (jsErrors.length === 0) {
+                    addResult('JavaScript Errors', 'pass', 'No JavaScript errors detected');
+                } else {
+                    addResult('JavaScript Errors', 'fail', `${jsErrors.length} errors found`, jsErrors.join('; '));
+                }
+                window.onerror = originalError;
+            }, 1000);
+        }
+
+        function testJavaScriptErrors() {
+            // Check console for errors
+            const errors = [];
+            const warnings = [];
+            
+            // Monkey patch console to catch errors
+            const originalError = console.error;
+            const originalWarn = console.warn;
+            
+            console.error = function(...args) {
+                errors.push(args.join(' '));
+                originalError.apply(console, arguments);
+            };
+            
+            console.warn = function(...args) {
+                warnings.push(args.join(' '));
+                originalWarn.apply(console, arguments);
+            };
+            
+            // Test basic JavaScript functionality
+            try {
+                const testObj = { test: true };
+                localStorage.setItem('diagnostic-test', JSON.stringify(testObj));
+                const retrieved = JSON.parse(localStorage.getItem('diagnostic-test'));
+                if (retrieved.test) {
+                    addResult('LocalStorage', 'pass', 'LocalStorage working correctly');
+                }
+                localStorage.removeItem('diagnostic-test');
+            } catch (error) {
+                addResult('LocalStorage', 'fail', 'LocalStorage not working', error.message);
+            }
+            
+            // Test DOM manipulation
+            try {
+                const testDiv = document.createElement('div');
+                testDiv.setAttribute('data-test', 'diagnostic');
+                if (testDiv.getAttribute('data-test') === 'diagnostic') {
+                    addResult('DOM Manipulation', 'pass', 'DOM manipulation working');
+                }
+            } catch (error) {
+                addResult('DOM Manipulation', 'fail', 'DOM manipulation failed', error.message);
+            }
+            
+            setTimeout(() => {
+                if (errors.length === 0) {
+                    addResult('Console Errors', 'pass', 'No console errors detected');
+                } else {
+                    addResult('Console Errors', 'fail', `${errors.length} console errors`, errors.join('; '));
+                }
+                
+                if (warnings.length === 0) {
+                    addResult('Console Warnings', 'pass', 'No console warnings');
+                } else {
+                    addResult('Console Warnings', 'warning', `${warnings.length} warnings`, warnings.join('; '));
+                }
+                
+                console.error = originalError;
+                console.warn = originalWarn;
+            }, 500);
+        }
+
+        function testCSSVariables() {
+            // Test if CSS variables are working
+            const testElement = document.createElement('div');
+            testElement.style.cssText = '--test-var: red; color: var(--test-var);';
+            document.body.appendChild(testElement);
+            
+            const computedStyle = getComputedStyle(testElement);
+            const color = computedStyle.color;
+            
+            document.body.removeChild(testElement);
+            
+            if (color === 'red' || color === 'rgb(255, 0, 0)') {
+                addResult('CSS Variables', 'pass', 'CSS custom properties working');
+            } else {
+                addResult('CSS Variables', 'fail', 'CSS custom properties not supported');
+            }
+            
+            // Test CSS loading
+            const stylesheets = document.styleSheets;
+            if (stylesheets.length > 0) {
+                addResult('CSS Loading', 'pass', `${stylesheets.length} stylesheets loaded`);
+            } else {
+                addResult('CSS Loading', 'fail', 'No stylesheets detected');
+            }
+        }
+
+        function runFullDiagnostic() {
+            document.getElementById('testResults').innerHTML = '<h3>Running Full Diagnostic...</h3>';
+            
+            testThemeToggle();
+            setTimeout(() => testEventListeners(), 200);
+            setTimeout(() => testJavaScriptErrors(), 400);
+            setTimeout(() => testCSSVariables(), 600);
+            setTimeout(() => generateTroubleshootingPlan(), 1000);
+        }
+
+        function generateTroubleshootingPlan() {
+            const stepsContainer = document.getElementById('troubleshootingSteps');
+            
+            const steps = [
+                {
+                    title: "🔄 Basic Browser Refresh",
+                    priority: "Low Risk",
+                    instructions: "Press Ctrl+F5 (Windows) or Cmd+Shift+R (Mac) to hard refresh the page and clear browser cache.",
+                    rationale: "Clears temporary files that might be causing conflicts."
+                },
+                {
+                    title: "🧹 Clear Browser Data",
+                    priority: "Low Risk", 
+                    instructions: "Open browser settings → Privacy/Security → Clear browsing data → Select 'Cached images and files' and 'Cookies and other site data' for the last hour.",
+                    rationale: "Removes corrupted cache files and resets session data."
+                },
+                {
+                    title: "🔍 Check Browser Console",
+                    priority: "No Risk",
+                    instructions: "Press F12 → Console tab → Look for red error messages. Take screenshot of any errors found.",
+                    rationale: "Identifies specific JavaScript errors preventing functionality."
+                },
+                {
+                    title: "🚫 Disable Browser Extensions",
+                    priority: "Low Risk",
+                    instructions: "Open browser in incognito/private mode or temporarily disable all extensions.",
+                    rationale: "Isolates extension conflicts that might interfere with theme switching."
+                },
+                {
+                    title: "📱 Test Different Browser",
+                    priority: "No Risk",
+                    instructions: "Try opening the application in a different browser (Chrome, Firefox, Safari, Edge).",
+                    rationale: "Determines if the issue is browser-specific or application-wide."
+                },
+                {
+                    title: "⚙️ Check LocalStorage",
+                    priority: "Low Risk",
+                    instructions: "F12 → Application tab → Local Storage → Look for 'theme-preference' entry. Delete it if corrupted.",
+                    rationale: "Corrupted theme preferences can prevent switching."
+                },
+                {
+                    title: "🔄 Reset Theme Manually",
+                    priority: "Medium Risk",
+                    instructions: "F12 → Console → Type: localStorage.removeItem('theme-preference'); location.reload();",
+                    rationale: "Forces application to reset to default theme state."
+                },
+                {
+                    title: "📥 Check File Integrity",
+                    priority: "Medium Risk",
+                    instructions: "Verify that app.js, style.css, and light-theme-particles.js are loading correctly (check Network tab in DevTools).",
+                    rationale: "Missing or corrupted files cause functionality loss."
+                }
+            ];
+            
+            stepsContainer.innerHTML = steps.map((step, index) => `
+                <div class="step">
+                    <h4>Step ${index + 1}: ${step.title}</h4>
+                    <p><strong>Risk Level:</strong> <span style="color: ${step.priority === 'No Risk' ? 'green' : step.priority === 'Low Risk' ? 'orange' : 'red'}">${step.priority}</span></p>
+                    <p><strong>Instructions:</strong> ${step.instructions}</p>
+                    <p><strong>Why this helps:</strong> ${step.rationale}</p>
+                </div>
+            `).join('');
+        }
+
+        function applyQuickFix(fixType) {
+            const resultsContainer = document.getElementById('quickFixResults');
+            
+            switch(fixType) {
+                case 'clearCache':
+                    resultsContainer.innerHTML = `
+                        <div class="test-result warning">
+                            <strong>Cache Clear Instructions:</strong><br>
+                            • Chrome: Ctrl+Shift+Del → Select "Cached images and files"<br>
+                            • Firefox: Ctrl+Shift+Del → Select "Cache"<br>
+                            • Safari: Develop menu → Empty Caches<br>
+                            • Edge: Ctrl+Shift+Del → Select "Cached data"
+                        </div>
+                    `;
+                    break;
+                    
+                case 'resetTheme':
+                    try {
+                        localStorage.removeItem('theme-preference');
+                        localStorage.removeItem('theme-timestamp');
+                        resultsContainer.innerHTML = `
+                            <div class="test-result pass">
+                                <strong>Theme Reset:</strong> Theme preferences cleared. Refresh the page to apply default theme.
+                            </div>
+                        `;
+                    } catch (error) {
+                        resultsContainer.innerHTML = `
+                            <div class="test-result fail">
+                                <strong>Theme Reset Failed:</strong> ${error.message}
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'reinitializeJS':
+                    resultsContainer.innerHTML = `
+                        <div class="test-result warning">
+                            <strong>JavaScript Reinitialization:</strong><br>
+                            Manual steps required:<br>
+                            1. Open browser console (F12)<br>
+                            2. Type: location.reload(true)<br>
+                            3. If that fails, close and reopen the browser tab
+                        </div>
+                    `;
+                    break;
+                    
+                case 'checkPermissions':
+                    resultsContainer.innerHTML = `
+                        <div class="test-result warning">
+                            <strong>Permission Check:</strong><br>
+                            • Ensure JavaScript is enabled in browser settings<br>
+                            • Check if content blockers are interfering<br>
+                            • Verify LocalStorage is not disabled<br>
+                            • Make sure the site is not in "Restricted" mode
+                        </div>
+                    `;
+                    break;
+            }
+        }
+
+        // Auto-detect issues on page load
+        window.addEventListener('load', function() {
+            const issuesContainer = document.getElementById('issuesList');
+            const issues = [];
+            
+            // Check for common issues
+            if (!window.localStorage) {
+                issues.push('❌ LocalStorage not available - theme preferences cannot be saved');
+            }
+            
+            if (!window.fetch) {
+                issues.push('❌ Fetch API not supported - may affect dynamic loading');
+            }
+            
+            if (!document.querySelector || !document.addEventListener) {
+                issues.push('❌ Basic DOM methods not available - interactive elements will not work');
+            }
+            
+            if (issues.length === 0) {
+                issuesContainer.innerHTML = '<div class="test-result pass">✅ No obvious compatibility issues detected</div>';
+            } else {
+                issuesContainer.innerHTML = issues.map(issue => 
+                    `<div class="test-result fail">${issue}</div>`
+                ).join('');
+            }
+        });
+    </script>
+</body>
+</html>

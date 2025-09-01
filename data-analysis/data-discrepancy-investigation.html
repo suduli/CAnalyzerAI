@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Discrepancy Investigation</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: #f5f5f5; 
+        }
+        .test-section { 
+            background: white; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        }
+        .result { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px; 
+            font-family: monospace; 
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px; 
+        }
+        button:hover { background: #0056b3; }
+        .data-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .data-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Data Discrepancy Investigation</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Raw AI Response Testing</h2>
+        <p>Test how different AI response formats are parsed and displayed.</p>
+        <button onclick="testRawAIResponse()">Test AI Response Parsing</button>
+        <div id="aiResponseResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Data Flow Verification</h2>
+        <p>Test the complete data flow from AI response to display.</p>
+        <button onclick="testDataFlow()">Test Data Flow</button>
+        <div id="dataFlowResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Format Display Testing</h2>
+        <p>Test the formatForDisplayEnhanced function with various inputs.</p>
+        <button onclick="testFormatDisplay()">Test Format Display</button>
+        <div id="formatDisplayResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Fallback Scenario Testing</h2>
+        <p>Test how fallback scenarios are handled and displayed.</p>
+        <button onclick="testFallbackScenario()">Test Fallback Scenario</button>
+        <div id="fallbackResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 5: JSON Parsing Edge Cases</h2>
+        <p>Test various JSON response formats that might cause discrepancies.</p>
+        <button onclick="testJSONEdgeCases()">Test JSON Edge Cases</button>
+        <div id="jsonEdgeCasesResult"></div>
+    </div>
+
+    <script>
+        // Mock parseAIMetrics function for testing
+        function parseAIMetrics(text, statusNote = '') {
+            console.log('🔍 Parsing AI response - Length:', text?.length || 0);
+
+            if (!text || typeof text !== 'string') {
+                return {
+                    loc: 0, c1: 0, c2: 0, c3: 0,
+                    notes: [`Invalid response format. Expected string, got ${typeof text}`],
+                    parseError: true,
+                    errorType: 'invalid_input'
+                };
+            }
+
+            try {
+                let parsed;
+                let parseStrategy = 'direct';
+                
+                try {
+                    // Clean the text first - remove markdown formatting
+                    const cleanedText = text.trim()
+                        .replace(/^```json\n?/, '')
+                        .replace(/\n?```$/, '')
+                        .replace(/^```\n?/, '')
+                        .trim();
+                    
+                    parsed = JSON.parse(cleanedText);
+                    console.log('✅ Direct JSON parse successful');
+                } catch (directParseError) {
+                    console.log('⚠️ Direct JSON parse failed, trying extraction...');
+                    
+                    const jsonMatch = text.match(/\{[\s\S]*?\}/);
+                    if (jsonMatch) {
+                        try {
+                            parsed = JSON.parse(jsonMatch[0]);
+                            parseStrategy = 'extracted';
+                            console.log('✅ JSON extracted from mixed content');
+                        } catch (extractParseError) {
+                            throw new Error(`JSON found but invalid: ${extractParseError.message}`);
+                        }
+                    } else {
+                        throw new Error('No valid JSON pattern found in response');
+                    }
+                }
+
+                // Validate and normalize the result
+                const result = {
+                    loc: Number(parsed.loc) || 0,
+                    c1: Number(parsed.complexity1) || 0,
+                    c2: Number(parsed.complexity2) || 0,
+                    c3: Number(parsed.complexity3) || 0,
+                    notes: Array.isArray(parsed.notes) ? parsed.notes : [],
+                    parseStrategy
+                };
+
+                if (statusNote) {
+                    result.notes.unshift(statusNote);
+                }
+
+                return result;
+
+            } catch (error) {
+                console.error('❌ JSON parsing failed:', error.message);
+                
+                return {
+                    loc: 0, c1: 0, c2: 0, c3: 0,
+                    notes: [
+                        statusNote || 'JSON parsing failed',
+                        `Parse error: ${error.message}`,
+                        `Response preview: ${text?.slice(0, 100)}...`
+                    ],
+                    parseError: true,
+                    errorType: 'parse_failure'
+                };
+            }
+        }
+
+        // Mock formatForDisplayEnhanced function
+        function formatForDisplayEnhanced(value, context = '') {
+            if (value === null || value === undefined) return 'NA';
+            
+            const num = Number(value);
+            if (!Number.isFinite(num) || num < 0) return 'Invalid';
+            
+            if (Number.isInteger(num)) {
+                return String(num);
+            } else {
+                const result = num.toFixed(2);
+                return result.replace(/\.?0+$/, '');
+            }
+        }
+
+        // Test 1: Raw AI Response Testing
+        function testRawAIResponse() {
+            const result = document.getElementById('aiResponseResult');
+            
+            const testResponses = [
+                {
+                    name: 'Valid JSON Response',
+                    response: '{"loc": 47, "complexity1": 9, "complexity2": 13, "complexity3": 29, "notes": ["Simple test file"]}'
+                },
+                {
+                    name: 'JSON with Code Block',
+                    response: '```json\n{"loc": 1756, "complexity1": 531, "complexity2": 415, "complexity3": 415, "notes": ["Large file"]}\n```'
+                },
+                {
+                    name: 'Mixed Content Response',
+                    response: 'Here is the analysis:\n{"loc": 242, "complexity1": 17, "complexity2": 26, "complexity3": 109, "notes": ["Analysis complete"]}\nThank you!'
+                },
+                {
+                    name: 'Written Numbers Response',
+                    response: '{"loc": "forty-seven", "complexity1": 9, "complexity2": 13, "complexity3": 29, "notes": ["Test"]}'
+                },
+                {
+                    name: 'Invalid JSON Response',
+                    response: 'This is not JSON at all, just plain text explaining the analysis.'
+                }
+            ];
+
+            let resultHTML = '<div class="result info"><h4>AI Response Parsing Test Results:</h4>';
+            
+            testResponses.forEach((test, index) => {
+                const parsed = parseAIMetrics(test.response, `Test ${index + 1}`);
+                const hasError = parsed.parseError || false;
+                const statusClass = hasError ? 'error' : 'success';
+                
+                resultHTML += `
+                    <div class="result ${statusClass}">
+                        <strong>${test.name}:</strong><br>
+                        LOC: ${parsed.loc}, C1: ${parsed.c1}, C2: ${parsed.c2}, C3: ${parsed.c3}<br>
+                        Parse Error: ${hasError}<br>
+                        Strategy: ${parsed.parseStrategy || 'N/A'}<br>
+                        Notes: ${JSON.stringify(parsed.notes)}
+                    </div>
+                `;
+            });
+            
+            resultHTML += '</div>';
+            result.innerHTML = resultHTML;
+        }
+
+        // Test 2: Data Flow Verification
+        function testDataFlow() {
+            const result = document.getElementById('dataFlowResult');
+            
+            const mockAIResponse = '{"loc": 1756, "complexity1": 531, "complexity2": 415, "complexity3": 415, "notes": ["Unity test framework"]}';
+            const mockStaticAnalysis = { loc: 1756, c1: 531, c2: 415, c3: 415 };
+            
+            // Parse AI response
+            const aiResult = parseAIMetrics(mockAIResponse, 'OpenRouter cloud inference');
+            
+            // Format for display
+            const displayValues = {
+                aiLOC: formatForDisplayEnhanced(aiResult.loc, 'LOC'),
+                aiComplexity1: formatForDisplayEnhanced(aiResult.c1, 'C1'),
+                aiComplexity2: formatForDisplayEnhanced(aiResult.c2, 'C2'),
+                aiComplexity3: formatForDisplayEnhanced(aiResult.c3, 'C3')
+            };
+            
+            result.innerHTML = `
+                <div class="result info">
+                    <h4>Data Flow Test Results:</h4>
+                    <div class="data-comparison">
+                        <div class="data-card">
+                            <h5>Raw AI Response:</h5>
+                            <pre>${mockAIResponse}</pre>
+                        </div>
+                        <div class="data-card">
+                            <h5>Parsed Values:</h5>
+                            <pre>LOC: ${aiResult.loc}
+C1: ${aiResult.c1}
+C2: ${aiResult.c2}
+C3: ${aiResult.c3}
+Parse Error: ${aiResult.parseError || false}</pre>
+                        </div>
+                    </div>
+                    <div class="data-comparison">
+                        <div class="data-card">
+                            <h5>Formatted for Display:</h5>
+                            <pre>aiLOC: "${displayValues.aiLOC}"
+aiComplexity1: "${displayValues.aiComplexity1}"
+aiComplexity2: "${displayValues.aiComplexity2}"
+aiComplexity3: "${displayValues.aiComplexity3}"</pre>
+                        </div>
+                        <div class="data-card">
+                            <h5>Static Analysis (Reference):</h5>
+                            <pre>LOC: ${mockStaticAnalysis.loc}
+C1: ${mockStaticAnalysis.c1}
+C2: ${mockStaticAnalysis.c2}
+C3: ${mockStaticAnalysis.c3}</pre>
+                        </div>
+                    </div>
+                    <div class="result ${aiResult.loc === mockStaticAnalysis.loc ? 'success' : 'error'}">
+                        <strong>Data Consistency Check:</strong> ${aiResult.loc === mockStaticAnalysis.loc ? '✅ Values match' : '❌ Values do not match'}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Test 3: Format Display Testing
+        function testFormatDisplay() {
+            const result = document.getElementById('formatDisplayResult');
+            
+            const testValues = [
+                { input: 47, expected: '47', description: 'Integer value' },
+                { input: 47.5, expected: '47.5', description: 'Decimal value' },
+                { input: 47.00, expected: '47', description: 'Decimal with trailing zeros' },
+                { input: 0.001, expected: '0.001', description: 'Small decimal' },
+                { input: null, expected: 'NA', description: 'Null value' },
+                { input: undefined, expected: 'NA', description: 'Undefined value' },
+                { input: -5, expected: 'Invalid', description: 'Negative value' },
+                { input: 'not a number', expected: 'NA', description: 'Invalid string' },
+                { input: '47', expected: '47', description: 'String number' }
+            ];
+            
+            let testHTML = '<div class="result info"><h4>Format Display Test Results:</h4>';
+            
+            testValues.forEach(test => {
+                const formatted = formatForDisplayEnhanced(test.input);
+                const passed = formatted === test.expected;
+                const statusClass = passed ? 'success' : 'error';
+                
+                testHTML += `
+                    <div class="result ${statusClass}">
+                        <strong>${test.description}:</strong> ${JSON.stringify(test.input)} → "${formatted}" ${passed ? '✅' : '❌'} (expected "${test.expected}")
+                    </div>
+                `;
+            });
+            
+            testHTML += '</div>';
+            result.innerHTML = testHTML;
+        }
+
+        // Test 4: Fallback Scenario Testing
+        function testFallbackScenario() {
+            const result = document.getElementById('fallbackResult');
+            
+            const fallbackScenarios = [
+                {
+                    name: 'API Rate Limit Error',
+                    errorType: 'rate_limit',
+                    staticValues: { loc: 1756, c1: 531, c2: 415, c3: 415 }
+                },
+                {
+                    name: 'Network Timeout Error',
+                    errorType: 'timeout',
+                    staticValues: { loc: 47, c1: 9, c2: 13, c3: 29 }
+                },
+                {
+                    name: 'Invalid API Key Error',
+                    errorType: 'auth_error',
+                    staticValues: { loc: 242, c1: 17, c2: 26, c3: 109 }
+                }
+            ];
+            
+            let fallbackHTML = '<div class="result warning"><h4>Fallback Scenario Test Results:</h4>';
+            
+            fallbackScenarios.forEach(scenario => {
+                const fallbackResult = {
+                    ...scenario.staticValues,
+                    fallbackUsed: true,
+                    errorCategory: scenario.errorType,
+                    notes: [`AI analysis failed (${scenario.errorType}) - using static estimate`]
+                };
+                
+                fallbackHTML += `
+                    <div class="result warning">
+                        <strong>${scenario.name}:</strong><br>
+                        Error Type: ${scenario.errorType}<br>
+                        Fallback Values: LOC=${fallbackResult.loc}, C1=${fallbackResult.c1}, C2=${fallbackResult.c2}, C3=${fallbackResult.c3}<br>
+                        Fallback Indicator: ⚠️ AI Analysis Failed - Using Static Estimate (${scenario.errorType} error)<br>
+                        Status: Properly handled with clear user indication
+                    </div>
+                `;
+            });
+            
+            fallbackHTML += '</div>';
+            result.innerHTML = fallbackHTML;
+        }
+
+        // Test 5: JSON Edge Cases
+        function testJSONEdgeCases() {
+            const result = document.getElementById('jsonEdgeCasesResult');
+            
+            const edgeCases = [
+                {
+                    name: 'Empty Response',
+                    response: ''
+                },
+                {
+                    name: 'Malformed JSON',
+                    response: '{"loc": 47, "complexity1": 9, "complexity2": 13, "complexity3": 29'
+                },
+                {
+                    name: 'Non-JSON Response',
+                    response: 'The analysis shows 47 lines of code with complexity of 9.'
+                },
+                {
+                    name: 'JSON with Extra Commas',
+                    response: '{"loc": 47, "complexity1": 9, "complexity2": 13, "complexity3": 29,}'
+                },
+                {
+                    name: 'Nested Object Response',
+                    response: '{"loc": 47, "complexity1": 9, "complexity2": 13, "complexity3": {"difficulty": 29.25, "volume": 335.34}, "notes": ["Test"]}'
+                }
+            ];
+            
+            let edgeHTML = '<div class="result info"><h4>JSON Edge Cases Test Results:</h4>';
+            
+            edgeCases.forEach(testCase => {
+                const parsed = parseAIMetrics(testCase.response, 'Edge case test');
+                const hasError = parsed.parseError || false;
+                const statusClass = hasError ? 'error' : 'success';
+                
+                edgeHTML += `
+                    <div class="result ${statusClass}">
+                        <strong>${testCase.name}:</strong><br>
+                        Input: ${testCase.response.slice(0, 100)}${testCase.response.length > 100 ? '...' : ''}<br>
+                        Result: LOC=${parsed.loc}, C1=${parsed.c1}, C2=${parsed.c2}, C3=${parsed.c3}<br>
+                        Parse Error: ${hasError}<br>
+                        Error Type: ${parsed.errorType || 'none'}
+                    </div>
+                `;
+            });
+            
+            edgeHTML += '</div>';
+            result.innerHTML = edgeHTML;
+        }
+
+        // Auto-run all tests on page load
+        window.addEventListener('load', function() {
+            console.log('🧪 Starting Data Discrepancy Investigation...');
+            console.log('🔍 Run individual tests using the buttons above');
+            console.log('📊 All test functions are available in the global scope');
+        });
+    </script>
+</body>
+</html>

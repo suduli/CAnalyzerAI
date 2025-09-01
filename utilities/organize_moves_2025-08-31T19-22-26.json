@@ -1,0 +1,210 @@
+[
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\ACCESSIBILITY_COMPLIANCE_REPORT.md",
+    "dst": "docs\\reports\\ACCESSIBILITY_COMPLIANCE_REPORT.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\ai-test-page.html",
+    "dst": "tests\\pages\\ai-test-page.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\AI_ACCURACY_DIAGNOSTIC_REPORT.md",
+    "dst": "docs\\reports\\AI_ACCURACY_DIAGNOSTIC_REPORT.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\animation-demo.html",
+    "dst": "tests\\pages\\animation-demo.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\browser-test.js",
+    "dst": "tests\\scripts\\browser-test.js"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\BUG_FIXES_SUMMARY.md",
+    "dst": "docs\\reports\\BUG_FIXES_SUMMARY.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\chat-demo.html",
+    "dst": "tests\\pages\\chat-demo.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\CHAT_WINDOW_README.md",
+    "dst": "docs\\guides\\CHAT_WINDOW_README.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\code-truncation-fix-test.html",
+    "dst": "tests\\pages\\code-truncation-fix-test.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\COMPLIANCE_SUMMARY.md",
+    "dst": "docs\\reports\\COMPLIANCE_SUMMARY.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\cross-browser-accessibility-test.html",
+    "dst": "tests\\pages\\cross-browser-accessibility-test.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\cyber-demo.html",
+    "dst": "tests\\pages\\cyber-demo.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\C_COMPLEXITY_ANALYZER_README.md",
+    "dst": "docs\\guides\\C_COMPLEXITY_ANALYZER_README.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\DATA_DISCREPANCY_FIX_REPORT.md",
+    "dst": "docs\\reports\\DATA_DISCREPANCY_FIX_REPORT.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\DATA_DISPLAY_ENHANCEMENT_REPORT.md",
+    "dst": "docs\\reports\\DATA_DISPLAY_ENHANCEMENT_REPORT.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\debug-test.js",
+    "dst": "tests\\scripts\\debug-test.js"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\ENHANCED_THEME_TOGGLE_DOCS.md",
+    "dst": "docs\\misc\\ENHANCED_THEME_TOGGLE_DOCS.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\FINAL_FIX_SUMMARY.md",
+    "dst": "docs\\reports\\FINAL_FIX_SUMMARY.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\FUTURISTIC-PARTICLES-README.md",
+    "dst": "docs\\guides\\FUTURISTIC-PARTICLES-README.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\GLASSMORPHISM-ENHANCEMENT.md",
+    "dst": "docs\\misc\\GLASSMORPHISM-ENHANCEMENT.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\IMPLEMENTATION_PLAN.md",
+    "dst": "docs\\misc\\IMPLEMENTATION_PLAN.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\IMPLEMENTATION_SUMMARY.md",
+    "dst": "docs\\reports\\IMPLEMENTATION_SUMMARY.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\JSON_RELIABILITY_IMPLEMENTATION_REPORT.md",
+    "dst": "docs\\reports\\JSON_RELIABILITY_IMPLEMENTATION_REPORT.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\light-particle-test.html",
+    "dst": "tests\\pages\\light-particle-test.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\LIGHT_DARK_MODE_DOCUMENTATION.md",
+    "dst": "docs\\guides\\LIGHT_DARK_MODE_DOCUMENTATION.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\LIGHT_THEME_PARTICLES_IMPLEMENTATION.md",
+    "dst": "docs\\misc\\LIGHT_THEME_PARTICLES_IMPLEMENTATION.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\matrix-demo.html",
+    "dst": "tests\\pages\\matrix-demo.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\MATRIX-INTEGRATION-GUIDE.md",
+    "dst": "docs\\guides\\MATRIX-INTEGRATION-GUIDE.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\MICRO_INTERACTIONS_REPORT.md",
+    "dst": "docs\\reports\\MICRO_INTERACTIONS_REPORT.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\PARTICLE-SYSTEM-INTEGRATION-GUIDE.md",
+    "dst": "docs\\guides\\PARTICLE-SYSTEM-INTEGRATION-GUIDE.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\particle-test.html",
+    "dst": "tests\\pages\\particle-test.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\particlesjs-config.json",
+    "dst": "tests\\data\\particlesjs-config.json"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\simple-test.html",
+    "dst": "tests\\pages\\simple-test.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\simple-theme-test.html",
+    "dst": "tests\\pages\\simple-theme-test.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\STATUS_HELP_ENHANCEMENT_SUMMARY.md",
+    "dst": "docs\\reports\\STATUS_HELP_ENHANCEMENT_SUMMARY.md"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-ai-accuracy-issues.js",
+    "dst": "tests\\scripts\\test-ai-accuracy-issues.js"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-ai-analysis.js",
+    "dst": "tests\\scripts\\test-ai-analysis.js"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-ai-workflow.js",
+    "dst": "tests\\scripts\\test-ai-workflow.js"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-data-discrepancy-fix.html",
+    "dst": "tests\\pages\\test-data-discrepancy-fix.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-decision-points.js",
+    "dst": "tests\\scripts\\test-decision-points.js"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-device-compatibility.html",
+    "dst": "tests\\pages\\test-device-compatibility.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-enhanced-theme-toggle.html",
+    "dst": "tests\\pages\\test-enhanced-theme-toggle.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-final-validation.html",
+    "dst": "tests\\pages\\test-final-validation.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-glassmorphism.html",
+    "dst": "tests\\pages\\test-glassmorphism.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-integration.js",
+    "dst": "tests\\scripts\\test-integration.js"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-json-reliability.html",
+    "dst": "tests\\pages\\test-json-reliability.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-micro-interactions.html",
+    "dst": "tests\\pages\\test-micro-interactions.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-particles.html",
+    "dst": "tests\\pages\\test-particles.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-status-help-integration.js",
+    "dst": "tests\\scripts\\test-status-help-integration.js"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\test-status-help.html",
+    "dst": "tests\\pages\\test-status-help.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\theme-test.html",
+    "dst": "tests\\pages\\theme-test.html"
+  },
+  {
+    "src": "E:\\New folder\\CAnalyzerAI\\WCAG-Compliance-Report.md",
+    "dst": "docs\\reports\\WCAG-Compliance-Report.md"
+  }
+]

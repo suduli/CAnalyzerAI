@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Window Demo - CAnalyzerAI</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-family-main);
+    }
+    
+    .demo-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--bg-glass);
+      border: 1px solid var(--muted-border);
+      border-radius: 16px;
+      padding: 30px;
+      backdrop-filter: var(--blur-md);
+    }
+    
+    .demo-title {
+      font-family: var(--font-family-heading);
+      font-size: 28px;
+      color: var(--accent-cyan);
+      text-align: center;
+      margin-bottom: 30px;
+      text-shadow: 0 0 10px var(--accent-cyan);
+    }
+    
+    .demo-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--muted-border);
+      border-radius: 12px;
+    }
+    
+    .demo-section h3 {
+      color: var(--accent-magenta);
+      margin-bottom: 15px;
+    }
+    
+    .demo-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    
+    .demo-btn {
+      padding: 10px 16px;
+      background: var(--accent-glow);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition-fast);
+    }
+    
+    .demo-btn:hover {
+      background: var(--accent-cyan);
+      color: #000000;
+      transform: translateY(-2px);
+    }
+    
+    .code-sample {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--muted-border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      white-space: pre-wrap;
+      margin: 16px 0;
+      color: var(--text-secondary);
+      overflow-x: auto;
+    }
+    
+    .status-info {
+      background: var(--surface-elevated);
+      border: 1px solid var(--accent-cyan);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    
+    .status-info h4 {
+      color: var(--accent-cyan);
+      margin: 0 0 10px 0;
+    }
+    
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .feature-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--muted-border);
+    }
+    
+    .feature-list li::before {
+      content: "✨ ";
+      color: var(--accent-cyan);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h1 class="demo-title">🤖 Chat Window Demo</h1>
+    
+    <div class="demo-section">
+      <h3>🚀 Quick Start</h3>
+      <p>Test the AI-powered chat interface for C code analysis and programming assistance.</p>
+      <div class="demo-buttons">
+        <button class="demo-btn" onclick="openChatWindow()">Open Chat Window</button>
+        <button class="demo-btn" onclick="simulateFileUpload()">Simulate File Upload</button>
+        <button class="demo-btn" onclick="simulateAnalysis()">Simulate Analysis</button>
+        <button class="demo-btn" onclick="sendTestMessage()">Send Test Message</button>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>📝 Sample C Code</h3>
+      <p>Use this sample code to test the chat context features:</p>
+      <div class="code-sample">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int factorial(int n) {
+    if (n &lt;= 1) {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+int fibonacci(int n) {
+    if (n &lt;= 1) return n;
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+int main() {
+    int num = 5;
+    printf("Factorial of %d: %d\n", num, factorial(num));
+    printf("Fibonacci of %d: %d\n", num, fibonacci(num));
+    
+    return 0;
+}</div>
+      <button class="demo-btn" onclick="loadSampleCode()">Load This Code</button>
+    </div>
+
+    <div class="demo-section">
+      <h3>🎯 Features to Test</h3>
+      <ul class="feature-list">
+        <li>Ask questions about C programming concepts</li>
+        <li>Upload code and get contextual analysis</li>
+        <li>Request code explanations and optimizations</li>
+        <li>Generate test case ideas</li>
+        <li>Get debugging assistance</li>
+        <li>Resize and reposition the chat window</li>
+        <li>Use keyboard shortcuts (Enter to send, Shift+Enter for new line)</li>
+        <li>Copy AI responses and regenerate answers</li>
+      </ul>
+    </div>
+
+    <div class="demo-section">
+      <h3>🔧 Test Scenarios</h3>
+      <div class="demo-buttons">
+        <button class="demo-btn" onclick="askAboutComplexity()">Ask About Complexity</button>
+        <button class="demo-btn" onclick="requestOptimization()">Request Optimization</button>
+        <button class="demo-btn" onclick="askForTests()">Ask for Test Ideas</button>
+        <button class="demo-btn" onclick="explainRecursion()">Explain Recursion</button>
+      </div>
+    </div>
+
+    <div class="status-info">
+      <h4>📊 Chat Status</h4>
+      <p id="chatStatus">Chat window not initialized</p>
+      <p><strong>Provider:</strong> <span id="providerStatus">Unknown</span></p>
+      <p><strong>Model:</strong> <span id="modelStatus">Unknown</span></p>
+    </div>
+  </div>
+
+  <script src="chat-window.js"></script>
+  <script>
+    // Wait for chat window to initialize
+    let chatInstance = null;
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      // Initialize chat window
+      if (window.ChatWindow) {
+        chatInstance = new window.ChatWindow();
+        updateStatus();
+      }
+      
+      // Update status every 2 seconds
+      setInterval(updateStatus, 2000);
+    });
+
+    function updateStatus() {
+      const statusEl = document.getElementById('chatStatus');
+      const providerEl = document.getElementById('providerStatus');
+      const modelEl = document.getElementById('modelStatus');
+      
+      if (chatInstance) {
+        statusEl.textContent = chatInstance.isVisible ? 'Chat window open' : 'Chat window ready (closed)';
+      } else if (window.chatWindow) {
+        chatInstance = window.chatWindow;
+        statusEl.textContent = window.chatWindow.isVisible ? 'Chat window open' : 'Chat window ready (closed)';
+      } else {
+        statusEl.textContent = 'Chat window not available';
+      }
+      
+      // Get provider and model info
+      const provider = localStorage.getItem('cai_provider') || 'ollama';
+      const model = localStorage.getItem('selectedModel') || 'deepseek-r1:latest';
+      
+      providerEl.textContent = provider;
+      modelEl.textContent = model;
+    }
+
+    function openChatWindow() {
+      if (chatInstance) {
+        chatInstance.openChat();
+      } else if (window.chatWindow) {
+        window.chatWindow.openChat();
+      } else {
+        alert('Chat window not available. Check console for errors.');
+      }
+    }
+
+    function simulateFileUpload() {
+      const sampleCode = getSampleCode();
+      const fileData = {
+        name: 'sample.c',
+        content: sampleCode,
+        size: sampleCode.length,
+        type: 'text/x-c'
+      };
+      
+      if (chatInstance) {
+        chatInstance.setFileContext(fileData);
+      } else if (window.chatWindow) {
+        window.chatWindow.setFileContext(fileData);
+      }
+      
+      alert('Sample file uploaded to chat context!');
+    }
+
+    function simulateAnalysis() {
+      const analysisData = {
+        filename: 'sample.c',
+        timestamp: new Date().toISOString(),
+        static: {
+          loc: 15,
+          c1: 4,
+          c2: 3,
+          c3: 2,
+          decisionPoints: 3,
+          nestingDepth: 2
+        },
+        ai: {
+          loc: 16,
+          c1: 4,
+          c2: 4,
+          c3: 3,
+          notes: ['Ollama local inference', 'Code has recursive functions']
+        },
+        fileContent: getSampleCode()
+      };
+      
+      if (chatInstance) {
+        chatInstance.setAnalysisContext(analysisData);
+      } else if (window.chatWindow) {
+        window.chatWindow.setAnalysisContext(analysisData);
+      }
+      
+      alert('Sample analysis results loaded!');
+    }
+
+    function sendTestMessage() {
+      const messages = [
+        "Hello! Can you help me understand this C code?",
+        "What is the time complexity of the factorial function?",
+        "How can I optimize the fibonacci function?",
+        "What are some good test cases for this code?",
+        "Explain the difference between iteration and recursion."
+      ];
+      
+      const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+      
+      if (chatInstance) {
+        chatInstance.openChat();
+        chatInstance.sendMessage(randomMessage);
+      } else if (window.chatWindow) {
+        window.chatWindow.openChat();
+        window.chatWindow.sendMessage(randomMessage);
+      }
+    }
+
+    function loadSampleCode() {
+      simulateFileUpload();
+      simulateAnalysis();
+      openChatWindow();
+    }
+
+    function askAboutComplexity() {
+      const message = "What is the cyclomatic complexity of this code and how can I reduce it?";
+      if (chatInstance) {
+        chatInstance.openChat();
+        chatInstance.sendMessage(message);
+      } else if (window.chatWindow) {
+        window.chatWindow.openChat();
+        window.chatWindow.sendMessage(message);
+      }
+    }
+
+    function requestOptimization() {
+      const message = "The fibonacci function uses recursion. Can you suggest a more efficient iterative version?";
+      if (chatInstance) {
+        chatInstance.openChat();
+        chatInstance.sendMessage(message);
+      } else if (window.chatWindow) {
+        window.chatWindow.openChat();
+        window.chatWindow.sendMessage(message);
+      }
+    }
+
+    function askForTests() {
+      const message = "What unit tests should I write for the factorial and fibonacci functions? Include edge cases.";
+      if (chatInstance) {
+        chatInstance.openChat();
+        chatInstance.sendMessage(message);
+      } else if (window.chatWindow) {
+        window.chatWindow.openChat();
+        window.chatWindow.sendMessage(message);
+      }
+    }
+
+    function explainRecursion() {
+      const message = "Can you explain how recursion works in the factorial function and what could go wrong?";
+      if (chatInstance) {
+        chatInstance.openChat();
+        chatInstance.sendMessage(message);
+      } else if (window.chatWindow) {
+        window.chatWindow.openChat();
+        window.chatWindow.sendMessage(message);
+      }
+    }
+
+    function getSampleCode() {
+      return `#include <stdio.h>
+#include <stdlib.h>
+
+int factorial(int n) {
+    if (n <= 1) {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+int fibonacci(int n) {
+    if (n <= 1) return n;
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+int main() {
+    int num = 5;
+    printf("Factorial of %d: %d\\n", num, factorial(num));
+    printf("Fibonacci of %d: %d\\n", num, fibonacci(num));
+    
+    return 0;
+}`;
+    }
+  </script>
+</body>
+</html>

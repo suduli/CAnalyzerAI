@@ -161,6 +161,87 @@
                     <!-- Color & Theme -->
                     <div class="control-section">
                         <h3 class="section-title">Color & Theme</h3>
+                        
+                        <!-- Theme Toggle -->
+                        <div class="control-group">
+                            <div class="toggle-group">
+                                <label class="toggle-label" for="themeToggle">
+                                    <input type="checkbox" id="themeToggle">
+                                    <span class="toggle-switch"></span>
+                                    Light Mode
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Custom Colors Toggle -->
+                        <div class="control-group">
+                            <button class="action-btn small" id="toggleCustomColors" aria-label="Toggle Custom Colors">
+                                <span class="btn-icon">🎨</span>
+                                Enable Custom Colors
+                            </button>
+                        </div>
+                        
+                        <!-- Custom Color Controls -->
+                        <div class="control-section">
+                            <h4 class="section-title">Custom Colors</h4>
+                            <div id="customColorsSection" class="custom-colors-section">
+                            
+                            <!-- Particle Colors -->
+                            <div class="control-group">
+                                <label class="control-label" for="particleColor1">
+                                    Particle Color 1: <span id="particleColor1Value">#00f5d4</span>
+                                </label>
+                                <div class="color-picker-group">
+                                    <input type="color" id="particleColor1" class="color-input" value="#00f5d4">
+                                    <input type="text" id="particleColor1Hex" class="hex-input" value="#00f5d4" maxlength="7">
+                                </div>
+                            </div>
+                            
+                            <div class="control-group">
+                                <label class="control-label" for="particleColor2">
+                                    Particle Color 2: <span id="particleColor2Value">#6c63ff</span>
+                                </label>
+                                <div class="color-picker-group">
+                                    <input type="color" id="particleColor2" class="color-input" value="#6c63ff">
+                                    <input type="text" id="particleColor2Hex" class="hex-input" value="#6c63ff" maxlength="7">
+                                </div>
+                            </div>
+                            
+                            <div class="control-group">
+                                <label class="control-label" for="particleColor3">
+                                    Particle Color 3: <span id="particleColor3Value">#ff006e</span>
+                                </label>
+                                <div class="color-picker-group">
+                                    <input type="color" id="particleColor3" class="color-input" value="#ff006e">
+                                    <input type="text" id="particleColor3Hex" class="hex-input" value="#ff006e" maxlength="7">
+                                </div>
+                            </div>
+                            
+                            <!-- Connection Line Color -->
+                            <div class="control-group">
+                                <label class="control-label" for="connectionColor">
+                                    Connection Lines: <span id="connectionColorValue">#00f5d4</span>
+                                </label>
+                                <div class="color-picker-group">
+                                    <input type="color" id="connectionColor" class="color-input" value="#00f5d4">
+                                    <input type="text" id="connectionColorHex" class="hex-input" value="#00f5d4" maxlength="7">
+                                </div>
+                            </div>
+                            
+                            <!-- Color Actions -->
+                            <div class="color-actions">
+                                <button class="action-btn small" id="randomizeColors" aria-label="Randomize Colors">
+                                    <span class="btn-icon">🎲</span>
+                                    Randomize
+                                </button>
+                                <button class="action-btn small secondary" id="resetColors" aria-label="Reset to Theme Colors">
+                                    <span class="btn-icon">🎨</span>
+                                    Reset to Theme
+                                </button>
+                            </div>
+                            </div>
+                        </div>
+                        
                         <div class="color-presets" id="colorPresets">
                             <button class="color-preset active" data-theme="cyber" aria-label="Cyber Theme">
                                 <div class="preset-colors">
