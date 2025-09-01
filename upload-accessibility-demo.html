@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WCAG-Compliant Upload Section Demo - CAnalyzerAI</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="enhanced-light-theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Demo-specific styles */
+    .demo-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    .demo-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 32px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+    }
+    
+    .demo-title {
+      font-family: var(--font-family-heading);
+      font-size: 36px;
+      color: var(--text-primary);
+      margin: 0 0 16px 0;
+    }
+    
+    .demo-subtitle {
+      font-size: 18px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+    
+    .accessibility-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin: 40px 0;
+    }
+    
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      transition: var(--transition-smooth);
+    }
+    
+    .feature-card:hover {
+      background: var(--card-bg-hover);
+      border-color: var(--border-color-hover);
+      transform: translateY(-2px);
+    }
+    
+    .feature-title {
+      font-family: var(--font-family-heading);
+      font-size: 18px;
+      color: var(--text-primary);
+      margin: 0 0 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .feature-description {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0;
+    }
+    
+    .demo-controls {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin: 32px 0;
+      flex-wrap: wrap;
+    }
+    
+    .demo-btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: 2px solid var(--accent-primary);
+      background: transparent;
+      color: var(--accent-primary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      min-height: 44px;
+      font-family: var(--font-family-main);
+    }
+    
+    .demo-btn:hover,
+    .demo-btn:focus-visible {
+      background: var(--accent-primary);
+      color: white;
+      outline: 3px solid rgba(var(--accent-rgb), 0.3);
+      outline-offset: 2px;
+    }
+    
+    .testing-section {
+      margin-top: 48px;
+      padding: 32px;
+      background: var(--surface);
+      border-radius: 16px;
+      border: 1px solid var(--muted-border);
+    }
+    
+    .testing-title {
+      font-family: var(--font-family-heading);
+      font-size: 24px;
+      color: var(--text-primary);
+      margin: 0 0 20px 0;
+    }
+    
+    .testing-instructions {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin: 0 0 24px 0;
+    }
+    
+    .testing-checklist {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .testing-checklist li {
+      padding: 8px 0;
+      color: var(--text-secondary);
+      position: relative;
+      padding-left: 32px;
+    }
+    
+    .testing-checklist li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--status-success);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body data-theme="light" id="demo-body">
+  <div class="demo-container">
+    <div class="demo-header">
+      <h1 class="demo-title">WCAG-Compliant Upload Section</h1>
+      <p class="demo-subtitle">
+        Demonstrating accessibility features including semantic HTML, ARIA attributes, 
+        keyboard navigation, focus management, and screen reader compatibility.
+      </p>
+    </div>
+
+    <div class="demo-controls">
+      <button class="demo-btn" onclick="toggleTheme()">Toggle Theme</button>
+      <button class="demo-btn" onclick="testKeyboardNav()">Test Keyboard Navigation</button>
+      <button class="demo-btn" onclick="simulateScreenReader()">Screen Reader Test</button>
+    </div>
+
+    <!-- Enhanced WCAG-Compliant Upload Section -->
+    <section class="upload-section" role="main" aria-labelledby="upload-section-title">
+      <div class="upload-container">
+        <div 
+          class="upload-zone" 
+          id="uploadZone"
+          role="button"
+          tabindex="0"
+          aria-label="File upload area. Click to browse for C code files or drag and drop files here. Accepted formats: .c and .h files. Maximum size: 5MB."
+          aria-describedby="upload-instructions file-requirements-list"
+          data-upload-state="empty"
+        >
+          <div class="upload-content">
+            <div class="upload-icon" aria-hidden="true">📁</div>
+            <h3 class="upload-title" id="upload-section-title">Drop your C code file here</h3>
+            <p class="upload-subtitle" id="upload-instructions">or click to browse</p>
+            <div class="file-requirements" role="list" id="file-requirements-list" aria-label="File requirements">
+              <span class="requirement" role="listitem" aria-label="Supported file types">.c or .h</span>
+              <span class="requirement" role="listitem" aria-label="Maximum file size">Max 5MB</span>
+            </div>
+          </div>
+          <input 
+            type="file" 
+            id="fileInput" 
+            accept=".c,.h" 
+            class="file-input"
+            aria-label="Choose C code file to upload"
+            aria-describedby="upload-instructions file-requirements-list error-message"
+          >
+        </div>
+        
+        <div 
+          class="error-message hidden" 
+          id="errorMessage" 
+          role="alert" 
+          aria-live="assertive"
+          aria-atomic="true"
+        ></div>
+        
+        <div class="upload-progress hidden" id="uploadProgress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="progress-bar" aria-hidden="true">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-text" id="progressText" aria-live="polite">Processing...</div>
+        </div>
+
+        <div class="file-info hidden" id="fileInfo" role="region" aria-labelledby="file-info-title">
+          <div class="file-details">
+            <h4 class="sr-only" id="file-info-title">Selected File Information</h4>
+            <div class="file-name" id="fileName" aria-label="File name"></div>
+            <div class="file-meta" aria-label="File metadata">
+              <span class="file-size" id="fileSize" aria-label="File size"></span>
+              <span class="file-timestamp" id="fileTimestamp" aria-label="Upload time"></span>
+            </div>
+          </div>
+          <div class="file-actions" role="group" aria-label="File actions">
+            <button 
+              class="btn btn--primary" 
+              id="analyzeBtn" 
+              type="button"
+              disabled
+              aria-label="Analyze the uploaded C code file"
+              aria-describedby="analyze-btn-help"
+            >
+              <span class="btn-icon" aria-hidden="true">🔬</span>
+              <span class="btn-text">Analyze Code</span>
+            </button>
+            <span class="sr-only" id="analyze-btn-help">This will start the complexity analysis of your C code file</span>
+            <button 
+              class="btn btn--outline btn--sm" 
+              id="clearFile" 
+              type="button"
+              aria-label="Remove the selected file and start over"
+              title="Clear selected file"
+            >
+              <span class="btn-text">Clear</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Accessibility Features Overview -->
+    <div class="accessibility-features">
+      <div class="feature-card">
+        <h3 class="feature-title">
+          <span aria-hidden="true">🏷️</span>
+          Semantic HTML
+        </h3>
+        <p class="feature-description">
+          Proper use of semantic elements, headings hierarchy, and meaningful structure for assistive technologies.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3 class="feature-title">
+          <span aria-hidden="true">🎯</span>
+          ARIA Attributes
+        </h3>
+        <p class="feature-description">
+          Comprehensive ARIA labeling, live regions, roles, and descriptive relationships for screen readers.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3 class="feature-title">
+          <span aria-hidden="true">⌨️</span>
+          Keyboard Navigation
+        </h3>
+        <p class="feature-description">
+          Full keyboard accessibility with Enter/Space key support, logical tab order, and visible focus indicators.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3 class="feature-title">
+          <span aria-hidden="true">🎨</span>
+          Color Contrast
+        </h3>
+        <p class="feature-description">
+          WCAG AAA compliant color combinations ensuring minimum 7:1 contrast ratios for optimal readability.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3 class="feature-title">
+          <span aria-hidden="true">👆</span>
+          Touch Targets
+        </h3>
+        <p class="feature-description">
+          Minimum 44×44 pixel touch targets meeting WCAG guidelines for mobile and touch screen accessibility.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3 class="feature-title">
+          <span aria-hidden="true">🔄</span>
+          Motion Preferences
+        </h3>
+        <p class="feature-description">
+          Respects prefers-reduced-motion settings to disable animations for users with vestibular disorders.
+        </p>
+      </div>
+    </div>
+
+    <!-- Testing Section -->
+    <div class="testing-section">
+      <h2 class="testing-title">Accessibility Testing Checklist</h2>
+      <p class="testing-instructions">
+        Test the upload section using the following methods to verify WCAG compliance:
+      </p>
+      <ul class="testing-checklist">
+        <li>Navigate using only the Tab key to test keyboard accessibility</li>
+        <li>Use Enter or Space keys to activate the upload zone</li>
+        <li>Test with screen reader software (NVDA, JAWS, VoiceOver)</li>
+        <li>Verify color contrast meets WCAG AA/AAA standards</li>
+        <li>Test drag and drop functionality with keyboard alternatives</li>
+        <li>Validate error messages are announced to screen readers</li>
+        <li>Check progress updates are communicated accessibly</li>
+        <li>Test with high contrast mode enabled</li>
+        <li>Verify reduced motion preferences are respected</li>
+        <li>Test touch targets on mobile devices</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Demo functionality
+    function toggleTheme() {
+      const body = document.getElementById('demo-body');
+      const currentTheme = body.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      body.setAttribute('data-theme', newTheme);
+      
+      // Also update the class for broader compatibility
+      body.className = `theme-${newTheme}`;
+      
+      // Announce theme change
+      announceToScreenReader(`Theme changed to ${newTheme} mode`);
+      
+      console.log(`Theme switched to: ${newTheme}`);
+    }
+
+    function testKeyboardNav() {
+      const uploadZone = document.getElementById('uploadZone');
+      uploadZone.focus();
+      announceToScreenReader('Upload zone focused. Press Enter or Space to select files.');
+    }
+
+    function simulateScreenReader() {
+      const uploadZone = document.getElementById('uploadZone');
+      const ariaLabel = uploadZone.getAttribute('aria-label');
+      announceToScreenReader(`Screen reader would announce: ${ariaLabel}`);
+    }
+
+    function announceToScreenReader(message) {
+      const announcement = document.createElement('div');
+      announcement.setAttribute('aria-live', 'polite');
+      announcement.setAttribute('aria-atomic', 'true');
+      announcement.className = 'sr-only';
+      announcement.textContent = message;
+      document.body.appendChild(announcement);
+      
+      // Show visual feedback as well
+      const demo = document.querySelector('.demo-container');
+      const feedback = document.createElement('div');
+      feedback.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--accent-primary);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 1000;
+        max-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      `;
+      feedback.textContent = message;
+      document.body.appendChild(feedback);
+      
+      // Remove elements after delay
+      setTimeout(() => {
+        if (announcement.parentNode) document.body.removeChild(announcement);
+        if (feedback.parentNode) document.body.removeChild(feedback);
+      }, 3000);
+    }
+
+    // Enhanced upload zone functionality for demo
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const fileTimestamp = document.getElementById('fileTimestamp');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const clearBtn = document.getElementById('clearFile');
+    const errorMessage = document.getElementById('errorMessage');
+
+    // Upload zone click handler
+    uploadZone.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    // Keyboard support for upload zone
+    uploadZone.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput.click();
+        announceToScreenReader('File browser opened');
+      }
+    });
+
+    // File selection handler
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        handleFileSelection(file);
+      }
+    });
+
+    // Drag and drop handlers
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('drag-over');
+    });
+
+    uploadZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      if (!uploadZone.contains(e.relatedTarget)) {
+        uploadZone.classList.remove('drag-over');
+      }
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        handleFileSelection(file);
+      }
+    });
+
+    function handleFileSelection(file) {
+      // Validate file
+      if (!/\.(c|h)$/i.test(file.name)) {
+        showError('Only .c and .h files are allowed');
+        return;
+      }
+      
+      if (file.size > 5 * 1024 * 1024) {
+        showError('File size must be less than 5MB');
+        return;
+      }
+
+      // Update UI
+      hideError();
+      fileName.textContent = file.name;
+      fileSize.textContent = `${(file.size / 1024).toFixed(1)} KB`;
+      fileTimestamp.textContent = new Date().toLocaleString();
+      
+      fileInfo.classList.remove('hidden');
+      analyzeBtn.removeAttribute('disabled');
+      
+      uploadZone.setAttribute('data-upload-state', 'loaded');
+      uploadZone.setAttribute('aria-label', `File loaded: ${file.name}. Click to change file or use the analyze button to proceed.`);
+      
+      announceToScreenReader(`File successfully loaded: ${file.name}, ${(file.size / 1024).toFixed(1)} kilobytes`);
+    }
+
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.classList.remove('hidden');
+      announceToScreenReader(`Error: ${message}`);
+    }
+
+    function hideError() {
+      errorMessage.textContent = '';
+      errorMessage.classList.add('hidden');
+    }
+
+    // Clear file handler
+    clearBtn.addEventListener('click', () => {
+      fileInput.value = '';
+      fileInfo.classList.add('hidden');
+      analyzeBtn.setAttribute('disabled', 'true');
+      hideError();
+      
+      uploadZone.setAttribute('data-upload-state', 'empty');
+      uploadZone.setAttribute('aria-label', 'File upload area. Click to browse for C code files or drag and drop files here. Accepted formats: .c and .h files. Maximum size: 5MB.');
+      
+      announceToScreenReader('File cleared. Upload area is ready for a new file.');
+    });
+
+    // Analyze button demo
+    analyzeBtn.addEventListener('click', () => {
+      announceToScreenReader('Analysis would start here in the full application.');
+      
+      // Simulate progress
+      const progress = document.getElementById('uploadProgress');
+      const progressFill = document.getElementById('progressFill');
+      const progressText = document.getElementById('progressText');
+      
+      progress.classList.remove('hidden');
+      progress.setAttribute('aria-valuenow', '0');
+      
+      let currentProgress = 0;
+      const interval = setInterval(() => {
+        currentProgress += 20;
+        progressFill.style.width = `${currentProgress}%`;
+        progressText.textContent = `Processing... ${currentProgress}%`;
+        progress.setAttribute('aria-valuenow', currentProgress.toString());
+        progress.setAttribute('aria-valuetext', `${currentProgress}% - Processing`);
+        
+        if (currentProgress >= 100) {
+          clearInterval(interval);
+          progressText.textContent = 'Analysis complete!';
+          announceToScreenReader('Analysis complete!');
+          setTimeout(() => {
+            progress.classList.add('hidden');
+            progressFill.style.width = '0%';
+          }, 2000);
+        }
+      }, 500);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C Code Complexity Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .input-section {
+            margin-bottom: 40px;
+        }
+
+        .file-input-container {
+            border: 3px dashed #3498db;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: rgba(52, 152, 219, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-input-container:hover {
+            border-color: #2980b9;
+            background: rgba(52, 152, 219, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .file-input-container.dragover {
+            border-color: #27ae60;
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .upload-hint {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .code-display {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+        }
+
+        .analyze-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 40px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .metric-label {
+            font-size: 1rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .notes-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border-left: 5px solid #3498db;
+        }
+
+        .notes-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .notes-list {
+            list-style: none;
+        }
+
+        .notes-list li {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #3498db;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .error-message {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .api-key-section {
+            background: #ecf0f1;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .api-key-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .api-key-hint {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 C Code Complexity Analyzer</h1>
+            <p>Analyze your C code using AI-powered complexity metrics</p>
+        </div>
+
+        <div class="main-content">
+            <div class="api-key-section">
+                <label for="apiKey" class="api-key-label">OpenRouter API Key:</label>
+                <input type="password" id="apiKey" class="api-key-input" placeholder="Enter your OpenRouter API key">
+                <div class="api-key-hint">
+                    Get your API key from <a href="https://openrouter.ai/keys" target="_blank">OpenRouter</a>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <div class="file-input-container" id="fileInputContainer">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Click to select or drag & drop your .c file</div>
+                    <div class="upload-hint">Supports .c files only</div>
+                    <input type="file" id="fileInput" class="file-input" accept=".c">
+                </div>
+
+                <div id="codeDisplay" class="code-display" style="display: none;"></div>
+
+                <button id="analyzeBtn" class="analyze-btn" disabled>
+                    🚀 Analyze Code Complexity
+                </button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing your code with AI...</p>
+            </div>
+
+            <div class="results-section" id="resultsSection">
+                <div class="results-grid" id="resultsGrid"></div>
+                <div class="notes-section" id="notesSection"></div>
+            </div>
+
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        class CCodeAnalyzer {
+            constructor() {
+                this.apiKey = '';
+                this.codeContent = '';
+                this.initializeElements();
+                this.bindEvents();
+            }
+
+            initializeElements() {
+                this.apiKeyInput = document.getElementById('apiKey');
+                this.fileInput = document.getElementById('fileInput');
+                this.fileInputContainer = document.getElementById('fileInputContainer');
+                this.codeDisplay = document.getElementById('codeDisplay');
+                this.analyzeBtn = document.getElementById('analyzeBtn');
+                this.loading = document.getElementById('loading');
+                this.resultsSection = document.getElementById('resultsSection');
+                this.resultsGrid = document.getElementById('resultsGrid');
+                this.notesSection = document.getElementById('notesSection');
+                this.errorMessage = document.getElementById('errorMessage');
+            }
+
+            bindEvents() {
+                this.apiKeyInput.addEventListener('input', () => {
+                    this.apiKey = this.apiKeyInput.value.trim();
+                    this.updateAnalyzeButton();
+                });
+
+                this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+                this.fileInputContainer.addEventListener('click', () => this.fileInput.click());
+                this.fileInputContainer.addEventListener('dragover', (e) => this.handleDragOver(e));
+                this.fileInputContainer.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+                this.fileInputContainer.addEventListener('drop', (e) => this.handleDrop(e));
+                this.analyzeBtn.addEventListener('click', () => this.analyzeCode());
+            }
+
+            handleFileSelect(event) {
+                const file = event.target.files[0];
+                if (file && file.name.endsWith('.c')) {
+                    this.readFile(file);
+                } else {
+                    this.showError('Please select a valid .c file');
+                }
+            }
+
+            handleDragOver(event) {
+                event.preventDefault();
+                this.fileInputContainer.classList.add('dragover');
+            }
+
+            handleDragLeave(event) {
+                event.preventDefault();
+                this.fileInputContainer.classList.remove('dragover');
+            }
+
+            handleDrop(event) {
+                event.preventDefault();
+                this.fileInputContainer.classList.remove('dragover');
+                
+                const files = event.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.name.endsWith('.c')) {
+                        this.readFile(file);
+                    } else {
+                        this.showError('Please drop a valid .c file');
+                    }
+                }
+            }
+
+            readFile(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.codeContent = e.target.result;
+                    this.displayCode();
+                    this.updateAnalyzeButton();
+                };
+                reader.readAsText(file);
+            }
+
+            displayCode() {
+                this.codeDisplay.textContent = this.codeContent;
+                this.codeDisplay.style.display = 'block';
+                this.hideError();
+            }
+
+            updateAnalyzeButton() {
+                this.analyzeBtn.disabled = !this.apiKey || !this.codeContent;
+            }
+
+            async analyzeCode() {
+                if (!this.apiKey || !this.codeContent) {
+                    this.showError('Please provide API key and select a .c file');
+                    return;
+                }
+
+                this.showLoading(true);
+                this.hideError();
+                this.hideResults();
+
+                try {
+                    const prompt = this.buildPrompt();
+                    const response = await this.callOpenRouterAPI(prompt);
+                    this.displayResults(response);
+                } catch (error) {
+                    console.error('Analysis error:', error);
+                    this.showError(`Analysis failed: ${error.message}`);
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            buildPrompt() {
+                return `You are a code complexity analyzer. Your task is to analyze C programming language code and return ONLY a valid JSON response.
+
+CRITICAL INSTRUCTIONS:
+1. Return ONLY valid JSON. No explanations, no code examples, no markdown formatting, no code blocks, no additional text.
+2. Do NOT wrap your response in \`\`\`json or any other markdown formatting.
+3. Use the EXACT schema structure below with the EXACT key names.
+4. All numeric values must be integers (no decimals, no strings, no written numbers).
+5. The response must be parseable by JSON.parse() without any preprocessing.
+6. Start your response with { and end with } - nothing before or after.
+
+REQUIRED JSON SCHEMA:
+{
+  "loc": <integer: count of executable lines excluding comments, blanks, and includes>,
+  "complexity1": <integer: cyclomatic complexity (decision points + 1)>,
+  "complexity2": <integer: cognitive complexity score>,
+  "complexity3": <integer: halstead complexity metric>,
+  "notes": ["<string: brief analysis note>"]
+}
+
+VALIDATION RULES:
+- "loc" must be a positive integer >= 0
+- "complexity1" must be a positive integer >= 1
+- "complexity2" must be a positive integer >= 0
+- "complexity3" must be a positive integer >= 0
+- "notes" must be an array of strings
+- No additional properties allowed
+- No nested objects in numeric fields
+
+EXAMPLE OF EXPECTED RESPONSE FORMAT:
+{"loc": 25, "complexity1": 3, "complexity2": 2, "complexity3": 15, "notes": ["Simple function with basic control flow"]}
+
+C CODE TO ANALYZE:
+
+${this.codeContent}`;
+            }
+
+            async callOpenRouterAPI(prompt) {
+                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${this.apiKey}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': window.location.origin,
+                        'X-Title': 'C Code Complexity Analyzer'
+                    },
+                    body: JSON.stringify({
+                        model: 'google/gemini-2.5-flash-image-preview:free',
+                        messages: [
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ],
+                        temperature: 0.1,
+                        max_tokens: 1000
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const content = data.choices[0]?.message?.content;
+                
+                if (!content) {
+                    throw new Error('No response content received from AI model');
+                }
+
+                // Clean the response content to extract JSON
+                let cleanedContent = this.cleanAIResponse(content);
+                
+                try {
+                    return JSON.parse(cleanedContent);
+                } catch (parseError) {
+                    // If parsing fails, try to extract JSON from the cleaned content
+                    const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        try {
+                            return JSON.parse(jsonMatch[0]);
+                        } catch (secondParseError) {
+                            throw new Error(`Invalid JSON response from AI: ${secondParseError.message}. Raw content: ${cleanedContent.substring(0, 200)}...`);
+                        }
+                    }
+                    throw new Error(`Invalid JSON response from AI: ${parseError.message}. Raw content: ${cleanedContent.substring(0, 200)}...`);
+                }
+            }
+
+            cleanAIResponse(content) {
+                // Remove markdown code blocks
+                let cleaned = content.replace(/```json\s*/gi, '').replace(/```\s*$/gi, '');
+                
+                // Remove any leading/trailing whitespace
+                cleaned = cleaned.trim();
+                
+                // If the content starts with a { and ends with }, it's likely valid JSON
+                if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+                    return cleaned;
+                }
+                
+                // Try to find JSON object in the content
+                const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    return jsonMatch[0];
+                }
+                
+                return cleaned;
+            }
+
+            displayResults(results) {
+                // Display metrics
+                this.resultsGrid.innerHTML = `
+                    <div class="metric-card">
+                        <div class="metric-value">${results.loc}</div>
+                        <div class="metric-label">Lines of Code</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${results.complexity1}</div>
+                        <div class="metric-label">Cyclomatic Complexity</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${results.complexity2}</div>
+                        <div class="metric-label">Cognitive Complexity</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${results.complexity3}</div>
+                        <div class="metric-label">Halstead Complexity</div>
+                    </div>
+                `;
+
+                // Display notes
+                if (results.notes && results.notes.length > 0) {
+                    this.notesSection.innerHTML = `
+                        <div class="notes-title">📝 Analysis Notes</div>
+                        <ul class="notes-list">
+                            ${results.notes.map(note => `<li>${note}</li>`).join('')}
+                        </ul>
+                    `;
+                } else {
+                    this.notesSection.innerHTML = `
+                        <div class="notes-title">📝 Analysis Notes</div>
+                        <p>No specific notes provided by the AI analysis.</p>
+                    `;
+                }
+
+                this.resultsSection.style.display = 'block';
+            }
+
+            showLoading(show) {
+                this.loading.style.display = show ? 'block' : 'none';
+                this.analyzeBtn.disabled = show;
+            }
+
+            showError(message) {
+                this.errorMessage.textContent = message;
+                this.errorMessage.style.display = 'block';
+            }
+
+            hideError() {
+                this.errorMessage.style.display = 'none';
+            }
+
+            hideResults() {
+                this.resultsSection.style.display = 'none';
+            }
+        }
+
+        // Initialize the analyzer when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new CCodeAnalyzer();
+        });
+    </script>
+</body>
+</html>

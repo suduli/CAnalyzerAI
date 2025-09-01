@@ -1,0 +1,524 @@
+/* Enhanced Glassmorphic Particle System CSS */
+
+/* Particle Canvas Base */
+#glassmorphic-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Above matrix/light particle layers (z=0), still below main content */
+  z-index: 1;
+  pointer-events: none;
+  background: transparent;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+/* Theme-adaptive particle opacity */
+[data-theme="light"] #glassmorphic-particles {
+  opacity: 0.6;
+}
+
+[data-theme="dark"] #glassmorphic-particles {
+  opacity: 0.8;
+}
+
+/* Enhanced Glassmorphic Effects for Header */
+.header {
+  /* Enhanced glassmorphic background with depth */
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  ) !important;
+  
+  /* Multi-layer backdrop filter for depth */
+  backdrop-filter: blur(20px) saturate(180%) brightness(1.1) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.1) !important;
+  
+  /* Enhanced border with gradient */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-image: linear-gradient(90deg, 
+    rgba(124, 115, 255, 0.3),
+    rgba(31, 245, 212, 0.2),
+    rgba(255, 26, 255, 0.3)
+  ) 1 !important;
+  
+  /* Sophisticated shadow system */
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 4px 16px rgba(124, 115, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1) !important;
+    
+  /* Smooth transitions for interactive states */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  
+  /* Enhanced z-index for proper layering */
+  z-index: 1000 !important;
+  position: relative !important;
+}
+
+/* Header hover enhancement */
+.header:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  ) !important;
+  
+  backdrop-filter: blur(24px) saturate(200%) brightness(1.15) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(1.15) !important;
+  
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 6px 20px rgba(124, 115, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Light theme header adaptations */
+[data-theme="light"] .header {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(248, 250, 252, 0.9) 50%,
+    rgba(241, 245, 249, 0.85) 100%
+  ) !important;
+  
+  backdrop-filter: blur(24px) saturate(200%) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(1.05) !important;
+  
+  border-bottom: 1px solid rgba(15, 23, 42, 0.1) !important;
+  
+  box-shadow: 
+    0 8px 32px rgba(15, 23, 42, 0.08),
+    0 4px 16px rgba(30, 64, 175, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+[data-theme="light"] .header:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 1) 0%,
+    rgba(248, 250, 252, 0.95) 50%,
+    rgba(241, 245, 249, 0.9) 100%
+  ) !important;
+  
+  backdrop-filter: blur(28px) saturate(220%) brightness(1.08) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(220%) brightness(1.08) !important;
+}
+
+/* Enhanced Glassmorphic Footer */
+.footer {
+  /* Multi-layer glassmorphic background */
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  ) !important;
+  
+  /* Advanced backdrop filtering */
+  backdrop-filter: blur(24px) saturate(180%) brightness(1.1) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(1.1) !important;
+  
+  /* Enhanced border system */
+  border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-image: linear-gradient(90deg, 
+    rgba(124, 115, 255, 0.2),
+    rgba(31, 245, 212, 0.15),
+    rgba(255, 26, 255, 0.2)
+  ) 1 !important;
+  
+  /* Sophisticated shadow layers */
+  box-shadow: 
+    0 -8px 32px rgba(0, 0, 0, 0.15),
+    0 -4px 16px rgba(124, 115, 255, 0.1),
+    0 -2px 8px rgba(31, 245, 212, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05) !important;
+    
+  /* Smooth state transitions */
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  
+  /* Proper layering */
+  z-index: 900 !important;
+  position: relative !important;
+}
+
+/* Footer hover enhancement */
+.footer:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  ) !important;
+  
+  backdrop-filter: blur(28px) saturate(200%) brightness(1.15) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.15) !important;
+  
+  box-shadow: 
+    0 -12px 40px rgba(0, 0, 0, 0.18),
+    0 -6px 20px rgba(124, 115, 255, 0.15),
+    0 -3px 12px rgba(31, 245, 212, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Light theme footer adaptations */
+[data-theme="light"] .footer {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(248, 250, 252, 0.9) 50%,
+    rgba(241, 245, 249, 0.85) 100%
+  ) !important;
+  
+  backdrop-filter: blur(28px) saturate(200%) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.05) !important;
+  
+  border-top: 1px solid rgba(15, 23, 42, 0.12) !important;
+  
+  box-shadow: 
+    0 -8px 32px rgba(15, 23, 42, 0.08),
+    0 -4px 16px rgba(30, 64, 175, 0.06),
+    0 -2px 8px rgba(59, 130, 246, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme="light"] .footer:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 1) 0%,
+    rgba(248, 250, 252, 0.98) 50%,
+    rgba(241, 245, 249, 0.95) 100%
+  ) !important;
+  
+  backdrop-filter: blur(32px) saturate(220%) brightness(1.08) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(220%) brightness(1.08) !important;
+}
+
+/* Enhanced File Input Glassmorphic Styling */
+.file-input,
+input[type="file"] {
+  /* Glassmorphic container background */
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  ) !important;
+  
+  /* Advanced backdrop filtering */
+  backdrop-filter: blur(16px) saturate(150%) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(150%) brightness(1.05) !important;
+  
+  /* Enhanced border with subtle glow */
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+  
+  /* Multi-layer shadow system */
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(124, 115, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05) !important;
+    
+  /* Smooth transitions */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  
+  /* Enhanced text styling */
+  color: var(--text-primary) !important;
+  font-weight: 500 !important;
+}
+
+/* File input focus state */
+.file-input:focus,
+input[type="file"]:focus {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  ) !important;
+  
+  backdrop-filter: blur(20px) saturate(180%) brightness(1.1) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.1) !important;
+  
+  border-color: rgba(124, 115, 255, 0.5) !important;
+  
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.15),
+    0 3px 12px rgba(124, 115, 255, 0.2),
+    0 0 0 3px rgba(124, 115, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1) !important;
+    
+  outline: none !important;
+}
+
+/* File input hover state */
+.file-input:hover,
+input[type="file"]:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  ) !important;
+  
+  backdrop-filter: blur(18px) saturate(160%) brightness(1.08) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(160%) brightness(1.08) !important;
+  
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  
+  box-shadow: 
+    0 5px 18px rgba(0, 0, 0, 0.12),
+    0 2px 10px rgba(124, 115, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08) !important;
+    
+  transform: translateY(-1px) !important;
+}
+
+/* Light theme file input adaptations */
+[data-theme="light"] .file-input,
+[data-theme="light"] input[type="file"] {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(248, 250, 252, 0.85) 50%,
+    rgba(241, 245, 249, 0.8) 100%
+  ) !important;
+  
+  backdrop-filter: blur(20px) saturate(180%) brightness(1.02) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.02) !important;
+  
+  border: 1px solid rgba(15, 23, 42, 0.15) !important;
+  
+  box-shadow: 
+    0 4px 16px rgba(15, 23, 42, 0.08),
+    0 2px 8px rgba(30, 64, 175, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+[data-theme="light"] .file-input:focus,
+[data-theme="light"] input[type="file"]:focus {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(248, 250, 252, 0.9) 50%,
+    rgba(241, 245, 249, 0.85) 100%
+  ) !important;
+  
+  backdrop-filter: blur(24px) saturate(200%) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(1.05) !important;
+  
+  border-color: rgba(30, 64, 175, 0.4) !important;
+  
+  box-shadow: 
+    0 6px 20px rgba(15, 23, 42, 0.12),
+    0 3px 12px rgba(30, 64, 175, 0.15),
+    0 0 0 3px rgba(30, 64, 175, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Enhanced Upload Zone Glassmorphic Effects */
+.upload-zone {
+  /* Enhanced glassmorphic background */
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.04) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  ) !important;
+  
+  /* Advanced backdrop filtering */
+  backdrop-filter: blur(20px) saturate(160%) brightness(1.08) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) brightness(1.08) !important;
+  
+  /* Enhanced border with gradient glow */
+  border: 2px dashed rgba(255, 255, 255, 0.3) !important;
+  border-radius: 16px !important;
+  
+  /* Sophisticated shadow system */
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 4px 16px rgba(124, 115, 255, 0.1),
+    0 2px 8px rgba(31, 245, 212, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05) !important;
+    
+  /* Smooth interactive transitions */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  
+  /* Enhanced z-index for proper layering */
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+/* Upload zone hover state */
+.upload-zone:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  ) !important;
+  
+  backdrop-filter: blur(24px) saturate(180%) brightness(1.12) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(1.12) !important;
+  
+  border-color: rgba(124, 115, 255, 0.5) !important;
+  
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 6px 20px rgba(124, 115, 255, 0.15),
+    0 3px 12px rgba(31, 245, 212, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08) !important;
+    
+  transform: translateY(-2px) scale(1.01) !important;
+}
+
+/* Upload zone active/drag state */
+.upload-zone.drag-over,
+.upload-zone:active {
+  background: linear-gradient(135deg, 
+    rgba(124, 115, 255, 0.15) 0%,
+    rgba(31, 245, 212, 0.08) 50%,
+    rgba(255, 26, 255, 0.05) 100%
+  ) !important;
+  
+  backdrop-filter: blur(28px) saturate(200%) brightness(1.15) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.15) !important;
+  
+  border-color: rgba(124, 115, 255, 0.7) !important;
+  border-style: solid !important;
+  
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.2),
+    0 8px 24px rgba(124, 115, 255, 0.2),
+    0 4px 16px rgba(31, 245, 212, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1) !important;
+    
+  transform: translateY(-3px) scale(1.02) !important;
+}
+
+/* Light theme upload zone adaptations */
+[data-theme="light"] .upload-zone {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(248, 250, 252, 0.85) 50%,
+    rgba(241, 245, 249, 0.8) 100%
+  ) !important;
+  
+  backdrop-filter: blur(24px) saturate(180%) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(1.05) !important;
+  
+  border: 2px dashed rgba(15, 23, 42, 0.2) !important;
+  
+  box-shadow: 
+    0 8px 32px rgba(15, 23, 42, 0.08),
+    0 4px 16px rgba(30, 64, 175, 0.06),
+    0 2px 8px rgba(59, 130, 246, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+[data-theme="light"] .upload-zone:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(248, 250, 252, 0.9) 50%,
+    rgba(241, 245, 249, 0.85) 100%
+  ) !important;
+  
+  backdrop-filter: blur(28px) saturate(200%) brightness(1.08) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.08) !important;
+  
+  border-color: rgba(30, 64, 175, 0.4) !important;
+}
+
+[data-theme="light"] .upload-zone.drag-over,
+[data-theme="light"] .upload-zone:active {
+  background: linear-gradient(135deg, 
+    rgba(30, 64, 175, 0.12) 0%,
+    rgba(59, 130, 246, 0.06) 50%,
+    rgba(147, 51, 234, 0.04) 100%
+  ) !important;
+  
+  backdrop-filter: blur(32px) saturate(220%) brightness(1.1) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(220%) brightness(1.1) !important;
+  
+  border-color: rgba(30, 64, 175, 0.6) !important;
+}
+
+/* Glassmorphic enhancement for other interactive elements */
+.btn,
+button {
+  backdrop-filter: blur(12px) saturate(140%) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(140%) brightness(1.05) !important;
+  
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(124, 115, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.btn:hover,
+button:hover {
+  backdrop-filter: blur(16px) saturate(160%) brightness(1.1) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) brightness(1.1) !important;
+  
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.15),
+    0 3px 12px rgba(124, 115, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    
+  transform: translateY(-1px) !important;
+}
+
+/* Performance optimizations */
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .footer,
+  .file-input,
+  .upload-zone,
+  .btn {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* GPU acceleration for smooth animations */
+.header,
+.footer,
+.file-input,
+.upload-zone,
+.btn {
+  will-change: transform, backdrop-filter, box-shadow !important;
+  transform: translateZ(0) !important;
+}
+
+/* Fallback for browsers without backdrop-filter support */
+@supports not (backdrop-filter: blur(10px)) {
+  .header {
+    background: rgba(26, 54, 93, 0.9) !important;
+  }
+  
+  .footer {
+    background: rgba(26, 54, 93, 0.85) !important;
+  }
+  
+  .file-input,
+  .upload-zone {
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  [data-theme="light"] .header,
+  [data-theme="light"] .footer {
+    background: rgba(255, 255, 255, 0.95) !important;
+  }
+  
+  [data-theme="light"] .file-input,
+  [data-theme="light"] .upload-zone {
+    background: rgba(255, 255, 255, 0.9) !important;
+  }
+}

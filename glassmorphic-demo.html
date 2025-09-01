@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glassmorphic Particle Effects Demo - CAnalyzerAI</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="enhanced-data-display.css" />
+  <link rel="stylesheet" href="enhanced-light-theme.css" />
+  <link rel="stylesheet" href="glassmorphic-effects.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #02001a 0%, #0a0826 50%, #1a0b2e 100%);
+      color: var(--text-primary);
+      font-family: var(--font-family-main);
+      overflow-x: hidden;
+    }
+
+    .demo-container {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .demo-header {
+      text-align: center;
+      padding: 60px 20px;
+      margin-bottom: 40px;
+    }
+
+    .demo-title {
+      font-family: var(--font-family-heading);
+      font-size: 3.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, 
+        rgba(124, 115, 255, 1) 0%,
+        rgba(31, 245, 212, 1) 50%,
+        rgba(255, 26, 255, 1) 100%
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+      text-shadow: 0 0 30px rgba(124, 115, 255, 0.5);
+    }
+
+    .demo-subtitle {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      margin-bottom: 30px;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .demo-card {
+      padding: 30px;
+      border-radius: 20px;
+      backdrop-filter: blur(20px) saturate(180%) brightness(1.1);
+      -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.1);
+      background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.05) 100%
+      );
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        0 4px 16px rgba(124, 115, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .demo-card:hover {
+      transform: translateY(-5px);
+      backdrop-filter: blur(24px) saturate(200%) brightness(1.15);
+      -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(1.15);
+      box-shadow: 
+        0 12px 48px rgba(0, 0, 0, 0.4),
+        0 6px 24px rgba(124, 115, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    .demo-card h3 {
+      font-family: var(--font-family-heading);
+      font-size: 1.5rem;
+      color: var(--accent-glow);
+      margin-bottom: 15px;
+      text-shadow: 0 0 10px rgba(124, 115, 255, 0.5);
+    }
+
+    .demo-card p {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .demo-controls {
+      background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.08) 0%,
+        rgba(255, 255, 255, 0.04) 100%
+      );
+      backdrop-filter: blur(16px) saturate(150%);
+      -webkit-backdrop-filter: blur(16px) saturate(150%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 25px;
+      margin: 30px auto;
+      max-width: 800px;
+      box-shadow: 
+        0 6px 24px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .control-label {
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 0.9rem;
+      min-width: 120px;
+    }
+
+    .control-slider {
+      flex: 1;
+      margin: 0 20px;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      background: linear-gradient(90deg, 
+        rgba(124, 115, 255, 0.3) 0%,
+        rgba(31, 245, 212, 0.3) 100%
+      );
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .control-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, 
+        rgba(124, 115, 255, 1) 0%,
+        rgba(31, 245, 212, 1) 100%
+      );
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(124, 115, 255, 0.5);
+    }
+
+    .control-value {
+      color: var(--accent-glow);
+      font-weight: 700;
+      min-width: 60px;
+      text-align: right;
+    }
+
+    .theme-toggle-demo {
+      text-align: center;
+      padding: 30px;
+    }
+
+    .toggle-btn {
+      background: linear-gradient(135deg, 
+        rgba(124, 115, 255, 0.8) 0%,
+        rgba(31, 245, 212, 0.6) 100%
+      );
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: none;
+      padding: 15px 30px;
+      border-radius: 25px;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 
+        0 4px 16px rgba(124, 115, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .toggle-btn:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, 
+        rgba(124, 115, 255, 1) 0%,
+        rgba(31, 245, 212, 0.8) 100%
+      );
+      box-shadow: 
+        0 6px 20px rgba(124, 115, 255, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    /* Light theme adaptations */
+    [data-theme="light"] body {
+      background: linear-gradient(135deg, #fefefe 0%, #f7f9fc 50%, #f1f5f9 100%);
+    }
+
+    [data-theme="light"] .demo-title {
+      background: linear-gradient(135deg, 
+        rgba(30, 64, 175, 1) 0%,
+        rgba(59, 130, 246, 1) 50%,
+        rgba(147, 51, 234, 1) 100%
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 20px rgba(30, 64, 175, 0.3);
+    }
+
+    [data-theme="light"] .demo-card {
+      background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(248, 250, 252, 0.8) 100%
+      );
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      box-shadow: 
+        0 8px 32px rgba(15, 23, 42, 0.1),
+        0 4px 16px rgba(30, 64, 175, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    [data-theme="light"] .demo-card:hover {
+      box-shadow: 
+        0 12px 48px rgba(15, 23, 42, 0.15),
+        0 6px 24px rgba(30, 64, 175, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    [data-theme="light"] .demo-card h3 {
+      color: var(--accent-primary);
+      text-shadow: 0 0 8px rgba(30, 64, 175, 0.3);
+    }
+
+    [data-theme="light"] .demo-controls {
+      background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(248, 250, 252, 0.9) 100%
+      );
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      box-shadow: 
+        0 6px 24px rgba(15, 23, 42, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    [data-theme="light"] .control-group {
+      background: rgba(248, 250, 252, 0.8);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    [data-theme="light"] .toggle-btn {
+      background: linear-gradient(135deg, 
+        rgba(30, 64, 175, 0.9) 0%,
+        rgba(59, 130, 246, 0.8) 100%
+      );
+      box-shadow: 
+        0 4px 16px rgba(30, 64, 175, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    [data-theme="light"] .toggle-btn:hover {
+      background: linear-gradient(135deg, 
+        rgba(30, 64, 175, 1) 0%,
+        rgba(59, 130, 246, 0.9) 100%
+      );
+      box-shadow: 
+        0 6px 20px rgba(30, 64, 175, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    @media (max-width: 768px) {
+      .demo-title {
+        font-size: 2.5rem;
+      }
+      
+      .demo-grid {
+        grid-template-columns: 1fr;
+        padding: 10px;
+      }
+      
+      .control-group {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .control-slider {
+        margin: 10px 0;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body data-theme="dark">
+  <!-- Glassmorphic Particle System - Enhanced visual effects -->
+  <canvas id="glassmorphic-particles"></canvas>
+  
+  <!-- Matrix Particle System - positioned behind everything -->
+  <div id="particles-js" class="matrix-particles"></div>
+  
+  <!-- Light Theme Particle System -->
+  <div id="light-particles-js" class="light-particles"></div>
+
+  <div class="demo-container">
+    <div class="demo-header">
+      <h1 class="demo-title">Glassmorphic Particle Effects</h1>
+      <p class="demo-subtitle">Experience immersive, color-shifting particle animations with ethereal glassmorphism</p>
+    </div>
+
+    <div class="demo-grid">
+      <div class="demo-card">
+        <h3>Dynamic Color Shifting</h3>
+        <p>Particles continuously shift through a spectrum of colors, creating a mesmerizing ambient background that adapts to your theme preferences.</p>
+        <div style="height: 100px; background: linear-gradient(135deg, rgba(124, 115, 255, 0.3), rgba(31, 245, 212, 0.2), rgba(255, 26, 255, 0.3)); border-radius: 10px; backdrop-filter: blur(10px);"></div>
+      </div>
+
+      <div class="demo-card">
+        <h3>Glassmorphic Elements</h3>
+        <p>All UI elements feature advanced glassmorphism with multi-layer backdrop filters, creating depth and ethereal transparency effects.</p>
+        <div style="height: 100px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; backdrop-filter: blur(20px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);"></div>
+      </div>
+
+      <div class="demo-card">
+        <h3>Interactive Connections</h3>
+        <p>Particles intelligently connect when nearby, forming a dynamic network that responds to mouse movement and creates organic patterns.</p>
+        <div style="height: 100px; background: radial-gradient(circle, rgba(124, 115, 255, 0.2) 0%, transparent 70%); border-radius: 10px; position: relative;">
+          <div style="position: absolute; top: 20px; left: 20px; width: 4px; height: 4px; background: rgba(124, 115, 255, 0.8); border-radius: 50%; box-shadow: 0 0 10px rgba(124, 115, 255, 0.5);"></div>
+          <div style="position: absolute; top: 40px; right: 30px; width: 3px; height: 3px; background: rgba(31, 245, 212, 0.8); border-radius: 50%; box-shadow: 0 0 8px rgba(31, 245, 212, 0.5);"></div>
+          <div style="position: absolute; bottom: 30px; left: 50%; width: 5px; height: 5px; background: rgba(255, 26, 255, 0.8); border-radius: 50%; box-shadow: 0 0 12px rgba(255, 26, 255, 0.5);"></div>
+        </div>
+      </div>
+
+      <div class="demo-card">
+        <h3>Theme Adaptation</h3>
+        <p>The particle system seamlessly adapts between light and dark themes, adjusting colors, opacity, and intensity for optimal visual harmony.</p>
+        <div style="height: 100px; background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.1) 75%), linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.1) 75%); background-size: 20px 20px; background-position: 0 0, 10px 10px; border-radius: 10px; backdrop-filter: blur(8px);"></div>
+      </div>
+    </div>
+
+    <div class="demo-controls">
+      <h3 style="text-align: center; margin-bottom: 30px; color: var(--accent-glow); font-family: var(--font-family-heading);">Particle Controls</h3>
+      
+      <div class="control-group">
+        <label class="control-label">Particle Count:</label>
+        <input type="range" class="control-slider" id="particleCount" min="20" max="150" value="60">
+        <span class="control-value" id="particleCountValue">60</span>
+      </div>
+      
+      <div class="control-group">
+        <label class="control-label">Animation Speed:</label>
+        <input type="range" class="control-slider" id="animationSpeed" min="0.1" max="3" value="1" step="0.1">
+        <span class="control-value" id="animationSpeedValue">1.0x</span>
+      </div>
+      
+      <div class="control-group">
+        <label class="control-label">Glow Intensity:</label>
+        <input type="range" class="control-slider" id="glowIntensity" min="5" max="30" value="15">
+        <span class="control-value" id="glowIntensityValue">15px</span>
+      </div>
+      
+      <div class="control-group">
+        <label class="control-label">Connections:</label>
+        <input type="checkbox" id="connectionToggle" checked style="transform: scale(1.5); margin-left: 20px;">
+        <span class="control-value" id="connectionStatus">Enabled</span>
+      </div>
+    </div>
+
+    <div class="theme-toggle-demo">
+      <button class="toggle-btn" id="themeToggleBtn">Switch to Light Theme</button>
+      <p style="margin-top: 20px; color: var(--text-secondary);">Experience how the glassmorphic effects adapt to different themes</p>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script src="glassmorphic-particles.js"></script>
+  <script src="matrix-particles.js"></script>
+  <script src="light-theme-particles.js"></script>
+  
+  <script>
+    // Demo controls functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      // Wait for glassmorphic particles to initialize
+      setTimeout(() => {
+        setupDemoControls();
+      }, 1000);
+    });
+
+    function setupDemoControls() {
+      const particleCountSlider = document.getElementById('particleCount');
+      const animationSpeedSlider = document.getElementById('animationSpeed');
+      const glowIntensitySlider = document.getElementById('glowIntensity');
+      const connectionToggle = document.getElementById('connectionToggle');
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+      // Particle count control
+      particleCountSlider.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        document.getElementById('particleCountValue').textContent = value;
+        if (window.glassmorphicParticles) {
+          window.glassmorphicParticles.setParticleCount(value);
+        }
+      });
+
+      // Animation speed control
+      animationSpeedSlider.addEventListener('input', (e) => {
+        const value = parseFloat(e.target.value);
+        document.getElementById('animationSpeedValue').textContent = value.toFixed(1) + 'x';
+        if (window.glassmorphicParticles) {
+          window.glassmorphicParticles.setSpeed(value);
+        }
+      });
+
+      // Glow intensity control
+      glowIntensitySlider.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        document.getElementById('glowIntensityValue').textContent = value + 'px';
+        if (window.glassmorphicParticles) {
+          window.glassmorphicParticles.setGlowIntensity(value);
+        }
+      });
+
+      // Connection toggle
+      connectionToggle.addEventListener('change', (e) => {
+        const enabled = e.target.checked;
+        document.getElementById('connectionStatus').textContent = enabled ? 'Enabled' : 'Disabled';
+        if (window.glassmorphicParticles) {
+          window.glassmorphicParticles.toggleConnections(enabled);
+        }
+      });
+
+      // Theme toggle
+      themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = document.body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        document.body.setAttribute('data-theme', newTheme);
+        document.documentElement.setAttribute('data-theme', newTheme);
+        
+        themeToggleBtn.textContent = newTheme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme';
+        
+        // Notify particle system of theme change
+        if (window.glassmorphicParticles) {
+          window.glassmorphicParticles.adaptToTheme(newTheme);
+        }
+      });
+    }
+
+    // Initialize theme
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.body.setAttribute('data-theme', savedTheme);
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  </script>
+</body>
+</html>

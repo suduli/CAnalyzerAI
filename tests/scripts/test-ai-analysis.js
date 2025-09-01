@@ -10,7 +10,7 @@ console.log('🚀 Testing AI Analysis with OpenRouter API Key...\n');
 const testConfig = {
     provider: 'openrouter',
     apiKey: '',
-    model: 'google/gemini-2.0-flash-exp:free'
+    model: 'google/gemini-2.5-flash-image-preview:free'
 };
 
 console.log('📋 Test Configuration:');

@@ -18,7 +18,37 @@
   - Matrix particles continue using `particles-js`
 - **Status:** Resolved
 
-### ✅ 4. Particle System Null Errors
+### ✅ 4. Data Discrepancy Issue - CODE TRUNCATION BUG
+- **Root Cause:** Code was being truncated to 16KB before AI analysis, but unity.c is 86KB
+- **Impact:** Only 18.5% of code was analyzed, causing massive underestimation:
+  - LOC: 1756 → 242 (86% discrepancy)
+  - Cyclomatic: 531 → 17 (97% discrepancy)
+  - Cognitive: 415 → 26 (94% discrepancy)
+  - Halstead: 415 → 109 (74% discrepancy)
+- **Fixed:** 
+  - Implemented `prepareCodeForAnalysis()` method
+  - Increased token limit from 16KB to 128KB (8x improvement)
+  - Added intelligent function boundary detection
+  - Added code section prioritization
+  - Complete function preservation
+- **Files Modified:** `app.js` line 705
+- **Status:** ✅ RESOLVED - This was the primary cause of data discrepancy
+
+### ✅ 5. Model Switching Prevention
+- **Fixed:** Removed automatic model switching that was confusing users
+- **Status:** Resolved
+
+### ✅ 6. Fallback Detection Enhancement
+- **Fixed:** Added clear visual indicators when AI analysis fails
+- **Status:** Resolved
+
+### ✅ 7. Data Precision Preservation
+- **Fixed:** Fixed formatting to preserve decimal values
+- **Status:** Resolved
+
+### ✅ 8. Error Transparency
+- **Fixed:** Enhanced error messages with specific categorization
+- **Status:** Resolved
 - **Fixed in light-theme-particles.js:**
   - Added `window.pJSDom` initialization check
   - Added container cleanup before initialization

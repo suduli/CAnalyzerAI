@@ -18,41 +18,6 @@
 	let config = null;
 	let isInitialized = false;
 
-	// Helper: dynamically ensure particles.js is loaded (fallback to alternative CDNs)
-	function ensureParticlesLib(onReady) {
-		if (typeof particlesJS !== 'undefined') { onReady && onReady(); return; }
-
-		if (window.__particlesLibLoadingLight) {
-			const check = () => {
-				if (typeof particlesJS !== 'undefined') onReady && onReady();
-				else setTimeout(check, 100);
-			};
-			check();
-			return;
-		}
-
-		window.__particlesLibLoadingLight = true;
-		const sources = [
-			'https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js',
-			'https://unpkg.com/particles.js@2.0.0/particles.min.js'
-		];
-
-		let idx = 0;
-		const tryNext = () => {
-			if (typeof particlesJS !== 'undefined') { onReady && onReady(); return; }
-			if (idx >= sources.length) { console.warn('particles.js could not be loaded from fallback CDNs (light)'); return; }
-
-			const src = sources[idx++];
-			const s = document.createElement('script');
-			s.src = src;
-			s.async = true;
-			s.onload = () => { console.log('Loaded particles.js from', src); onReady && onReady(); };
-			s.onerror = () => { console.warn('Failed to load', src); tryNext(); };
-			document.head.appendChild(s);
-		};
-		tryNext();
-	}
-
 	async function fetchConfig() {
 		// Attempt each candidate path until one succeeds
 		for (const url of CONFIG_CANDIDATES) {
@@ -98,10 +63,7 @@
 	function initParticles() {
 		if (isInitialized) return;
 		if (typeof particlesJS === 'undefined') {
-			console.warn('Light particles: particles.js library not available, attempting fallback load...');
-			ensureParticlesLib(() => {
-				if (typeof particlesJS !== 'undefined') initParticles();
-			});
+			console.warn('Light particles: particles.js library not available');
 			return;
 		}
 
@@ -181,17 +143,14 @@
 	}
 
 	// Initialize on DOMContentLoaded
-		document.addEventListener('DOMContentLoaded', async () => {
+	document.addEventListener('DOMContentLoaded', async () => {
 		// Preload config (non-blocking)
 		config = await fetchConfig();
 
 		// If themeManager exists, use it; otherwise rely on data-theme attribute
 		if (window.themeManager) {
 			const effective = window.themeManager.getEffectiveTheme();
-				if (effective === 'light') {
-					if (typeof particlesJS === 'undefined') ensureParticlesLib(() => initParticles());
-					else initParticles();
-				}
+			if (effective === 'light') initParticles();
 
 			// Listen for custom themechange events
 			window.addEventListener('themechange', (e) => {
@@ -199,11 +158,8 @@
 			});
 		} else {
 			// No theme manager yet; check document attribute
-				const effective = getEffectiveTheme();
-				if (effective === 'light') {
-					if (typeof particlesJS === 'undefined') ensureParticlesLib(() => initParticles());
-					else initParticles();
-				}
+			const effective = getEffectiveTheme();
+			if (effective === 'light') initParticles();
 
 			// Observe changes to data-theme attribute
 			const obs = new MutationObserver((mutations) => {
@@ -212,12 +168,7 @@
 						// Add small delay to avoid race conditions with matrix particles
 						setTimeout(() => {
 							const newTheme = getEffectiveTheme();
-							if (newTheme === 'light') {
-								if (typeof particlesJS === 'undefined') ensureParticlesLib(() => initParticles());
-								else initParticles();
-							} else {
-								destroyParticles();
-							}
+							if (newTheme === 'light') initParticles(); else destroyParticles();
 						}, 50);
 					}
 				}

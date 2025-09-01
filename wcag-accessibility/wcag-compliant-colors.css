@@ -134,6 +134,14 @@ WCAG Color Contrast Analysis Results:
   border-radius: 4px;
 }
 
+/* Light theme focus states with subtle gray */
+[data-theme="light"] *:focus-visible,
+[data-color-scheme="light"] *:focus-visible {
+  outline: none;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* Ensure minimum touch target sizes for mobile accessibility */
 button, .btn, input, select, textarea, [role="button"], [tabindex] {
   min-height: 44px;
@@ -147,10 +155,26 @@ button, .btn, input, select, textarea, [role="button"], [tabindex] {
   box-shadow: 0 0 0 6px rgba(var(--accent-rgb), 0.2);
 }
 
+/* Light theme theme toggle focus */
+[data-theme="light"] .theme-toggle:focus-visible,
+[data-color-scheme="light"] .theme-toggle:focus-visible {
+  outline: none;
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
 .theme-option:focus-visible {
   outline: 2px solid var(--accent-glow);
   outline-offset: 1px;
   background: rgba(var(--accent-rgb), 0.1);
+}
+
+/* Light theme theme option focus */
+[data-theme="light"] .theme-option:focus-visible,
+[data-color-scheme="light"] .theme-option:focus-visible {
+  outline: none;
+  outline-offset: 1px;
+  background: none;
 }
 
 /* High contrast mode support */

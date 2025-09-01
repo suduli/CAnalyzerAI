@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CAnalyzerAI • AI Console</title>
+  <link rel="stylesheet" href="enhanced-data-display.css" />
+  <style>
+    :root {
+      --bg: #0b0f16;
+      --card: #121826;
+      --text: #e6edf3;
+      --muted: #8b98a5;
+      --primary: #39ff14;
+      --accent: #667eea;
+      --danger: #ff4757;
+      --warn: #ffab00;
+      --border: rgba(255,255,255,0.08);
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background: radial-gradient(1200px 600px at 100% -20%, rgba(102,126,234,.15), transparent),
+                         radial-gradient(1200px 600px at -10% 120%, rgba(57,255,20,.12), transparent), var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    h1 { font-family: Orbitron, system-ui, sans-serif; letter-spacing: .5px; font-weight: 700; margin: 0 0 8px; }
+    .subtitle { color: var(--muted); margin: 0 0 18px; }
+
+    .grid { display: grid; gap: 16px; grid-template-columns: repeat(12, 1fr); }
+    .card { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid var(--border); border-radius: 12px; padding: 16px; }
+    .card h3 { margin: 0 0 12px; font-size: 16px; color: #bcd2f0; }
+
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    label { font-size: 12px; text-transform: uppercase; color: var(--muted); letter-spacing: .4px; }
+    .field { display: grid; gap: 6px; }
+    input[type="text"], input[type="password"], input[type="number"], select, textarea {
+      width: 100%; background: #0f1523; border:1px solid var(--border); color: var(--text);
+      padding: 10px 12px; border-radius: 8px; outline: none; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+    }
+    textarea { min-height: 140px; resize: vertical; }
+
+    .btn { background: linear-gradient(135deg, #667eea, #764ba2); border: none; color: #fff; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .btn:hover { filter: brightness(1.07); }
+    .btn.secondary { background: #1b2436; border:1px solid var(--border); }
+    .btn.danger { background: #ff5566; }
+    .switch { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    .switch input { transform: translateY(1px); }
+
+    .status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 20px; border:1px solid var(--border); }
+    .dot { width: 10px; height: 10px; border-radius: 10px; background: #8892b0; }
+    .ok .dot { background: #39ff14; }
+    .bad .dot { background: #ff4757; }
+    .warn .dot { background: #ffab00; }
+
+    pre { margin:0; white-space: pre-wrap; word-break: break-word; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; background:#0c1220; border:1px solid var(--border); border-radius: 10px; padding: 12px; max-height: 320px; overflow:auto; }
+
+    .metric-grid { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+    .metric { background:#0e1423; border:1px solid var(--border); border-radius: 10px; padding: 12px; }
+    .metric .label { font-size: 12px; color: var(--muted); text-transform: uppercase; }
+    .metric .value { font-size: 22px; font-weight: 700; color: var(--primary); font-family: Orbitron, monospace; }
+
+    .small { font-size: 12px; color: var(--muted); }
+    .two-col { grid-column: span 6; }
+    .full { grid-column: 1 / -1; }
+
+    .error { background: rgba(255, 71, 87, 0.12); border:1px solid rgba(255, 71, 87, 0.4); color:#ffb3bb; padding: 10px; border-radius: 8px; }
+    .warnbox { background: rgba(255, 171, 0, 0.12); border:1px solid rgba(255, 171, 0, 0.4); color:#ffd48a; padding: 10px; border-radius: 8px; }
+    .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; background:#1a2336; border:1px solid var(--border); font-size: 12px; color: #bcd2f0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>AI Console</h1>
+    <p class="subtitle">Securely test AI providers, tune parameters, and preview raw and parsed responses with performance metrics.</p>
+
+    <div class="grid">
+      <!-- API Key & Provider -->
+      <div class="card two-col">
+        <h3>API & Provider</h3>
+        <div class="row">
+          <div class="field" style="flex:1 1 260px; min-width: 240px;">
+            <label>Provider</label>
+            <select id="provider">
+              <option value="openrouter">OpenRouter</option>
+              <option value="openai">OpenAI (browser not recommended)</option>
+              <option value="ollama">Ollama (local)</option>
+            </select>
+          </div>
+          <div class="field" style="flex:2 1 420px; min-width: 320px;">
+            <label>API Key</label>
+            <div class="row" style="gap:8px;">
+              <input id="apiKey" type="password" placeholder="Enter API key (never stored by default)" style="flex:1;" />
+              <button id="toggleKey" class="btn secondary" type="button" title="Show/Hide">👁</button>
+              <button id="clearKey" class="btn danger" type="button" title="Clear from memory and storage">Clear</button>
+            </div>
+            <div class="row" style="margin-top:6px;">
+              <label class="switch"><input id="rememberSession" type="checkbox" /> Remember for this session</label>
+              <label class="switch"><input id="rememberLocal" type="checkbox" /> Remember on this device</label>
+              <span id="keyStatus" class="status"><span class="dot"></span><span>Key not set</span></span>
+            </div>
+            <div class="small">Keys are kept in-memory unless you opt into storage. Avoid storing sensitive keys in the browser.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Request params -->
+      <div class="card two-col">
+        <h3>Request Parameters</h3>
+        <div class="row">
+          <div class="field" style="flex:2 1 260px; min-width: 220px;">
+            <label>Model</label>
+            <input id="model" type="text" placeholder="e.g. google/gemma-2-9b-it:free (OpenRouter), gpt-4o-mini (OpenAI), llama3.1 (Ollama)" />
+          </div>
+          <div class="field" style="width:120px;">
+            <label>Temperature</label>
+            <input id="temperature" type="number" step="0.1" min="0" max="2" value="0.1" />
+          </div>
+          <div class="field" style="width:140px;">
+            <label>Max Tokens</label>
+            <input id="maxTokens" type="number" min="1" max="4096" value="1000" />
+          </div>
+        </div>
+        <div class="row" style="margin-top:6px; gap:16px; align-items:center;">
+          <label class="switch"><input id="jsonMode" type="checkbox" checked /> Enforce JSON mode</label>
+          <label class="switch"><input id="retryOnFail" type="checkbox" checked /> Auto‑retry on parse failure</label>
+          <span class="small">Tip: Some free/instruction‑tuned models may ignore JSON instructions. Try models with native JSON mode (e.g., openai/gpt‑4o‑mini via OpenRouter).</span>
+        </div>
+        <div class="field" style="margin-top:8px;">
+          <label>Input Text</label>
+          <textarea id="userInput" placeholder="Enter code or instructions. For CAnalyzerAI, the model must return JSON with keys: loc, complexity1, complexity2, complexity3, notes[]"></textarea>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <button id="sendBtn" class="btn" type="button">Send Request</button>
+          <button id="clearBtn" class="btn secondary" type="button">Clear</button>
+          <span id="reqStatus" class="status warn"><span class="dot"></span><span>Idle</span></span>
+        </div>
+      </div>
+
+      <!-- Raw response -->
+      <div class="card full">
+        <h3>Raw Response (live)</h3>
+        <div id="raw" class="code" aria-live="polite"></div>
+        <div class="row" style="margin-top:8px;">
+          <button id="copyRaw" class="btn secondary" type="button">Copy</button>
+          <button id="downloadRaw" class="btn secondary" type="button">Download JSON</button>
+        </div>
+      </div>
+
+      <!-- Parsed visualization -->
+      <div class="card full">
+        <h3>Parsed Result (CAnalyzerAI schema)</h3>
+        <div class="metric-grid">
+          <div class="metric"><div class="label">Lines of Code</div><div id="loc" class="value">--</div></div>
+          <div class="metric"><div class="label">Complexity 1</div><div id="c1" class="value">--</div></div>
+          <div class="metric"><div class="label">Complexity 2</div><div id="c2" class="value">--</div></div>
+          <div class="metric"><div class="label">Complexity 3</div><div id="c3" class="value">--</div></div>
+        </div>
+        <div style="margin-top:10px;" id="notes" class="small"></div>
+        <div id="parseError" class="error" style="display:none; margin-top:10px;"></div>
+      </div>
+
+      <!-- Metrics & errors -->
+      <div class="card two-col">
+        <h3>Performance Metrics</h3>
+        <div class="row" style="flex-wrap:wrap; gap:10px;">
+          <span class="pill">Start: <span id="mStart">--</span></span>
+          <span class="pill">End: <span id="mEnd">--</span></span>
+          <span class="pill">Latency: <span id="mLatency">--</span></span>
+          <span class="pill">HTTP: <span id="mHttp">--</span></span>
+          <span class="pill">Tokens In: <span id="mTin">--</span></span>
+          <span class="pill">Tokens Out: <span id="mTout">--</span></span>
+          <span class="pill">Size: <span id="mSize">--</span></span>
+        </div>
+      </div>
+
+      <div class="card two-col">
+        <h3>Error Handling</h3>
+        <div id="errBox" class="error" style="display:none;"></div>
+        <div class="warnbox" style="margin-top:8px;">
+          For OpenAI in-browser requests are insecure; prefer a server proxy. OpenRouter supports browser with Referer/X-Title headers. Ollama requires a local daemon with CORS enabled.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // In-memory key store (default). Can optionally persist.
+    let memoryKey = '';
+
+    const el = id => document.getElementById(id);
+    const setStatus = (node, cls, text) => { node.classList.remove('ok','bad','warn'); node.classList.add(cls); node.querySelector('span:last-child').textContent = text; };
+
+    // Simple token estimator (~4 chars per token)
+    function estimateTokens(str){ return Math.ceil((str || '').length / 4); }
+    function trimHeadTail(str, keepHeadChars, keepTailChars){
+      if (!str) return '';
+      if (str.length <= (keepHeadChars + keepTailChars)) return str;
+      const head = str.slice(0, keepHeadChars);
+      const tail = str.slice(-keepTailChars);
+      return head + "\n\n/* ... truncated ... */\n\n" + tail;
+    }
+
+    // Restore from storage toggles
+    (function initStorage() {
+      try {
+        const sessionSaved = sessionStorage.getItem('aiKey');
+        const localSaved = localStorage.getItem('aiKey');
+        if (sessionSaved) { memoryKey = sessionSaved; el('apiKey').value = sessionSaved; el('rememberSession').checked = true; }
+        if (localSaved) { memoryKey = localSaved; el('apiKey').value = localSaved; el('rememberLocal').checked = true; }
+        updateKeyStatus();
+      } catch {}
+    })();
+
+    el('toggleKey').addEventListener('click', () => {
+      const f = el('apiKey'); f.type = f.type === 'password' ? 'text' : 'password';
+    });
+    el('clearKey').addEventListener('click', () => {
+      memoryKey = ''; el('apiKey').value = '';
+      try { sessionStorage.removeItem('aiKey'); localStorage.removeItem('aiKey'); } catch {}
+      updateKeyStatus();
+    });
+    el('apiKey').addEventListener('input', (e) => { memoryKey = e.target.value.trim(); updateKeyStatus(); });
+    el('rememberSession').addEventListener('change', persistChoice);
+    el('rememberLocal').addEventListener('change', persistChoice);
+
+    function persistChoice() {
+      try {
+        if (this.id === 'rememberLocal' && this.checked) { el('rememberSession').checked = false; sessionStorage.removeItem('aiKey'); }
+        if (this.id === 'rememberSession' && this.checked) { el('rememberLocal').checked = false; localStorage.removeItem('aiKey'); }
+        if (el('rememberLocal').checked) { localStorage.setItem('aiKey', memoryKey); }
+        else if (el('rememberSession').checked) { sessionStorage.setItem('aiKey', memoryKey); }
+        else { sessionStorage.removeItem('aiKey'); localStorage.removeItem('aiKey'); }
+      } catch {}
+      updateKeyStatus();
+    }
+
+    function updateKeyStatus() {
+      const status = el('keyStatus');
+      if (memoryKey) setStatus(status, 'ok', 'Key in memory');
+      else setStatus(status, '', 'Key not set');
+    }
+
+    el('clearBtn').addEventListener('click', () => {
+      el('userInput').value = '';
+      el('raw').textContent = '';
+      setParsed({});
+      setMetrics({});
+      setStatus(el('reqStatus'), 'warn', 'Idle');
+      hideError(); hideParseError();
+    });
+
+    el('sendBtn').addEventListener('click', sendRequest);
+
+    function providerConfig() {
+      const provider = el('provider').value;
+      const model = el('model').value.trim();
+      const temperature = parseFloat(el('temperature').value) || 0;
+      const max_tokens = parseInt(el('maxTokens').value) || 256;
+      // Prevent massive prompts from blowing token budgets; keep head+tail if very long
+      const full = el('userInput').value || '';
+      const limit = 16000; // generous but bounded
+      let content = full;
+      if (full.length > limit) {
+        const head = full.slice(0, Math.floor(limit * 0.7));
+        const tail = full.slice(-Math.floor(limit * 0.3));
+        content = head + "\n\n/* ... truncated ... */\n\n" + tail;
+      }
+      const jsonMode = !!el('jsonMode').checked;
+      const retryOnFail = !!el('retryOnFail').checked;
+
+      // Reserve output budget by trimming input when near context size.
+      // Default context limits (approx): gemma-2-9b ~ 8192, GPT-4o-mini (via OpenRouter) larger.
+      const defaultCtx = 8192;
+      const ctxByModel = {
+        'google/gemma-2-9b-it:free': 8192
+      };
+      const ctxLimit = ctxByModel[model] || defaultCtx;
+      const reserveTokens = 800; // keep budget for completion
+      // Rough overhead for instructions/system text
+      const overhead = estimateTokens(content) + 300; // fudge for other fields; re-trim below
+      if (overhead + reserveTokens > ctxLimit) {
+        const budgetTokens = Math.max(1024, ctxLimit - reserveTokens - 300);
+        const budgetChars = Math.max(2000, budgetTokens * 4);
+        content = trimHeadTail(content, Math.floor(budgetChars * 0.7), Math.floor(budgetChars * 0.3));
+      }
+
+      return { provider, model, temperature, max_tokens, content, jsonMode, retryOnFail };
+    }
+
+    function buildRequest(cfg) {
+      if (!cfg.model) throw new Error('Model is required');
+      if (!memoryKey && cfg.provider !== 'ollama') throw new Error('API key is required for this provider');
+
+      const guardrail = { role: 'system', content: 'You are a strict JSON generator. Always return ONLY a single JSON object without any extra text. Schema: {"loc": number, "complexity1": number, "complexity2": number, "complexity3": number, "notes": [string]}. Integers only. No prose before/after.' };
+      const definitions = (
+        'Metric definitions and constraints:\n' +
+        '- loc: count executable statements/lines in C (exclude comments, blank lines, preprocessor includes).\n' +
+        '- complexity1: cyclomatic (base 1 + decision points: if/for/while/do/switch cases + logical &&, ||).\n' +
+        '- complexity2: cognitive complexity (increase for nesting and compound conditions).\n' +
+        '- complexity3: Halstead magnitude; must be > 3 for non-trivial functions.\n' +
+        'Return ONLY JSON conforming to the schema.'
+      );
+      const commonPrompt = `Analyze the provided C code and return the JSON schema strictly.\n\n${definitions}\n\nResponse (JSON only):`;
+
+      if (cfg.provider === 'openrouter') {
+        return {
+          url: 'https://openrouter.ai/api/v1/chat/completions',
+          init: {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${memoryKey}`,
+              'HTTP-Referer': window.location.origin,
+              'X-Title': 'CAnalyzerAI AI Console'
+            },
+            body: JSON.stringify({
+              model: cfg.model,
+              messages: [guardrail, { role: 'user', content: `${commonPrompt}\n\n${cfg.content}` }],
+              temperature: cfg.temperature,
+              top_p: 1,
+              max_tokens: Math.min(cfg.max_tokens, 2048),
+              ...(cfg.jsonMode ? { response_format: { type: 'json_object' } } : {})
+            })
+          },
+          parse: (json) => ({ text: json.choices?.[0]?.message?.content || '', usage: json.usage || null, http: 200 })
+        };
+      }
+
+      if (cfg.provider === 'openai') {
+        return {
+          url: 'https://api.openai.com/v1/chat/completions',
+          init: {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${memoryKey}`
+            },
+            body: JSON.stringify({
+              model: cfg.model,
+              messages: [guardrail, { role:'user', content: `${commonPrompt}\n\n${cfg.content}` }],
+              temperature: cfg.temperature,
+              top_p: 1,
+              max_tokens: Math.min(cfg.max_tokens, 2048),
+              ...(cfg.jsonMode ? { response_format: { type: 'json_object' } } : {})
+            })
+          },
+          parse: (json, status) => ({ text: json.choices?.[0]?.message?.content || '', usage: json.usage || null, http: status })
+        };
+      }
+
+      // Ollama local (requires daemon, may need CORS config)
+      return {
+        url: 'http://localhost:11434/api/chat',
+        init: {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: cfg.model,
+            messages: [guardrail, { role:'user', content: `${commonPrompt}\n\n${cfg.content}` }],
+            stream: false,
+            options: { temperature: cfg.temperature, top_p: 1 },
+            ...(cfg.jsonMode ? { format: 'json' } : {})
+          })
+        },
+        parse: (json, status) => ({ text: json.message?.content || json.response || '', usage: null, http: status })
+      };
+    }
+
+    async function doRequest(req) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      const started = performance.now();
+      el('mStart').textContent = new Date().toLocaleTimeString();
+
+      const res = await fetch(req.url, { ...req.init, signal: controller.signal });
+      const reader = res.body?.getReader?.();
+      let raw = '';
+      if (reader) {
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          raw += decoder.decode(value, { stream: true });
+          el('raw').textContent = raw;
+        }
+      }
+      const text = raw || await res.text();
+      el('raw').textContent = text;
+      const size = text.length;
+
+      let json = null;
+      try { json = JSON.parse(text); } catch {}
+      if (!json) {
+        const m = text.match(/\{[\s\S]*\}/);
+        if (m) { try { json = JSON.parse(m[0]); } catch {} }
+      }
+
+      const status = res.status;
+      const ended = performance.now();
+      clearTimeout(timeout);
+      el('mEnd').textContent = new Date().toLocaleTimeString();
+      el('mLatency').textContent = Math.round(ended - started) + ' ms';
+      el('mHttp').textContent = status;
+      el('mSize').textContent = size + ' chars';
+
+      if (!res.ok) {
+        let errMsg = 'HTTP ' + status;
+        try { const j = JSON.parse(text); errMsg += ': ' + (j.error?.message || j.message || text.slice(0,200)); } catch { errMsg += ': ' + text.slice(0,200); }
+        throw new Error(errMsg);
+      }
+
+      const { text: aiText, usage } = req.parse(json || {}, status);
+      if (usage) {
+        el('mTin').textContent = usage.prompt_tokens ?? usage.total_tokens ?? '--';
+        el('mTout').textContent = usage.completion_tokens ?? '--';
+      } else {
+        el('mTin').textContent = '--';
+        el('mTout').textContent = '--';
+      }
+      const content = (aiText && aiText.trim().length) ? aiText : text;
+      return { aiText: content, status };
+    }
+
+    async function sendRequest() {
+      hideError(); hideParseError(); setParsed({}); setMetrics({}); el('raw').textContent = '';
+      const cfg = providerConfig();
+      const statusNode = el('reqStatus');
+      try {
+        setStatus(statusNode, 'warn', 'Sending...');
+        const req = buildRequest(cfg);
+        const first = await doRequest(req);
+
+        let parsed = parseCAnalyzerJSON(first.aiText);
+        if (!parsed.ok && cfg.retryOnFail) {
+          // Single retry with a stricter, minimal prompt in JSON mode and low temperature
+          setStatus(statusNode, 'warn', 'Retrying with strict JSON prompt...');
+          const strictPrompt = `Return ONLY this JSON with numbers (no markdown or text):\n{\n  \"loc\": <number>,\n  \"complexity1\": <number>,\n  \"complexity2\": <number>,\n  \"complexity3\": <number>,\n  \"notes\": [\"brief note\"]\n}`;
+          const retryReq = buildRequest({ ...cfg, temperature: 0, max_tokens: Math.min(cfg.max_tokens, 512) });
+          const body = JSON.parse(retryReq.init.body);
+          body.messages = [
+            { role:'system', content: 'Return ONLY a single JSON object. No prose. Use the exact schema.' },
+            { role:'user', content: `${strictPrompt}\n\nInput:\n${cfg.content.slice(0, 8000)}` }
+          ];
+          if (cfg.jsonMode) body.response_format = { type: 'json_object' };
+          retryReq.init.body = JSON.stringify(body);
+          const second = await doRequest(retryReq);
+          parsed = parseCAnalyzerJSON(second.aiText);
+        }
+
+        if (!parsed.ok) showParseError(parsed.error + ' — Try enabling JSON mode or switch to a model with native JSON support.');
+        setParsed(parsed.data || {});
+        setStatus(statusNode, parsed.ok ? 'ok' : 'warn', parsed.ok ? 'Success' : 'Partial');
+      } catch (e) {
+        setStatus(statusNode, 'bad', 'Failed');
+        showError(e.message || String(e));
+      }
+    }
+
+    function parseCAnalyzerJSON(text) {
+      try {
+        let jsonStr = null;
+        const strict = text.trim();
+        if (strict.startsWith('{') && strict.endsWith('}')) jsonStr = strict;
+        if (!jsonStr) {
+          const m = text.match(/\{\s*\"?loc\"?\s*:[\s\S]*?\}/m) || text.match(/\{[\s\S]*\}/m);
+          if (m) jsonStr = m[0];
+        }
+        if (!jsonStr) throw new Error('No JSON object found in response.');
+        const obj = JSON.parse(jsonStr);
+        const data = {
+          loc: numberOrNull(obj.loc),
+          c1: numberOrNull(obj.complexity1 ?? obj.c1),
+          c2: numberOrNull(obj.complexity2 ?? obj.c2),
+          c3: numberOrNull(obj.complexity3 ?? obj.c3),
+          notes: Array.isArray(obj.notes) ? obj.notes : (obj.notes ? [String(obj.notes)] : [])
+        };
+        if ([data.loc, data.c1, data.c2, data.c3].some(v => v == null)) {
+          throw new Error('Missing one or more required numeric fields (loc, complexity1, complexity2, complexity3).');
+        }
+        return { ok: true, data };
+      } catch (err) {
+        return { ok: false, error: err.message };
+      }
+    }
+
+    function numberOrNull(v){
+      if (v == null) return null; const n = typeof v === 'string' ? parseFloat(v) : v; return Number.isFinite(n) ? n : null;
+    }
+
+    function setParsed(d){
+      el('loc').textContent = d.loc ?? '--';
+      el('c1').textContent = d.c1 ?? '--';
+      el('c2').textContent = d.c2 ?? '--';
+      el('c3').textContent = d.c3 ?? '--';
+      el('notes').innerHTML = (d.notes && d.notes.length) ? ('Notes: ' + d.notes.map(x=>`<span class="pill">${escapeHtml(x)}</span>`).join(' ')) : '';
+    }
+
+    function setMetrics(m){
+      el('mStart').textContent = '--'; el('mEnd').textContent = '--'; el('mLatency').textContent = '--'; el('mHttp').textContent = '--'; el('mTin').textContent='--'; el('mTout').textContent='--'; el('mSize').textContent='--';
+    }
+
+    function showError(msg){ const box = el('errBox'); box.style.display='block'; box.textContent = msg; }
+    function hideError(){ const box = el('errBox'); box.style.display='none'; box.textContent=''; }
+    function showParseError(msg){ const box = el('parseError'); box.style.display='block'; box.textContent = 'Parse error: ' + msg; }
+    function hideParseError(){ const box = el('parseError'); box.style.display='none'; box.textContent=''; }
+
+    el('copyRaw').addEventListener('click', async ()=>{
+      const t = el('raw').textContent; if (!t) return; try { await navigator.clipboard.writeText(t); el('copyRaw').textContent='Copied'; setTimeout(()=> el('copyRaw').textContent='Copy', 1200); } catch {}
+    });
+    el('downloadRaw').addEventListener('click', ()=>{
+      const t = el('raw').textContent || '{}'; const blob = new Blob([t], { type:'application/json' }); const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ai-response.json'; a.click(); URL.revokeObjectURL(a.href);
+    });
+
+    // Fill helpful defaults
+    el('provider').value='openrouter';
+    el('model').value='google/gemma-2-9b-it:free';
+    el('userInput').value = `#include <stdio.h>\nint main(){ int s=0; for(int i=0;i<10;i++){ s+=i; } printf("%d", s); return 0; }`;
+
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[m]); }
+  </script>
+</body>
+</html>
