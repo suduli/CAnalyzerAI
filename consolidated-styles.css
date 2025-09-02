@@ -1,0 +1,371 @@
+/* 
+ * consolidated-styles.css
+ * Consolidated small CSS files to reduce HTTP requests
+ * Contains: additional-theme-styles.css, final-override.css, transparent-status.css, 
+ * status-style-overrides.css, and z-index-fixes.css
+ */
+
+/* === THEME STYLES (from additional-theme-styles.css) === */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* System preference indicator */
+.system-preference-indicator {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), 0.6);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+[data-theme-preference="auto"] .system-preference-indicator {
+  opacity: 1;
+}
+
+/* Theme transition state */
+html.theme-transitioning * {
+  transition: background-color 0.5s ease, 
+              color 0.5s ease, 
+              border-color 0.5s ease,
+              box-shadow 0.5s ease !important;
+}
+
+/* Enhanced micro-interactions for theme toggle */
+.theme-toggle-container:hover .theme-toggle {
+  transform: scale(1.02);
+}
+
+.theme-option:hover {
+  transform: translateX(4px);
+  background: rgba(var(--accent-rgb), 0.1);
+}
+
+.theme-option.active {
+  background: rgba(var(--accent-rgb), 0.15);
+  border-left: 3px solid rgba(var(--accent-rgb), 1);
+}
+
+/* Performance optimizations */
+.theme-options {
+  will-change: opacity, transform;
+}
+
+.theme-option {
+  will-change: transform, background-color;
+}
+
+/* === TRANSPARENT STATUS STYLES === */
+
+.transparent-status {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.transparent-status-dot {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 8px currentColor !important;
+}
+
+/* === FINAL OVERRIDE STYLES === */
+
+#apiKeyStatus {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+}
+
+#apiKeyStatus .status-dot {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 8px currentColor !important;
+}
+
+/* === STATUS STYLE OVERRIDES === */
+
+/* Direct ID-based targeting for maximum specificity */
+#apiKeyStatus,
+#apiKeyStatus.status-indicator,
+div#apiKeyStatus.status-indicator,
+.header-right .api-key-status #apiKeyStatus.status-indicator,
+html body .header-right .api-key-status #apiKeyStatus.status-indicator {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  box-shadow: none !important;
+}
+
+/* Status dot within the specific element */
+#apiKeyStatus .status-dot,
+#apiKeyStatus.status-indicator .status-dot,
+div#apiKeyStatus.status-indicator .status-dot,
+.header-right .api-key-status #apiKeyStatus.status-indicator .status-dot,
+html body .header-right .api-key-status #apiKeyStatus.status-indicator .status-dot {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 8px currentColor !important;
+}
+
+/* Also cover any other potential status indicators */
+.status-indicator,
+.status-indicator.not-set,
+.status-indicator.valid,
+.status-indicator.invalid,
+.api-key-status .status-indicator,
+div[class*="status-indicator"],
+div.status-indicator,
+.header-right .api-key-status .status-indicator {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  box-shadow: none !important;
+}
+
+/* Override hover states with extreme specificity */
+.status-indicator:hover,
+div.status-indicator:hover,
+#apiKeyStatus:hover,
+#apiKeyStatus.status-indicator:hover,
+div#apiKeyStatus.status-indicator:hover,
+.api-key-status .status-indicator:hover,
+.header-right .api-key-status #apiKeyStatus.status-indicator:hover,
+html body .header-right .api-key-status #apiKeyStatus.status-indicator:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: 0 0 10px rgba(108, 99, 255, 0.1) !important;
+  border-color: transparent !important;
+}
+
+/* Override status dot styling */
+.status-indicator .status-dot,
+div.status-indicator .status-dot,
+.api-key-status .status-indicator .status-dot {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  background: var(--text-muted) !important;
+  box-shadow: 0 0 8px var(--text-muted) !important;
+}
+
+/* Status-specific dot colors */
+.status-indicator.valid .status-dot,
+.status-indicator .status-dot.valid,
+#apiKeyStatus.valid .status-dot {
+  background: var(--accent-cyan) !important;
+  box-shadow: 0 0 10px var(--accent-cyan) !important;
+}
+
+.status-indicator.invalid .status-dot,
+.status-indicator .status-dot.invalid,
+#apiKeyStatus.invalid .status-dot {
+  background: var(--accent-magenta) !important;
+  box-shadow: 0 0 10px var(--accent-magenta) !important;
+}
+
+/* Light theme specific overrides */
+[data-theme="light"] #apiKeyStatus,
+[data-color-scheme="light"] #apiKeyStatus,
+[data-theme="light"] .status-indicator,
+[data-color-scheme="light"] .status-indicator {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* === Z-INDEX FIXES === */
+
+/* Background layers - keep negative values */
+body::before,
+body::after {
+  z-index: -1 !important;
+}
+
+.header::before {
+  z-index: -1 !important;
+}
+
+/* Particle systems - keep at 0-1 range */
+.matrix-particles,
+.light-particles,
+#particles-js,
+#light-particles-js {
+  z-index: 0 !important;
+}
+
+#glassmorphic-particles {
+  z-index: 1 !important;
+}
+
+/* Main application content */
+.app-container {
+  z-index: 10 !important;
+}
+
+/* Header - reduce from 1000 to avoid conflicts */
+.header {
+  z-index: 100 !important;
+}
+
+/* Chat system - proper hierarchy */
+.chat-toggle-btn {
+  z-index: 900 !important;
+}
+
+.chat-container {
+  z-index: 950 !important;
+}
+
+.chat-container.dragging {
+  z-index: 1150 !important;
+}
+
+/* Modal and loading overlays - clear hierarchy */
+.loading-overlay {
+  z-index: 1000 !important;
+}
+
+.modal {
+  z-index: 1100 !important;
+}
+
+/* Dropdown menus - above modals but not excessive */
+.theme-options {
+  z-index: 1200 !important;
+}
+
+/* Fix chat toggle button visibility when chat is open */
+.chat-container:not(.hidden) ~ .chat-toggle-btn {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(0.8) !important;
+}
+
+/* Ensure proper modal backdrop positioning */
+.modal-backdrop {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -1 !important; /* Behind modal content but above everything else */
+}
+
+/* Prevent theme options from appearing over critical modals */
+.modal:not(.hidden) ~ * .theme-options,
+.loading-overlay:not(.hidden) ~ * .theme-options {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Prevent chat from interfering with loading states */
+.loading-overlay ~ .chat-container {
+  pointer-events: none !important;
+  opacity: 0.5 !important;
+}
+
+/* Ensure proper stacking of multiple overlays */
+.modal + .loading-overlay {
+  z-index: 1050 !important; /* Between modal and dragging chat */
+}
+
+/* Reduce header z-index when critical overlays are present */
+.modal:not(.hidden) ~ * .header,
+.loading-overlay:not(.hidden) ~ * .header {
+  z-index: 50 !important;
+}
+
+/* Ensure focus remains visible in the correct layer */
+.modal:focus-within,
+.loading-overlay:focus-within {
+  z-index: 1101 !important;
+}
+
+.chat-container:focus-within {
+  z-index: 951 !important;
+}
+
+/* Ensure keyboard navigation works correctly across layers */
+.modal:not(.hidden) ~ * .chat-container {
+  pointer-events: none !important;
+}
+
+.loading-overlay:not(.hidden) ~ * .chat-container,
+.loading-overlay:not(.hidden) ~ * .header {
+  pointer-events: none !important;
+}
+
+/* Responsive considerations */
+@media (max-width: 768px) {
+  .chat-container {
+    width: calc(100vw - 40px) !important;
+    height: 50vh !important;
+    bottom: 10px !important;
+    right: 20px !important;
+    left: 20px !important;
+  }
+  
+  .chat-toggle-btn {
+    bottom: 10px !important;
+    right: 20px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-container {
+    inset: 20px 10px 10px 10px !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: 80vh !important;
+  }
+  
+  .chat-toggle-btn {
+    bottom: 5px !important;
+    right: 10px !important;
+    width: 50px !important;
+    height: 50px !important;
+  }
+}
+
+/* Performance optimizations */
+.chat-container.dragging {
+  z-index: 1150 !important;
+  transform: translateZ(0) scale(1.02) !important;
+  will-change: transform !important;
+}
+
+.header,
+.chat-container,
+.chat-toggle-btn,
+.modal,
+.loading-overlay {
+  will-change: transform, opacity !important;
+  backface-visibility: hidden !important;
+}
