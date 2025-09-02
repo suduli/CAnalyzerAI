@@ -166,8 +166,9 @@
   color: #8892b0;
 }
 
-/* Tooltip enhancements for mobile */
+/* Tooltip enhancements for mobile - DISABLED to prevent conflicts with custom tooltip system */
 @media (max-width: 768px) {
+  /* Custom tooltip system handles all tooltips now
   .metric-value[title]:active::before,
   .summary-value[title]:active::before,
   .analysis-time[title]:active::before {
@@ -187,6 +188,7 @@
     max-width: 200px;
     word-wrap: break-word;
   }
+  */
 }
 
 /* Data integrity indicator */

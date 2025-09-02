@@ -1,0 +1,609 @@
+/* Enhanced Transparency Effects for Background Animation Visibility
+ * Makes glassmorphic elements more transparent to showcase background animations
+ * Maintains readability while creating stunning see-through effects
+ */
+
+/* ===== ENHANCED TRANSPARENT RESULTS SECTION ===== */
+[data-theme="light"] .results-section,
+[data-color-scheme="light"] .results-section {
+  /* Significantly reduced opacity for maximum background visibility */
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.40) 0%, 
+    rgba(248, 250, 252, 0.45) 50%,
+    rgba(241, 245, 249, 0.35) 100%
+  ) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 
+    0 8px 32px rgba(15, 23, 42, 0.06),
+    0 4px 16px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.02) !important;
+  backdrop-filter: blur(20px) saturate(200%) brightness(115%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(200%) brightness(115%) !important;
+}
+
+/* ===== ULTRA-TRANSPARENT ANALYSIS PANELS ===== */
+[data-theme="light"] .analysis-panel,
+[data-theme="light"] .comparison-panel,
+[data-color-scheme="light"] .analysis-panel,
+[data-color-scheme="light"] .comparison-panel {
+  /* Maximum transparency while maintaining text readability */
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.25) 0%, 
+    rgba(248, 250, 252, 0.30) 30%,
+    rgba(241, 245, 249, 0.35) 70%,
+    rgba(255, 255, 255, 0.25) 100%
+  ) !important;
+  border: 1px solid rgba(15, 23, 42, 0.06) !important;
+  box-shadow: 
+    0 8px 32px rgba(15, 23, 42, 0.04),
+    0 4px 16px rgba(15, 23, 42, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.015) !important;
+  backdrop-filter: blur(24px) saturate(180%) brightness(120%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(120%) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Enhanced glassmorphic overlay for animation visibility */
+[data-theme="light"] .analysis-panel::after,
+[data-theme="light"] .comparison-panel::after,
+[data-color-scheme="light"] .analysis-panel::after,
+[data-color-scheme="light"] .comparison-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 64, 175, 0.015) 0%,
+    rgba(31, 245, 212, 0.01) 25%,
+    transparent 50%,
+    rgba(107, 33, 168, 0.01) 75%,
+    rgba(30, 64, 175, 0.015) 100%
+  ) !important;
+  pointer-events: none;
+  opacity: 0.8;
+  border-radius: inherit;
+}
+
+/* Hover effects with enhanced transparency */
+[data-theme="light"] .analysis-panel:hover,
+[data-theme="light"] .comparison-panel:hover,
+[data-color-scheme="light"] .analysis-panel:hover,
+[data-color-scheme="light"] .comparison-panel:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.35) 0%, 
+    rgba(248, 250, 252, 0.40) 30%,
+    rgba(237, 242, 248, 0.30) 50%,
+    rgba(248, 250, 252, 0.40) 70%,
+    rgba(255, 255, 255, 0.35) 100%
+  ) !important;
+  border-color: rgba(30, 64, 175, 0.15) !important;
+  box-shadow: 
+    0 12px 40px rgba(15, 23, 42, 0.06),
+    0 8px 20px rgba(15, 23, 42, 0.04),
+    0 0 30px rgba(30, 64, 175, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.02) !important;
+  backdrop-filter: blur(28px) saturate(200%) brightness(125%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(125%) !important;
+  transform: translateY(-2px) scale(1.01);
+}
+
+/* ===== TRANSPARENT PANEL HEADERS ===== */
+[data-theme="light"] .panel-header,
+[data-color-scheme="light"] .panel-header {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.20) 0%, 
+    rgba(248, 250, 252, 0.25) 50%,
+    rgba(241, 245, 249, 0.20) 100%
+  ) !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.04) !important;
+  backdrop-filter: blur(16px) saturate(150%) brightness(115%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(150%) brightness(115%) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===== TRANSPARENT METRIC CARDS ===== */
+[data-theme="light"] .metric-card,
+[data-color-scheme="light"] .metric-card {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.30) 0%, 
+    rgba(248, 250, 252, 0.35) 50%,
+    rgba(255, 255, 255, 0.30) 100%
+  ) !important;
+  border: 1px solid rgba(15, 23, 42, 0.04) !important;
+  box-shadow: 
+    0 4px 16px rgba(15, 23, 42, 0.03),
+    0 2px 8px rgba(15, 23, 42, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(18px) saturate(160%) brightness(110%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(160%) brightness(110%) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="light"] .metric-card::before,
+[data-color-scheme="light"] .metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 64, 175, 0.02) 0%,
+    transparent 30%,
+    transparent 70%,
+    rgba(31, 245, 212, 0.02) 100%
+  ) !important;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+[data-theme="light"] .metric-card:hover,
+[data-color-scheme="light"] .metric-card:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.40) 0%, 
+    rgba(248, 250, 252, 0.45) 50%,
+    rgba(255, 255, 255, 0.40) 100%
+  ) !important;
+  border-color: rgba(30, 64, 175, 0.08) !important;
+  box-shadow: 
+    0 8px 24px rgba(15, 23, 42, 0.04),
+    0 4px 12px rgba(15, 23, 42, 0.03),
+    0 0 20px rgba(30, 64, 175, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(22px) saturate(180%) brightness(115%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(180%) brightness(115%) !important;
+}
+
+/* ===== TRANSPARENT COMPLEXITY CARDS ===== */
+[data-theme="light"] .complexity-card,
+[data-color-scheme="light"] .complexity-card {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.25) 0%, 
+    rgba(248, 250, 252, 0.30) 50%,
+    rgba(255, 255, 255, 0.25) 100%
+  ) !important;
+  border: 1px solid rgba(15, 23, 42, 0.04) !important;
+  box-shadow: 
+    0 4px 16px rgba(15, 23, 42, 0.025),
+    0 2px 8px rgba(15, 23, 42, 0.015),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(20px) saturate(150%) brightness(112%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) brightness(112%) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="light"] .complexity-card::before,
+[data-color-scheme="light"] .complexity-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    rgba(30, 64, 175, 0.03) 0%,
+    transparent 50%,
+    rgba(107, 33, 168, 0.025) 100%
+  ) !important;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+[data-theme="light"] .complexity-card:hover,
+[data-color-scheme="light"] .complexity-card:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.35) 0%, 
+    rgba(248, 250, 252, 0.40) 50%,
+    rgba(255, 255, 255, 0.35) 100%
+  ) !important;
+  border-color: rgba(30, 64, 175, 0.08) !important;
+  box-shadow: 
+    0 8px 24px rgba(15, 23, 42, 0.04),
+    0 4px 12px rgba(15, 23, 42, 0.03),
+    0 0 20px rgba(30, 64, 175, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(24px) saturate(170%) brightness(118%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(170%) brightness(118%) !important;
+}
+
+/* ===== TRANSPARENT API KEY INFO ===== */
+[data-theme="light"] .api-key-info,
+[data-color-scheme="light"] .api-key-info {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.30) 0%, 
+    rgba(248, 250, 252, 0.35) 50%,
+    rgba(241, 245, 249, 0.30) 100%
+  ) !important;
+  border: 1px solid rgba(15, 23, 42, 0.05) !important;
+  backdrop-filter: blur(18px) saturate(140%) brightness(112%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(140%) brightness(112%) !important;
+  box-shadow: 
+    0 4px 16px rgba(15, 23, 42, 0.03),
+    0 2px 8px rgba(15, 23, 42, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.015) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="light"] .api-key-info::before,
+[data-color-scheme="light"] .api-key-info::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 64, 175, 0.015) 0%,
+    transparent 50%,
+    rgba(31, 245, 212, 0.01) 100%
+  ) !important;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ===== ENHANCED TRANSPARENT STATUS ELEMENTS ===== */
+[data-theme="light"] .api-info-status,
+[data-color-scheme="light"] .api-info-status {
+  background: linear-gradient(135deg, 
+    rgba(30, 64, 175, 0.05) 0%, 
+    rgba(30, 64, 175, 0.04) 100%
+  ) !important;
+  border: 1px solid rgba(30, 64, 175, 0.12) !important;
+  backdrop-filter: blur(12px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
+  box-shadow: 
+    0 2px 8px rgba(30, 64, 175, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ===== TRANSPARENT SUMMARY ITEMS ===== */
+[data-theme="light"] .summary-item,
+[data-color-scheme="light"] .summary-item {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.30) 0%, 
+    rgba(248, 250, 252, 0.35) 100%
+  ) !important;
+  border: 1px solid rgba(15, 23, 42, 0.04) !important;
+  box-shadow: 
+    0 4px 16px rgba(15, 23, 42, 0.025),
+    0 2px 8px rgba(15, 23, 42, 0.015),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(16px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="light"] .summary-item::before,
+[data-color-scheme="light"] .summary-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 64, 175, 0.01) 0%,
+    transparent 50%,
+    rgba(31, 245, 212, 0.01) 100%
+  ) !important;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ===== TRANSPARENT DIFFERENCE AND RECOMMENDATION ITEMS ===== */
+[data-theme="light"] .difference-item,
+[data-color-scheme="light"] .difference-item {
+  background: linear-gradient(135deg, 
+    rgba(15, 23, 42, 0.02) 0%, 
+    rgba(15, 23, 42, 0.025) 100%
+  ) !important;
+  backdrop-filter: blur(12px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(130%) !important;
+  box-shadow: 
+    0 2px 8px rgba(15, 23, 42, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  border-left: 3px solid rgba(0, 82, 163, 0.6) !important;
+}
+
+[data-theme="light"] .recommendation-item,
+[data-color-scheme="light"] .recommendation-item {
+  background: linear-gradient(135deg, 
+    rgba(30, 64, 175, 0.03) 0%, 
+    rgba(30, 64, 175, 0.04) 100%
+  ) !important;
+  backdrop-filter: blur(12px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(130%) !important;
+  box-shadow: 
+    0 2px 8px rgba(30, 64, 175, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  border-left: 3px solid rgba(30, 64, 175, 0.6) !important;
+}
+
+/* ===== TRANSPARENT BUTTONS ===== */
+[data-theme="light"] .status-legend-btn,
+[data-color-scheme="light"] .status-legend-btn {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.25) 0%, 
+    rgba(248, 250, 252, 0.30) 100%
+  ) !important;
+  border: 1px solid rgba(15, 23, 42, 0.06) !important;
+  backdrop-filter: blur(12px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
+  box-shadow: 
+    0 2px 8px rgba(15, 23, 42, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+[data-theme="light"] .status-legend-btn:hover,
+[data-color-scheme="light"] .status-legend-btn:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.35) 0%, 
+    rgba(248, 250, 252, 0.40) 100%
+  ) !important;
+  border-color: rgba(30, 64, 175, 0.15) !important;
+  box-shadow: 
+    0 4px 12px rgba(15, 23, 42, 0.04),
+    0 0 15px rgba(30, 64, 175, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(16px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+}
+
+/* ===== TRANSPARENT STATUS NOTICES ===== */
+[data-theme="light"] .ai-status-notice,
+[data-color-scheme="light"] .ai-status-notice {
+  backdrop-filter: blur(12px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
+}
+
+[data-theme="light"] .ai-status-notice.ai-unavailable,
+[data-color-scheme="light"] .ai-status-notice.ai-unavailable {
+  background: linear-gradient(135deg, 
+    rgba(143, 74, 0, 0.04) 0%, 
+    rgba(143, 74, 0, 0.06) 100%
+  ) !important;
+  border: 1px solid rgba(143, 74, 0, 0.12) !important;
+  box-shadow: 
+    0 2px 8px rgba(143, 74, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+[data-theme="light"] .ai-error,
+[data-color-scheme="light"] .ai-error {
+  background: linear-gradient(135deg, 
+    rgba(185, 28, 28, 0.04) 0%, 
+    rgba(185, 28, 28, 0.06) 100%
+  ) !important;
+  border: 1px solid rgba(185, 28, 28, 0.12) !important;
+  box-shadow: 
+    0 2px 8px rgba(185, 28, 28, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+[data-theme="light"] .ai-success,
+[data-color-scheme="light"] .ai-success {
+  background: linear-gradient(135deg, 
+    rgba(13, 106, 31, 0.04) 0%, 
+    rgba(13, 106, 31, 0.06) 100%
+  ) !important;
+  border: 1px solid rgba(13, 106, 31, 0.12) !important;
+  box-shadow: 
+    0 2px 8px rgba(13, 106, 31, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+/* ===== ENHANCED BACKGROUND ANIMATION REVEAL ===== */
+[data-theme="light"] .results-section::after,
+[data-color-scheme="light"] .results-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 64, 175, 0.005) 0%,
+    transparent 25%,
+    transparent 75%,
+    rgba(31, 245, 212, 0.005) 100%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.8;
+}
+
+/* ===== ANIMATION SHIMMER FOR TRANSPARENCY ===== */
+@keyframes transparentShimmer {
+  0% {
+    background-position: -200% 0;
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.1;
+  }
+  100% {
+    background-position: 200% 0;
+    opacity: 0.3;
+  }
+}
+
+[data-theme="light"] .analysis-panel:hover::before,
+[data-theme="light"] .comparison-panel:hover::before,
+[data-color-scheme="light"] .analysis-panel:hover::before,
+[data-color-scheme="light"] .comparison-panel:hover::before {
+  animation: transparentShimmer 3s ease-in-out infinite !important;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(30, 64, 175, 0.1) 25%,
+    rgba(31, 245, 212, 0.08) 50%,
+    rgba(107, 33, 168, 0.06) 75%,
+    transparent 100%
+  ) !important;
+  background-size: 200% 100%;
+}
+
+/* ===== ENHANCED GLOW EFFECTS FOR TRANSPARENCY ===== */
+[data-theme="light"] .panel-icon,
+[data-color-scheme="light"] .panel-icon {
+  filter: drop-shadow(0 0 8px rgba(30, 64, 175, 0.4)) !important;
+  transition: filter var(--transition-normal);
+}
+
+[data-theme="light"] .analysis-panel:hover .panel-icon,
+[data-theme="light"] .comparison-panel:hover .panel-icon,
+[data-color-scheme="light"] .analysis-panel:hover .panel-icon,
+[data-color-scheme="light"] .comparison-panel:hover .panel-icon {
+  filter: drop-shadow(0 0 16px rgba(30, 64, 175, 0.6)) !important;
+}
+
+/* ===== ULTRA-LIGHT GLASSMORPHIC BORDERS ===== */
+[data-theme="light"] .panel-content,
+[data-color-scheme="light"] .panel-content {
+  position: relative;
+}
+
+[data-theme="light"] .panel-content::before,
+[data-color-scheme="light"] .panel-content::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 64, 175, 0.1) 0%,
+    rgba(31, 245, 212, 0.08) 25%,
+    transparent 50%,
+    rgba(107, 33, 168, 0.06) 75%,
+    rgba(30, 64, 175, 0.1) 100%
+  );
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.6;
+  backdrop-filter: blur(1px);
+}
+
+/* ===== TEXT CONTRAST ENHANCEMENT FOR TRANSPARENCY ===== */
+[data-theme="light"] .panel-title,
+[data-theme="light"] .metric-label,
+[data-theme="light"] .metric-value,
+[data-theme="light"] .summary-label,
+[data-theme="light"] .summary-value,
+[data-theme="light"] .complexity-label,
+[data-theme="light"] .complexity-value,
+[data-color-scheme="light"] .panel-title,
+[data-color-scheme="light"] .metric-label,
+[data-color-scheme="light"] .metric-value,
+[data-color-scheme="light"] .summary-label,
+[data-color-scheme="light"] .summary-value,
+[data-color-scheme="light"] .complexity-label,
+[data-color-scheme="light"] .complexity-value {
+  text-shadow: 
+    0 1px 3px rgba(255, 255, 255, 0.9),
+    0 0 10px rgba(255, 255, 255, 0.6),
+    0 0 20px rgba(255, 255, 255, 0.3) !important;
+  position: relative;
+  z-index: 2;
+}
+
+/* ===== DARK MODE COMPATIBILITY ===== */
+[data-theme="dark"] .results-section,
+[data-color-scheme="dark"] .results-section {
+  background: linear-gradient(135deg, 
+    rgba(12, 10, 48, 0.30) 0%, 
+    rgba(20, 16, 60, 0.25) 50%,
+    rgba(26, 54, 93, 0.20) 100%
+  ) !important;
+  backdrop-filter: blur(24px) saturate(200%) brightness(110%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(110%) !important;
+}
+
+[data-theme="dark"] .analysis-panel,
+[data-theme="dark"] .comparison-panel,
+[data-color-scheme="dark"] .analysis-panel,
+[data-color-scheme="dark"] .comparison-panel {
+  background: linear-gradient(135deg, 
+    rgba(26, 54, 93, 0.20) 0%, 
+    rgba(45, 90, 135, 0.15) 50%,
+    rgba(26, 54, 93, 0.20) 100%
+  ) !important;
+  backdrop-filter: blur(28px) saturate(180%) brightness(120%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(120%) !important;
+}
+
+/* ===== MOBILE RESPONSIVENESS FOR TRANSPARENCY ===== */
+@media (max-width: 768px) {
+  [data-theme="light"] .results-section,
+  [data-color-scheme="light"] .results-section {
+    background: linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.50) 0%, 
+      rgba(248, 250, 252, 0.55) 50%,
+      rgba(241, 245, 249, 0.45) 100%
+    ) !important;
+    backdrop-filter: blur(16px) saturate(160%) brightness(112%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(160%) brightness(112%) !important;
+  }
+  
+  [data-theme="light"] .analysis-panel,
+  [data-theme="light"] .comparison-panel,
+  [data-color-scheme="light"] .analysis-panel,
+  [data-color-scheme="light"] .comparison-panel {
+    background: linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.35) 0%, 
+      rgba(248, 250, 252, 0.40) 50%,
+      rgba(255, 255, 255, 0.35) 100%
+    ) !important;
+    backdrop-filter: blur(20px) saturate(170%) brightness(115%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(170%) brightness(115%) !important;
+  }
+}
+
+/* ===== REDUCED MOTION TRANSPARENCY ===== */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="light"] .analysis-panel:hover::before,
+  [data-theme="light"] .comparison-panel:hover::before,
+  [data-color-scheme="light"] .analysis-panel:hover::before,
+  [data-color-scheme="light"] .comparison-panel:hover::before {
+    animation: none !important;
+  }
+}
+
+/* ===== HIGH CONTRAST MODE TRANSPARENCY ADJUSTMENTS ===== */
+@media (prefers-contrast: high) {
+  [data-theme="light"] .results-section,
+  [data-theme="light"] .analysis-panel,
+  [data-theme="light"] .comparison-panel,
+  [data-color-scheme="light"] .results-section,
+  [data-color-scheme="light"] .analysis-panel,
+  [data-color-scheme="light"] .comparison-panel {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: none !important;
+    border: 2px solid #000000 !important;
+  }
+}
+
+/* ===== PRINT MODE TRANSPARENCY OVERRIDE ===== */
+@media print {
+  [data-theme="light"] .results-section,
+  [data-theme="light"] .analysis-panel,
+  [data-theme="light"] .comparison-panel,
+  [data-color-scheme="light"] .results-section,
+  [data-color-scheme="light"] .analysis-panel,
+  [data-color-scheme="light"] .comparison-panel {
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: none !important;
+  }
+}

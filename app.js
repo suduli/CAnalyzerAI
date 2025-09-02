@@ -3887,15 +3887,25 @@ class MicroInteractions {
   setupTooltipInteractions() {
     const tooltipElements = document.querySelectorAll('[title]');
     
-    tooltipElements.forEach(element => {
+    // Filter to only apply tooltips to the innermost elements with tooltips
+    const innermostElements = this.filterToInnermostElements(tooltipElements);
+    
+    innermostElements.forEach(element => {
       const title = element.getAttribute('title');
       element.removeAttribute('title'); // Remove default tooltip
+      
+      // Disable tooltips on parent elements to prevent duplication
+      this.disableParentTooltips(element);
       
       const tooltip = document.createElement('div');
       tooltip.className = 'custom-tooltip';
       
       // Enhanced tooltip content for status indicators
-      if (element.classList.contains('test-status') || element.classList.contains('status-indicator') || element.id.includes('status')) {
+      if (element.classList.contains('test-status') || 
+          element.classList.contains('status-indicator') || 
+          element.id.includes('status') ||
+          element.classList.contains('status-detail') ||
+          element.classList.contains('status-help-btn')) {
         tooltip.innerHTML = this.getEnhancedStatusTooltip(title, element);
         tooltip.classList.add('status-tooltip');
       } else {
@@ -3931,6 +3941,9 @@ class MicroInteractions {
       document.body.appendChild(tooltip);
       
       element.addEventListener('mouseenter', (e) => {
+        // Ensure no other tooltips are visible
+        this.hideAllTooltips();
+        
         const rect = element.getBoundingClientRect();
         tooltip.style.left = rect.left + rect.width / 2 - tooltip.offsetWidth / 2 + 'px';
         tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
@@ -3942,6 +3955,54 @@ class MicroInteractions {
         tooltip.style.opacity = '0';
         tooltip.style.transform = 'translateY(10px)';
       });
+    });
+  }
+
+  // Filter elements to only include innermost elements with tooltips
+  filterToInnermostElements(elements) {
+    const innermost = [];
+    
+    elements.forEach(element => {
+      let hasChildWithTooltip = false;
+      
+      // Check if any descendant elements have tooltips
+      const descendants = element.querySelectorAll('[title]');
+      if (descendants.length > 0) {
+        hasChildWithTooltip = true;
+      }
+      
+      // Only include if it has no children with tooltips
+      if (!hasChildWithTooltip) {
+        innermost.push(element);
+      }
+    });
+    
+    return innermost;
+  }
+
+  // Disable tooltip functionality on parent elements
+  disableParentTooltips(element) {
+    let parent = element.parentElement;
+    
+    while (parent && parent !== document.body) {
+      if (parent.hasAttribute('title')) {
+        // Store original title for reference but remove from DOM
+        parent.setAttribute('data-original-title', parent.getAttribute('title'));
+        parent.removeAttribute('title');
+        
+        // Add a marker to indicate this element's tooltip was disabled
+        parent.setAttribute('data-tooltip-disabled', 'true');
+      }
+      parent = parent.parentElement;
+    }
+  }
+
+  // Hide all visible tooltips
+  hideAllTooltips() {
+    const visibleTooltips = document.querySelectorAll('.custom-tooltip[style*="opacity: 1"]');
+    visibleTooltips.forEach(tooltip => {
+      tooltip.style.opacity = '0';
+      tooltip.style.transform = 'translateY(10px)';
     });
   }
 
@@ -4063,9 +4124,63 @@ const microInteractionStyles = `
     animation-delay: 0.4s;
   }
   
+  /* Enhanced tooltip system */
   .custom-tooltip {
     font-family: var(--font-family-main);
+    font-weight: 400;
+    letter-spacing: 0.02em;
     white-space: nowrap;
+    z-index: 10000 !important;
+  }
+  
+  .status-tooltip {
+    white-space: normal !important;
+    min-width: 200px;
+    max-width: 350px;
+  }
+  
+  .tooltip-header {
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 14px;
+  }
+  
+  .tooltip-content {
+    margin-bottom: 8px;
+    line-height: 1.4;
+    font-size: 13px;
+  }
+  
+  .tooltip-tip {
+    font-size: 12px;
+    opacity: 0.9;
+    font-style: italic;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Prevent tooltip conflicts - disable browser tooltips on elements with disabled tooltips */
+  [data-tooltip-disabled="true"]:hover::before,
+  [data-tooltip-disabled="true"]:hover::after {
+    display: none !important;
+    content: none !important;
+  }
+  
+  /* Prevent default title attribute tooltips when custom tooltips are present */
+  [data-original-title]:hover::before,
+  [data-original-title]:hover::after {
+    display: none !important;
+  }
+  
+  /* Enhanced visual feedback for interactive elements with tooltips */
+  .status-indicator:hover,
+  .status-detail:hover,
+  .status-help-btn:hover,
+  [title]:hover {
+    cursor: help;
   }
 `;
 
