@@ -101,7 +101,13 @@
     updateStatus(validated = false) {
       const needsKey = this.provider !== 'ollama';
       const ok = !needsKey || (this.apiKey && this.apiKey.length > 10);
-      if (this.statusDot) this.statusDot.style.background = ok ? '#39ff14' : '#8892b0';
+      
+      // Update status indicator classes instead of inline styles
+      if (this.statusRoot) {
+        this.statusRoot.classList.remove('not-set', 'valid', 'invalid');
+        this.statusRoot.classList.add(ok ? 'valid' : 'not-set');
+      }
+      
       if (this.statusText) this.statusText.textContent = ok ? 'Ready' : 'No API Key';
       if (validated && this.lastValidated) this.lastValidated.textContent = `Updated ${new Date().toLocaleString()}`;
       
@@ -170,11 +176,22 @@
         } else {
           throw new Error('Unknown provider');
         }
+        
+        // Update to valid state for successful test
+        if (this.statusRoot) {
+          this.statusRoot.classList.remove('not-set', 'valid', 'invalid');
+          this.statusRoot.classList.add('valid');
+        }
         if (this.statusText) this.statusText.textContent = 'Ready';
         if (this.lastValidated) this.lastValidated.textContent = `Tested ${new Date().toLocaleString()}`;
         alert(testResult);
         sys.log(testResult);
       } catch (err) {
+        // Update to invalid state for failed test
+        if (this.statusRoot) {
+          this.statusRoot.classList.remove('not-set', 'valid', 'invalid');
+          this.statusRoot.classList.add('invalid');
+        }
         if (this.statusText) this.statusText.textContent = 'Test Failed';
         if (this.lastValidated) this.lastValidated.textContent = `Failed ${new Date().toLocaleString()}`;
         alert(`Test failed: ${err?.message || err}`);
