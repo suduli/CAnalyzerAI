@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visit Counter Demo - CAnalyzerAI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #1a1a2e;
+      color: white;
+    }
+    
+    .demo-container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      border-radius: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .demo-title {
+      color: #00f5ff;
+      margin-bottom: 1rem;
+    }
+    
+    .demo-controls {
+      display: flex;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    
+    .demo-btn {
+      padding: 0.5rem 1rem;
+      background: #00f5ff;
+      color: #1a1a2e;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    
+    .demo-btn:hover {
+      background: #00d4ff;
+    }
+    
+    .stats-display {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin: 1rem 0;
+      font-family: monospace;
+    }
+    
+    .footer-brand {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2rem;
+      border-radius: 1rem;
+      margin-top: 2rem;
+    }
+    
+    .footer-brand-title {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #00f5ff;
+    }
+    
+    .footer-brand-subtitle {
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 0.5rem;
+    }
+    
+    .footer-copyright {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h1 class="demo-title">🔢 Visit Counter Demo</h1>
+    <p>This demo shows the visit counter functionality that has been added to CAnalyzerAI.</p>
+    
+    <div class="demo-controls">
+      <button class="demo-btn" onclick="showStats()">Show Stats</button>
+      <button class="demo-btn" onclick="simulateVisit()">Simulate New Session</button>
+      <button class="demo-btn" onclick="resetCounter()">Reset Counter</button>
+      <button class="demo-btn" onclick="goToMain()">Go to Main Site</button>
+    </div>
+    
+    <div class="stats-display" id="statsDisplay">
+      <p>Click "Show Stats" to see current visit data...</p>
+    </div>
+    
+    <h3>Features:</h3>
+    <ul>
+      <li><strong>Total Visits:</strong> Counts every page load</li>
+      <li><strong>Unique Visits:</strong> Counts unique browser sessions</li>
+      <li><strong>Persistent Storage:</strong> Data persists across browser sessions</li>
+      <li><strong>Interactive Display:</strong> Click the counter in the footer to see details</li>
+      <li><strong>Responsive Design:</strong> Works on mobile and desktop</li>
+      <li><strong>Theme Support:</strong> Adapts to light/dark themes</li>
+    </ul>
+    
+    <h3>How it works:</h3>
+    <ol>
+      <li>The counter automatically tracks visits using localStorage</li>
+      <li>Unique visits are determined by browser sessions (sessionStorage)</li>
+      <li>The counter displays in the footer of the main site</li>
+      <li>Click the counter to expand and see additional details</li>
+    </ol>
+  </div>
+  
+  <!-- Footer simulation to show the counter -->
+  <div class="footer-brand">
+    <h3 class="footer-brand-title">CAnalyzerAI</h3>
+    <p class="footer-brand-subtitle">Advanced C Code Complexity Analysis</p>
+    <p class="footer-copyright">&copy; 2025 Suduli. All rights reserved.</p>
+    <!-- Visit counter will be inserted here by the script -->
+  </div>
+
+  <script src="visit-counter.js"></script>
+  
+  <script>
+    function showStats() {
+      if (window.visitCounter) {
+        const stats = window.visitCounter.getStats();
+        document.getElementById('statsDisplay').innerHTML = `
+          <h4>Current Visit Statistics:</h4>
+          <pre>${JSON.stringify(stats, null, 2)}</pre>
+        `;
+      } else {
+        document.getElementById('statsDisplay').innerHTML = `
+          <p style="color: #ff6b6b;">Visit counter not initialized yet. Please wait...</p>
+        `;
+      }
+    }
+    
+    function simulateVisit() {
+      // Clear session storage to simulate a new session
+      sessionStorage.clear();
+      location.reload();
+    }
+    
+    function resetCounter() {
+      if (window.visitCounter) {
+        if (confirm('Are you sure you want to reset the visit counter? This will clear all visit data.')) {
+          window.visitCounter.reset();
+        }
+      }
+    }
+    
+    function goToMain() {
+      window.location.href = 'index.html';
+    }
+    
+    // Auto-show stats after a short delay
+    setTimeout(() => {
+      showStats();
+    }, 1000);
+  </script>
+</body>
+</html>

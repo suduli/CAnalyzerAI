@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visit Counter Admin - CAnalyzerAI</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+    }
+    
+    .admin-container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 2rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      margin-bottom: 2rem;
+    }
+    
+    .admin-title {
+      color: #fff;
+      margin-bottom: 1rem;
+      text-align: center;
+      font-size: 2rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    
+    .stat-card {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #00f5ff;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .admin-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    
+    .admin-btn {
+      padding: 1rem 1.5rem;
+      background: linear-gradient(135deg, #00f5ff, #00d4ff);
+      color: #1a1a2e;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .admin-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 245, 255, 0.3);
+    }
+    
+    .admin-btn.danger {
+      background: linear-gradient(135deg, #ff6b6b, #ff5252);
+      color: white;
+    }
+    
+    .admin-btn.danger:hover {
+      box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+    }
+    
+    .sessions-list {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      margin: 1rem 0;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .session-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+      border-radius: 0.5rem;
+      border-left: 3px solid #00f5ff;
+    }
+    
+    .session-id {
+      font-family: monospace;
+      color: #00f5ff;
+      font-size: 0.9rem;
+    }
+    
+    .session-time {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+    }
+    
+    .export-section {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      margin: 2rem 0;
+    }
+    
+    .data-preview {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .back-link {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      text-decoration: none;
+      border-radius: 0.5rem;
+      margin-bottom: 2rem;
+      transition: all 0.3s ease;
+    }
+    
+    .back-link:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateX(-5px);
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-link">← Back to CAnalyzerAI</a>
+  
+  <div class="admin-container">
+    <h1 class="admin-title">📊 Visit Counter Administration</h1>
+    
+    <div class="stats-grid" id="statsGrid">
+      <!-- Stats will be populated by JavaScript -->
+    </div>
+    
+    <div class="admin-controls">
+      <button class="admin-btn" onclick="refreshStats()">🔄 Refresh Stats</button>
+      <button class="admin-btn" onclick="exportData()">📥 Export Data</button>
+      <button class="admin-btn" onclick="simulateTraffic()">🚀 Simulate Traffic</button>
+      <button class="admin-btn danger" onclick="resetAllData()">🗑️ Reset All Data</button>
+    </div>
+    
+    <div class="export-section">
+      <h3>📋 Raw Data</h3>
+      <div class="data-preview" id="dataPreview">
+        Loading data...
+      </div>
+    </div>
+    
+    <div class="admin-container">
+      <h3>📝 Recent Sessions</h3>
+      <div class="sessions-list" id="sessionsList">
+        Loading sessions...
+      </div>
+    </div>
+  </div>
+
+  <script src="visit-counter.js"></script>
+  
+  <script>
+    let currentStats = null;
+    
+    function formatNumber(num) {
+      return num.toLocaleString();
+    }
+    
+    function formatDate(dateString) {
+      if (!dateString) return 'Never';
+      return new Date(dateString).toLocaleString();
+    }
+    
+    function refreshStats() {
+      if (window.visitCounter) {
+        currentStats = window.visitCounter.getStats();
+        updateStatsDisplay();
+        updateDataPreview();
+        updateSessionsList();
+      } else {
+        setTimeout(refreshStats, 500); // Retry if not loaded yet
+      }
+    }
+    
+    function updateStatsDisplay() {
+      const statsGrid = document.getElementById('statsGrid');
+      const stats = currentStats;
+      
+      const uptime = stats.firstVisit ? 
+        Math.floor((new Date() - new Date(stats.firstVisit)) / (1000 * 60 * 60 * 24)) : 0;
+      
+      const avgVisitsPerDay = stats.firstVisit ? 
+        (stats.totalVisits / Math.max(uptime, 1)).toFixed(1) : '0';
+      
+      statsGrid.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-number">${formatNumber(stats.totalVisits)}</div>
+          <div class="stat-label">Total Visits</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${formatNumber(stats.uniqueVisits)}</div>
+          <div class="stat-label">Unique Visitors</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${uptime}</div>
+          <div class="stat-label">Days Active</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${avgVisitsPerDay}</div>
+          <div class="stat-label">Avg Visits/Day</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${stats.sessions.length}</div>
+          <div class="stat-label">Tracked Sessions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">${formatDate(stats.lastVisit).split(',')[0]}</div>
+          <div class="stat-label">Last Visit</div>
+        </div>
+      `;
+    }
+    
+    function updateDataPreview() {
+      const dataPreview = document.getElementById('dataPreview');
+      dataPreview.textContent = JSON.stringify(currentStats, null, 2);
+    }
+    
+    function updateSessionsList() {
+      const sessionsList = document.getElementById('sessionsList');
+      const sessions = currentStats.sessions.slice(-20).reverse(); // Show last 20 sessions
+      
+      if (sessions.length === 0) {
+        sessionsList.innerHTML = '<p style="text-align: center; color: rgba(255, 255, 255, 0.6);">No sessions recorded yet.</p>';
+        return;
+      }
+      
+      sessionsList.innerHTML = sessions.map(session => `
+        <div class="session-item">
+          <div class="session-id">Session: ${session.id}</div>
+          <div class="session-time">🕒 ${formatDate(session.timestamp)}</div>
+          ${session.userAgent ? `<div class="session-time">🌐 ${session.userAgent.substring(0, 50)}...</div>` : ''}
+        </div>
+      `).join('');
+    }
+    
+    function exportData() {
+      const dataStr = JSON.stringify(currentStats, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      
+      const exportFileDefaultName = `canalyzer-visit-data-${new Date().toISOString().split('T')[0]}.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+    }
+    
+    function simulateTraffic() {
+      if (!window.visitCounter) return;
+      
+      const sessions = Math.floor(Math.random() * 10) + 5; // 5-15 sessions
+      const visitsPerSession = Math.floor(Math.random() * 5) + 1; // 1-5 visits per session
+      
+      for (let i = 0; i < sessions; i++) {
+        // Clear session to simulate new visitor
+        sessionStorage.clear();
+        
+        for (let j = 0; j < visitsPerSession; j++) {
+          // Simulate page visits
+          window.visitCounter.recordVisit();
+        }
+      }
+      
+      alert(`Simulated ${sessions} new sessions with ${sessions * visitsPerSession} total visits!`);
+      refreshStats();
+    }
+    
+    function resetAllData() {
+      if (confirm('⚠️ This will permanently delete ALL visit counter data!\\n\\nAre you absolutely sure?')) {
+        if (confirm('🚨 FINAL WARNING: This action cannot be undone!\\n\\nClick OK to proceed with data deletion.')) {
+          if (window.visitCounter) {
+            window.visitCounter.reset();
+          } else {
+            localStorage.removeItem('canalyzer_visit_data');
+            sessionStorage.removeItem('canalyzer_session_id');
+            location.reload();
+          }
+        }
+      }
+    }
+    
+    // Initialize the admin panel
+    document.addEventListener('DOMContentLoaded', () => {
+      // Wait a bit for visit counter to initialize
+      setTimeout(refreshStats, 1000);
+    });
+    
+    // Auto-refresh every 30 seconds
+    setInterval(refreshStats, 30000);
+  </script>
+</body>
+</html>
