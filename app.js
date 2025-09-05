@@ -421,7 +421,6 @@
 
       // Header controls
       this.settingsBtn = document.getElementById('settingsBtn');
-      this.chatOpenBtn = document.getElementById('chatOpenBtn');
       this.analysisApiStatus = document.getElementById('analysisApiStatus');
       this.analysisApiDetail = document.getElementById('analysisApiDetail');
 
@@ -521,23 +520,6 @@
 
       // Settings
       this.settingsBtn?.addEventListener('click', () => this.api.show());
-      
-      // Chat window
-      this.chatOpenBtn?.addEventListener('click', () => {
-        if (window.chatWindow) {
-          window.chatWindow.openChat();
-        } else {
-          console.warn('Chat window not initialized yet');
-          // Try again after a short delay
-          setTimeout(() => {
-            if (window.chatWindow) {
-              window.chatWindow.openChat();
-            } else {
-              alert('Chat system is not ready. Please try again in a moment.');
-            }
-          }, 500);
-        }
-      });
 
       // Results actions
       this.exportResultsBtn?.addEventListener('click', () => this.exportResults());
@@ -730,9 +712,6 @@
         progressBar.setAttribute('aria-label', `File upload complete: ${file.name}`);
       }
       
-      // Notify chat window about file upload
-      this.notifyFileUploaded(file);
-      
       sys.log(`Selected ${file.name}`);
       this.announceToScreenReader(`File successfully loaded: ${file.name}, ${(file.size / 1024).toFixed(1)} kilobytes. Ready for analysis.`);
     }
@@ -783,9 +762,6 @@
 
         this.progress(100, 'Done');
         this.resultsSection?.classList.remove('hidden');
-        
-        // Notify chat window about completed analysis
-        this.notifyAnalysisCompleted(staticRes, aiRes);
       } catch (err) {
         sys.error(err?.message || String(err));
         alert('Analysis failed. See console for details.');
@@ -2517,84 +2493,6 @@ int main() {
       if (text && this.loadingText) this.loadingText.textContent = text;
     }
 
-    // Chat integration methods
-    notifyFileUploaded(file) {
-      if (!this.fileText) {
-        // Read the file content for chat context
-        this.readFile(file).then(content => {
-          const fileData = {
-            name: file.name,
-            content: content,
-            size: file.size,
-            type: file.type
-          };
-          
-          // Dispatch custom event for chat window
-          window.dispatchEvent(new CustomEvent('fileUploaded', {
-            detail: fileData
-          }));
-          
-          // Also set on chat window directly if available
-          if (window.chatWindow) {
-            window.chatWindow.setFileContext(fileData);
-          }
-        }).catch(err => {
-          console.warn('Failed to read file content for chat:', err);
-        });
-      } else {
-        // File already read
-        const fileData = {
-          name: file.name,
-          content: this.fileText,
-          size: file.size,
-          type: file.type
-        };
-        
-        window.dispatchEvent(new CustomEvent('fileUploaded', {
-          detail: fileData
-        }));
-        
-        if (window.chatWindow) {
-          window.chatWindow.setFileContext(fileData);
-        }
-      }
-    }
-
-    notifyAnalysisCompleted(staticResult, aiResult) {
-      const analysisData = {
-        filename: this.file?.name,
-        timestamp: new Date().toISOString(),
-        static: {
-          loc: staticResult.loc,
-          c1: staticResult.c1,
-          c2: staticResult.c2,
-          c3: staticResult.c3,
-          decisionPoints: staticResult.decisionPoints,
-          nestingDepth: staticResult.nestingDepth,
-          cfgMetrics: staticResult.cfgMetrics
-        },
-        ai: {
-          loc: aiResult.loc,
-          c1: aiResult.c1,
-          c2: aiResult.c2,
-          c3: aiResult.c3,
-          notes: aiResult.notes,
-          unavailable: aiResult.unavailable,
-          fallbackUsed: aiResult.fallbackUsed
-        },
-        fileContent: this.fileText
-      };
-
-      // Dispatch custom event
-      window.dispatchEvent(new CustomEvent('analysisCompleted', {
-        detail: analysisData
-      }));
-
-      // Also set on chat window directly if available
-      if (window.chatWindow) {
-        window.chatWindow.setAnalysisContext(analysisData);
-      }
-    }
   }
 
   // Status Legend System
