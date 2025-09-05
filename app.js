@@ -53,7 +53,7 @@
 
     getDefaultModel() {
       switch(this.provider) {
-        case 'openrouter': return 'google/gemma-2-9b-it:free';
+        case 'openrouter': return 'google/gemini-2.0-flash-exp:free';
         case 'openai': return 'gpt-3.5-turbo';
         case 'ollama': 
         default: return 'deepseek-r1:latest';
@@ -196,9 +196,9 @@
       switch(this.provider) {
         case 'openrouter':
           models = [
-            'openai/gpt-oss-20b:free',
+            'google/gemini-2.0-flash-exp:free',
+            'google/gemini-2.5-flash:free',
             'google/gemma-2-9b-it:free',
-            'google/gemini-2.5-flash-image-preview:free',
             'meta-llama/llama-3.1-8b-instruct:free',
             'microsoft/wizardlm-2-8x22b:free',
             'huggingface/starcoder2-15b:free'
@@ -967,7 +967,7 @@ RESPONSE (JSON ONLY):`;
           console.log('📡 Sending request to OpenRouter...');
           
           // Use the user's selected model without automatic switching
-          let currentModel = model || 'google/gemma-2-9b-it:free';
+          let currentModel = model || 'google/gemini-2.0-flash-exp:free';
           
           // Log the model being used for transparency
           console.log('🔍 Using OpenRouter model:', currentModel);
@@ -1036,7 +1036,7 @@ RESPONSE (JSON ONLY):`;
         } else if (error.message.includes('HTTP 429') || error.message.includes('Rate limit')) {
           errorCategory = 'rate_limit';
           console.log('💡 Rate limit suggestion: Try switching to a different model or wait a few minutes');
-          console.log('💡 Alternative models: google/gemma-2-9b-it:free, meta-llama/llama-3.1-8b-instruct:free');
+          console.log('💡 Alternative models: google/gemini-2.0-flash-exp:free, meta-llama/llama-3.1-8b-instruct:free');
         } else if (error.message.includes('HTTP')) {
           errorCategory = 'api_error';
         } else if (error.message.includes('fetch')) {
@@ -2803,8 +2803,8 @@ int main() {
 
     window.suggestAlternativeModels = () => {
       console.log('💡 Alternative OpenRouter Models (Better for JSON):');
-      console.log('- google/gemma-2-9b-it:free (Recommended)');
-      console.log('- google/gemini-2.5-flash-image-preview:free (Image Analysis)');
+      console.log('- google/gemini-2.0-flash-exp:free (Recommended)');
+      console.log('- google/gemini-2.5-flash:free (Good alternative)');
       console.log('- meta-llama/llama-3.1-8b-instruct:free');
       console.log('- microsoft/wizardlm-2-8x22b:free');
       console.log('- huggingface/starcoder2-15b:free');
@@ -2815,8 +2815,8 @@ int main() {
       console.log('3. Save and try analysis again');
       console.log('');
       console.log('📊 Current model performance issues:');
-      console.log('- openai/gpt-oss-20b:free tends to return explanations instead of JSON');
-      console.log('- Try google/gemma-2-9b-it:free for better structured output');
+      console.log('- Some models may return explanations instead of JSON');
+      console.log('- Try google/gemini-2.0-flash-exp:free for better structured output');
     };
 
     window.testLOCScenarios = () => {
@@ -2840,10 +2840,10 @@ int main() {
     };
 
     window.switchToRecommendedModel = () => {
-      localStorage.setItem('selectedModel', 'google/gemma-2-9b-it:free');
-      console.log('✅ Switched to google/gemma-2-9b-it:free');
+      localStorage.setItem('selectedModel', 'google/gemini-2.0-flash-exp:free');
+      console.log('✅ Switched to google/gemini-2.0-flash-exp:free');
       console.log('🔄 Please try your analysis again');
-      return 'Model switched to google/gemma-2-9b-it:free';
+      return 'Model switched to google/gemini-2.0-flash-exp:free';
     };
     
     console.log('🎯 CAnalyzerAI Debug: App instance available as window.CAnalyzerAI');
@@ -3885,63 +3885,183 @@ class MicroInteractions {
 
   // Tooltip Interactions
   setupTooltipInteractions() {
-    const tooltipElements = document.querySelectorAll('[title]');
+    // Clear any existing custom tooltips first
+    const existingTooltips = document.querySelectorAll('.custom-tooltip');
+    existingTooltips.forEach(tooltip => tooltip.remove());
     
-    tooltipElements.forEach(element => {
+    // Reset any previously initialized elements
+    const previouslyInitialized = document.querySelectorAll('[data-tooltip-initialized]');
+    previouslyInitialized.forEach(el => el.removeAttribute('data-tooltip-initialized'));
+    
+    const tooltipElements = document.querySelectorAll('[title]');
+    let currentTooltip = null;
+    
+    // Helper function to hide all tooltips
+    const hideAllTooltips = () => {
+      if (currentTooltip) {
+        currentTooltip.style.opacity = '0';
+        currentTooltip.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+          if (currentTooltip && currentTooltip.parentNode) {
+            currentTooltip.remove();
+          }
+          currentTooltip = null;
+        }, 200);
+      }
+    };
+    
+    // Group elements by their status indicator parent to prevent multiple tooltips
+    const statusIndicatorGroups = new Map();
+    
+    // Filter to only apply tooltips to the innermost elements with tooltips
+    const innermostElements = this.filterToInnermostElements(tooltipElements);
+    
+    innermostElements.forEach(element => {
+      // Skip if this element already has tooltip handlers
+      if (element.hasAttribute('data-tooltip-initialized')) {
+        return;
+      }
+      
+      // Find the closest status indicator parent
+      const parentStatusIndicator = element.closest('.status-indicator');
+      
+      if (parentStatusIndicator) {
+        // For status indicators, only show tooltip for the main container, not children
+        if (element === parentStatusIndicator) {
+          // This is the main status indicator - keep its tooltip
+        } else {
+          // This is a child element - remove its title to prevent nested tooltips
+          element.removeAttribute('title');
+          return;
+        }
+      }
+      
       const title = element.getAttribute('title');
       element.removeAttribute('title'); // Remove default tooltip
+      element.setAttribute('data-tooltip-initialized', 'true');
       
-      const tooltip = document.createElement('div');
-      tooltip.className = 'custom-tooltip';
-      
-      // Enhanced tooltip content for status indicators
-      if (element.classList.contains('test-status') || element.classList.contains('status-indicator') || element.id.includes('status')) {
-        tooltip.innerHTML = this.getEnhancedStatusTooltip(title, element);
-        tooltip.classList.add('status-tooltip');
-      } else {
-        tooltip.textContent = title;
-      }
-      
-      tooltip.style.cssText = `
-        position: absolute;
-        background: var(--bg-glass-elevated);
-        color: var(--text-primary);
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-size: 13px;
-        pointer-events: none;
-        z-index: 1000;
-        opacity: 0;
-        transform: translateY(10px);
-        transition: all 0.2s ease;
-        backdrop-filter: blur(10px);
-        border: 1px solid transparent;
-        box-shadow: var(--glass-shadow-sm);
-        max-width: 300px;
-        line-height: 1.4;
-      `;
-      
-      // Enhanced styling for status tooltips
-      if (tooltip.classList.contains('status-tooltip')) {
-        tooltip.style.background = 'var(--bg-glass)';
-        tooltip.style.border = '1px solid transparent';
-        tooltip.style.boxShadow = '0 8px 32px rgba(108, 99, 255, 0.2)';
-      }
-      
-      document.body.appendChild(tooltip);
+      // Disable tooltips on parent elements to prevent duplication
+      this.disableParentTooltips(element);
       
       element.addEventListener('mouseenter', (e) => {
+        // Stop event from bubbling to prevent nested tooltip triggers
+        e.stopPropagation();
+        
+        // Hide any existing tooltip first
+        this.hideAllTooltips();
+        
+        // Create new tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'custom-tooltip';
+        
+        // Enhanced tooltip content for status indicators
+        if (element.classList.contains('test-status') || 
+            element.classList.contains('status-indicator') || 
+            element.id.includes('status') ||
+            element.classList.contains('status-detail') ||
+            element.classList.contains('status-help-btn')) {
+          tooltip.innerHTML = this.getEnhancedStatusTooltip(title, element);
+          tooltip.classList.add('status-tooltip');
+        } else {
+          tooltip.textContent = title;
+        }
+        
+        tooltip.style.cssText = `
+          position: absolute;
+          background: var(--bg-glass-elevated);
+          color: var(--text-primary);
+          padding: 12px 16px;
+          border-radius: 8px;
+          font-size: 13px;
+          pointer-events: none;
+          z-index: 1000;
+          opacity: 0;
+          transform: translateY(10px);
+          transition: all 0.2s ease;
+          backdrop-filter: blur(10px);
+          border: 1px solid transparent;
+          box-shadow: var(--glass-shadow-sm);
+          max-width: 300px;
+          line-height: 1.4;
+        `;
+        
+        // Enhanced styling for status tooltips
+        if (tooltip.classList.contains('status-tooltip')) {
+          tooltip.style.background = 'var(--bg-glass)';
+          tooltip.style.border = '1px solid transparent';
+          tooltip.style.boxShadow = '0 8px 32px rgba(108, 99, 255, 0.2)';
+        }
+        
+        document.body.appendChild(tooltip);
+        currentTooltip = tooltip;
+        
+        // Position and show tooltip
         const rect = element.getBoundingClientRect();
         tooltip.style.left = rect.left + rect.width / 2 - tooltip.offsetWidth / 2 + 'px';
         tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
-        tooltip.style.opacity = '1';
-        tooltip.style.transform = 'translateY(0)';
+        
+        // Small delay to ensure smooth transition
+        requestAnimationFrame(() => {
+          tooltip.style.opacity = '1';
+          tooltip.style.transform = 'translateY(0)';
+        });
       });
       
       element.addEventListener('mouseleave', () => {
-        tooltip.style.opacity = '0';
-        tooltip.style.transform = 'translateY(10px)';
+        this.hideAllTooltips();
       });
+    });
+    
+    // Also hide tooltips when scrolling or clicking elsewhere
+    document.addEventListener('scroll', () => this.hideAllTooltips(), { passive: true });
+    document.addEventListener('click', () => this.hideAllTooltips());
+  }
+
+  // Filter elements to only include innermost elements with tooltips
+  filterToInnermostElements(elements) {
+    const innermost = [];
+    
+    elements.forEach(element => {
+      let hasChildWithTooltip = false;
+      
+      // Check if any descendant elements have tooltips
+      const descendants = element.querySelectorAll('[title]');
+      if (descendants.length > 0) {
+        hasChildWithTooltip = true;
+      }
+      
+      // Only include if it has no children with tooltips
+      if (!hasChildWithTooltip) {
+        innermost.push(element);
+      }
+    });
+    
+    return innermost;
+  }
+
+  // Disable tooltip functionality on parent elements
+  disableParentTooltips(element) {
+    let parent = element.parentElement;
+    
+    while (parent && parent !== document.body) {
+      if (parent.hasAttribute('title')) {
+        // Store original title for reference but remove from DOM
+        parent.setAttribute('data-original-title', parent.getAttribute('title'));
+        parent.removeAttribute('title');
+        
+        // Add a marker to indicate this element's tooltip was disabled
+        parent.setAttribute('data-tooltip-disabled', 'true');
+      }
+      parent = parent.parentElement;
+    }
+  }
+
+  // Hide all visible tooltips
+  hideAllTooltips() {
+    const visibleTooltips = document.querySelectorAll('.custom-tooltip[style*="opacity: 1"]');
+    visibleTooltips.forEach(tooltip => {
+      tooltip.style.opacity = '0';
+      tooltip.style.transform = 'translateY(10px)';
     });
   }
 
@@ -4063,9 +4183,63 @@ const microInteractionStyles = `
     animation-delay: 0.4s;
   }
   
+  /* Enhanced tooltip system */
   .custom-tooltip {
     font-family: var(--font-family-main);
+    font-weight: 400;
+    letter-spacing: 0.02em;
     white-space: nowrap;
+    z-index: 10000 !important;
+  }
+  
+  .status-tooltip {
+    white-space: normal !important;
+    min-width: 200px;
+    max-width: 350px;
+  }
+  
+  .tooltip-header {
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 14px;
+  }
+  
+  .tooltip-content {
+    margin-bottom: 8px;
+    line-height: 1.4;
+    font-size: 13px;
+  }
+  
+  .tooltip-tip {
+    font-size: 12px;
+    opacity: 0.9;
+    font-style: italic;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Prevent tooltip conflicts - disable browser tooltips on elements with disabled tooltips */
+  [data-tooltip-disabled="true"]:hover::before,
+  [data-tooltip-disabled="true"]:hover::after {
+    display: none !important;
+    content: none !important;
+  }
+  
+  /* Prevent default title attribute tooltips when custom tooltips are present */
+  [data-original-title]:hover::before,
+  [data-original-title]:hover::after {
+    display: none !important;
+  }
+  
+  /* Enhanced visual feedback for interactive elements with tooltips */
+  .status-indicator:hover,
+  .status-detail:hover,
+  .status-help-btn:hover,
+  [title]:hover {
+    cursor: help;
   }
 `;
 

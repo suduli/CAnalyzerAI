@@ -1,0 +1,612 @@
+/* 
+ * consolidated-styles.css
+ * Consolidated small CSS files to reduce HTTP requests
+ * Contains: additional-theme-styles.css, final-override.css, transparent-status.css, 
+ * status-style-overrides.css, and z-index-fixes.css
+ */
+
+/* === THEME STYLES (from additional-theme-styles.css) === */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* System preference indicator */
+.system-preference-indicator {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), 0.6);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+[data-theme-preference="auto"] .system-preference-indicator {
+  opacity: 1;
+}
+
+/* Theme transition state */
+html.theme-transitioning * {
+  transition: background-color 0.5s ease, 
+              color 0.5s ease, 
+              border-color 0.5s ease,
+              box-shadow 0.5s ease !important;
+}
+
+/* Enhanced micro-interactions for theme toggle */
+.theme-toggle-container:hover .theme-toggle {
+  transform: scale(1.02);
+}
+
+.theme-option:hover {
+  transform: translateX(4px);
+  background: rgba(var(--accent-rgb), 0.1);
+}
+
+.theme-option.active {
+  background: rgba(var(--accent-rgb), 0.15);
+  border-left: 3px solid rgba(var(--accent-rgb), 1);
+}
+
+/* Performance optimizations */
+.theme-options {
+  will-change: opacity, transform;
+}
+
+.theme-option {
+  will-change: transform, background-color;
+}
+
+/* === TRANSPARENT STATUS STYLES === */
+
+.transparent-status {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.transparent-status-dot {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 8px currentColor !important;
+}
+
+/* === FINAL OVERRIDE STYLES === */
+
+#apiKeyStatus {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+}
+
+#apiKeyStatus .status-dot {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 8px currentColor !important;
+}
+
+/* === STATUS STYLE OVERRIDES === */
+
+/* Direct ID-based targeting for maximum specificity */
+#apiKeyStatus,
+#apiKeyStatus.status-indicator,
+div#apiKeyStatus.status-indicator,
+.header-right .api-key-status #apiKeyStatus.status-indicator,
+html body .header-right .api-key-status #apiKeyStatus.status-indicator {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  box-shadow: none !important;
+}
+
+/* Status dot within the specific element */
+#apiKeyStatus .status-dot,
+#apiKeyStatus.status-indicator .status-dot,
+div#apiKeyStatus.status-indicator .status-dot,
+.header-right .api-key-status #apiKeyStatus.status-indicator .status-dot,
+html body .header-right .api-key-status #apiKeyStatus.status-indicator .status-dot {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 8px currentColor !important;
+}
+
+/* Also cover any other potential status indicators */
+.status-indicator,
+.status-indicator.not-set,
+.status-indicator.valid,
+.status-indicator.invalid,
+.api-key-status .status-indicator,
+div[class*="status-indicator"],
+div.status-indicator,
+.header-right .api-key-status .status-indicator {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  box-shadow: none !important;
+}
+
+/* Override hover states with extreme specificity */
+.status-indicator:hover,
+div.status-indicator:hover,
+#apiKeyStatus:hover,
+#apiKeyStatus.status-indicator:hover,
+div#apiKeyStatus.status-indicator:hover,
+.api-key-status .status-indicator:hover,
+.header-right .api-key-status #apiKeyStatus.status-indicator:hover,
+html body .header-right .api-key-status #apiKeyStatus.status-indicator:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: 0 0 10px rgba(108, 99, 255, 0.1) !important;
+  border-color: transparent !important;
+}
+
+/* Override status dot styling */
+.status-indicator .status-dot,
+div.status-indicator .status-dot,
+.api-key-status .status-indicator .status-dot {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  background: var(--text-muted) !important;
+  box-shadow: 0 0 8px var(--text-muted) !important;
+}
+
+/* Status-specific dot colors */
+.status-indicator.valid .status-dot,
+.status-indicator .status-dot.valid,
+#apiKeyStatus.valid .status-dot {
+  background: var(--accent-cyan) !important;
+  box-shadow: 0 0 10px var(--accent-cyan) !important;
+}
+
+.status-indicator.invalid .status-dot,
+.status-indicator .status-dot.invalid,
+#apiKeyStatus.invalid .status-dot {
+  background: var(--accent-magenta) !important;
+  box-shadow: 0 0 10px var(--accent-magenta) !important;
+}
+
+/* Light theme specific overrides */
+[data-theme="light"] #apiKeyStatus,
+[data-color-scheme="light"] #apiKeyStatus,
+[data-theme="light"] .status-indicator,
+[data-color-scheme="light"] .status-indicator {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* === Z-INDEX FIXES === */
+
+/* Background layers - keep negative values */
+body::before,
+body::after {
+  z-index: -1 !important;
+}
+
+.header::before {
+  z-index: -1 !important;
+}
+
+/* Particle systems - keep at 0-1 range */
+.matrix-particles,
+.light-particles,
+#particles-js,
+#light-particles-js {
+  z-index: 0 !important;
+}
+
+#glassmorphic-particles {
+  z-index: 1 !important;
+}
+
+/* Main application content */
+.app-container {
+  z-index: 10 !important;
+}
+
+/* Header - reduce from 1000 to avoid conflicts */
+.header {
+  z-index: 100 !important;
+}
+
+/* Chat system - proper hierarchy */
+.chat-toggle-btn {
+  z-index: 1000 !important;
+}
+
+.chat-container {
+  z-index: 1050 !important;
+}
+
+.chat-container.dragging {
+  z-index: 1200 !important;
+}
+
+/* Modal and loading overlays - clear hierarchy */
+.loading-overlay {
+  z-index: 1100 !important;
+}
+
+.modal {
+  z-index: 1150 !important;
+}
+
+/* Dropdown menus - above modals but not excessive */
+.theme-options {
+  z-index: 1250 !important;
+}
+
+/* Fix chat toggle button visibility when chat is open */
+.chat-container:not(.hidden) ~ .chat-toggle-btn {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(0.8) !important;
+}
+
+/* Ensure proper modal backdrop positioning */
+.modal-backdrop {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -1 !important; /* Behind modal content but above everything else */
+}
+
+/* Prevent theme options from appearing over critical modals */
+.modal:not(.hidden) ~ * .theme-options,
+.loading-overlay:not(.hidden) ~ * .theme-options {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Prevent chat from interfering with loading states */
+.loading-overlay:not(.hidden) ~ .chat-container {
+  pointer-events: none !important;
+  opacity: 0.5 !important;
+}
+
+/* Ensure proper stacking of multiple overlays */
+.modal + .loading-overlay {
+  z-index: 1125 !important; /* Between modal and dragging chat */
+}
+
+/* Reduce header z-index when critical overlays are present */
+.modal:not(.hidden) ~ * .header,
+.loading-overlay:not(.hidden) ~ * .header {
+  z-index: 50 !important;
+}
+
+/* Ensure focus remains visible in the correct layer */
+.modal:focus-within,
+.loading-overlay:focus-within {
+  z-index: 1175 !important;
+}
+
+.chat-container:focus-within {
+  z-index: 1075 !important;
+}
+
+/* Ensure keyboard navigation works correctly across layers */
+.modal:not(.hidden) ~ * .chat-container {
+  pointer-events: none !important;
+}
+
+.loading-overlay:not(.hidden) ~ * .chat-container,
+.loading-overlay:not(.hidden) ~ * .header {
+  pointer-events: none !important;
+}
+
+/* Responsive considerations */
+@media (max-width: 768px) {
+  .chat-container {
+    width: calc(100vw - 40px) !important;
+    height: 50vh !important;
+    bottom: 10px !important;
+    right: 20px !important;
+    left: 20px !important;
+  }
+  
+  .chat-toggle-btn {
+    bottom: 10px !important;
+    right: 20px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-container {
+    inset: 20px 10px 10px 10px !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: 80vh !important;
+  }
+  
+  .chat-toggle-btn {
+    bottom: 5px !important;
+    right: 10px !important;
+    width: 50px !important;
+    height: 50px !important;
+  }
+}
+
+/* Performance optimizations */
+.chat-container.dragging {
+  z-index: 1150 !important;
+  transform: translateZ(0) scale(1.02) !important;
+  will-change: transform !important;
+}
+
+.header,
+.chat-container,
+.chat-toggle-btn,
+.modal,
+.loading-overlay {
+  will-change: transform, opacity !important;
+  backface-visibility: hidden !important;
+}
+
+/* === ENHANCED DATA DISPLAY STYLES === */
+/* Enhanced Data Display Styles for CAnalyzerAI */
+
+/* Metric value styling with validation indicators */
+.metric-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  font-family: 'Orbitron', monospace;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.metric-value[title] {
+  cursor: help;
+  border-bottom: 1px dotted var(--accent-color);
+}
+
+.metric-value:hover {
+  color: var(--primary-color);
+  transform: scale(1.05);
+}
+
+/* Data validation indicators */
+.metric-value.validated::after {
+  content: '✓';
+  position: absolute;
+  top: -8px;
+  right: -12px;
+  font-size: 0.8rem;
+  color: #39ff14;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.metric-value.validated:hover::after {
+  opacity: 1;
+}
+
+.metric-value.warning {
+  color: #ffab00;
+  border-bottom-color: #ffab00;
+}
+
+.metric-value.error {
+  color: #ff4757;
+  border-bottom-color: #ff4757;
+}
+
+/* Enhanced comparison display */
+.summary-value {
+  font-family: 'Orbitron', monospace;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.summary-value[title] {
+  cursor: help;
+  border-bottom: 1px dotted currentColor;
+}
+
+.summary-value:hover {
+  transform: scale(1.05);
+}
+
+/* Positive/negative difference indicators */
+.summary-value.positive {
+  color: #39ff14;
+}
+
+.summary-value.negative {
+  color: #ff4757;
+}
+
+.summary-value.neutral {
+  color: var(--text-color);
+}
+
+/* Enhanced analysis time display */
+.analysis-time {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.analysis-time[title] {
+  cursor: help;
+  border-bottom: 1px dotted var(--text-muted);
+}
+
+.analysis-time:hover {
+  color: var(--text-color);
+}
+
+/* Data source attribution */
+.panel-header {
+  position: relative;
+}
+
+.panel-header::after {
+  content: attr(data-source);
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+  font-family: 'Rajdhani', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Enhanced complexity card styling */
+.complexity-card {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.complexity-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(57, 255, 20, 0.15);
+}
+
+.complexity-value {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.complexity-value[title] {
+  cursor: help;
+}
+
+.complexity-value:hover {
+  color: var(--primary-color);
+  transform: scale(1.1);
+}
+
+/* AI status notice enhancements */
+.ai-status-notice {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.ai-status-notice.ai-warning {
+  background: rgba(255, 171, 0, 0.1);
+  border-color: #ffab00;
+  color: #ffab00;
+}
+
+.ai-status-notice.ai-error {
+  background: rgba(255, 71, 87, 0.1);
+  border-color: #ff4757;
+  color: #ff4757;
+}
+
+.ai-status-notice.ai-unavailable {
+  background: rgba(139, 146, 176, 0.1);
+  border-color: #8892b0;
+  color: #8892b0;
+}
+
+/* Tooltip enhancements for mobile */
+@media (max-width: 768px) {
+  .metric-value[title]:active::before,
+  .summary-value[title]:active::before,
+  .analysis-time[title]:active::before {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-color);
+    color: var(--text-color);
+    padding: 0.5rem;
+    border-radius: 4px;
+    white-space: pre-line;
+    font-size: 0.8rem;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    max-width: 200px;
+    word-wrap: break-word;
+  }
+}
+
+/* Data integrity indicator */
+.data-integrity-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #39ff14;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.data-integrity-badge.warning {
+  background: #ffab00;
+}
+
+.data-integrity-badge.error {
+  background: #ff4757;
+}
+
+.panel-content:hover .data-integrity-badge {
+  opacity: 1;
+}
+
+/* Enhanced export button styling */
+.btn[id="exportResults"] {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn[id="exportResults"]::after {
+  content: 'Includes validation data';
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.btn[id="exportResults"]:hover::after {
+  opacity: 1;
+  bottom: -20px;
+}
