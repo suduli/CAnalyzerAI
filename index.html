@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="consolidated-glassmorphic.css" />
   <link rel="stylesheet" href="wcag-light-theme-enhancements.css" />
   <link rel="stylesheet" href="consolidated-styles.css" />
+  <link rel="stylesheet" href="chat-window.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
@@ -44,6 +45,7 @@
             </div>
             <div class="header-actions">
               <button class="settings-btn" id="settingsBtn" title="API Configuration" tabindex="0" aria-label="API Configuration"><span class="settings-icon">⚙️</span></button>
+              <button class="settings-btn" id="chatOpenBtn" title="Open C Code Assistant" tabindex="0" aria-label="Open C Code Assistant"><span class="settings-icon">💬</span></button>
               <div class="theme-toggle-container">
                 <div class="theme-toggle" id="themeToggle" role="switch" aria-label="Toggle dark/light mode" tabindex="0">
                   <div class="theme-toggle-track">
@@ -331,11 +333,92 @@
     </footer>
   </div>
 
+  <!-- Chat Window -->
+  <div class="chat-container hidden" id="chatContainer">
+    <div class="chat-resize-handle" id="chatResizeHandle"></div>
+    
+    <div class="chat-header" id="chatHeader">
+      <div class="chat-title">
+        <span class="chat-title-icon">💬</span>
+        C Code Assistant
+        <span class="chat-status" id="chatStatus">Ready</span>
+      </div>
+      <div class="chat-controls">
+        <button class="chat-control-btn" id="chatClearBtn" title="Clear conversation" aria-label="Clear conversation">
+          🗑️
+        </button>
+        <button class="chat-control-btn" id="chatMinimizeBtn" title="Minimize" aria-label="Minimize chat">
+          ➖
+        </button>
+        <button class="chat-control-btn" id="chatCloseBtn" title="Close" aria-label="Close chat">
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <div class="chat-body" id="chatBody">
+      <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-label="Chat conversation">
+        <div class="chat-message system-message">
+          <div class="message-content">
+            <div class="message-text">
+              <p>👋 Welcome to the C Code Assistant! I can help you analyze your C code, explain complex functions, suggest improvements, and answer questions about programming concepts.</p>
+              <p><strong>Upload a C file first</strong> to get contextual analysis, or ask general C programming questions anytime.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-container">
+        <div class="chat-context-info" id="chatContextInfo">
+          <span class="context-indicator" id="contextIndicator">
+            <span class="context-icon">📄</span>
+            <span class="context-text" id="contextText">No file loaded</span>
+          </span>
+        </div>
+        
+        <div class="chat-input-wrapper">
+          <div class="chat-input-area">
+            <textarea 
+              id="chatInput" 
+              class="chat-input" 
+              placeholder="Ask about your C code, request explanations, or get programming help..."
+              rows="1"
+              maxlength="2000"
+              aria-label="Type your message"></textarea>
+            <div class="chat-input-actions">
+              <button class="chat-action-btn" id="chatAttachBtn" title="Code context" aria-label="Include code context">
+                <span class="action-icon">📎</span>
+              </button>
+              <button class="chat-send-btn" id="chatSendBtn" title="Send message" aria-label="Send message" disabled>
+                <span class="send-icon">📤</span>
+              </button>
+            </div>
+          </div>
+          <div class="chat-input-footer">
+            <div class="char-count" id="charCount">0/2000</div>
+            <div class="chat-shortcuts">
+              <button class="shortcut-btn" data-shortcut="explain" title="Explain selected code">Explain</button>
+              <button class="shortcut-btn" data-shortcut="optimize" title="Suggest optimizations">Optimize</button>
+              <button class="shortcut-btn" data-shortcut="test" title="Generate test cases">Test Ideas</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Toggle Button (when chat is closed) -->
+  <button class="chat-toggle-btn" id="chatToggleBtn" title="Open C Code Assistant" aria-label="Open C Code Assistant">
+    <span class="chat-toggle-icon">💬</span>
+    <span class="chat-toggle-text">Ask AI</span>
+  </button>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
   <script src="consolidated-particles.js"></script>
   <script src="cfg-calculator.js"></script>
   <script src="visit-counter.js"></script>
+  <script src="chat-window.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
