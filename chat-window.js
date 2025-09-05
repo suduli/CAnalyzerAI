@@ -95,11 +95,29 @@ class ChatWindow {
     this.chatInput?.addEventListener('input', () => this.handleInputChange());
 
     // Control button events
-    this.chatClearBtn?.addEventListener('click', () => this.clearConversation());
-    this.chatMinimizeBtn?.addEventListener('click', () => this.toggleMinimize());
-    this.chatCloseBtn?.addEventListener('click', () => this.hide());
-    this.chatToggleBtn?.addEventListener('click', () => this.show());
-    this.chatAttachBtn?.addEventListener('click', () => this.toggleContextAttachment());
+    this.chatClearBtn?.addEventListener('click', () => {
+      console.log('💬 Clear button clicked');
+      this.clearConversation();
+    });
+    this.chatMinimizeBtn?.addEventListener('click', () => {
+      console.log('💬 Minimize button clicked');
+      this.toggleMinimize();
+    });
+    this.chatCloseBtn?.addEventListener('click', () => {
+      console.log('💬 Close button clicked');
+      this.hide();
+    });
+    this.chatToggleBtn?.addEventListener('click', () => {
+      console.log('💬 Toggle button clicked');
+      this.show();
+    });
+    this.chatAttachBtn?.addEventListener('click', () => {
+      console.log('💬 Attach button clicked');
+      this.toggleContextAttachment();
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => this.handleGlobalKeydown(e));
 
     // Shortcut button events
     this.shortcutBtns?.forEach(btn => {
@@ -118,6 +136,9 @@ class ChatWindow {
     
     // Window resize listener to keep chat visible
     window.addEventListener('resize', () => this.ensureVisiblePosition());
+
+    // Focus management
+    this.chatContainer?.addEventListener('keydown', (e) => this.handleDialogKeydown(e));
   }
 
   setupResize() {
@@ -324,6 +345,9 @@ class ChatWindow {
   show() {
     if (!this.chatContainer) return;
     
+    // Store the previously focused element for restoration later
+    this.previouslyFocusedElement = document.activeElement;
+    
     this.chatContainer.classList.remove('hidden');
     this.chatToggleBtn?.classList.add('hidden');
     this.isVisible = true;
@@ -345,9 +369,10 @@ class ChatWindow {
       easing: 'easeOutCubic'
     });
 
-    // Focus input after animation
+    // Focus input after animation and announce to screen readers
     setTimeout(() => {
       this.chatInput?.focus();
+      this.announceToScreenReader('Chat window opened. Focus is now in the message input field.');
     }, 300);
 
     this.updateStatus();
@@ -368,6 +393,16 @@ class ChatWindow {
         this.chatContainer.classList.add('hidden');
         this.chatToggleBtn?.classList.remove('hidden');
         this.isVisible = false;
+        
+        // Restore focus to previously focused element
+        if (this.previouslyFocusedElement && this.previouslyFocusedElement.isConnected) {
+          this.previouslyFocusedElement.focus();
+        } else {
+          // Fallback to chat toggle button
+          this.chatToggleBtn?.focus();
+        }
+        
+        this.announceToScreenReader('Chat window closed.');
       }
     });
 
@@ -422,6 +457,63 @@ class ChatWindow {
         e.preventDefault();
         this.handleSendMessage();
       }
+    } else if (e.key === 'Escape') {
+      // Close chat with Escape
+      e.preventDefault();
+      this.hide();
+    }
+  }
+
+  handleGlobalKeydown(e) {
+    // Global keyboard shortcuts
+    if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+      // Ctrl+Shift+C to open chat
+      e.preventDefault();
+      if (!this.isVisible) {
+        this.show();
+      } else {
+        this.chatInput?.focus();
+      }
+    } else if (this.isVisible) {
+      if (e.ctrlKey && e.key === 'l') {
+        // Ctrl+L to clear conversation
+        e.preventDefault();
+        this.clearConversation();
+      } else if (e.ctrlKey && e.key === 'm') {
+        // Ctrl+M to minimize
+        e.preventDefault();
+        this.toggleMinimize();
+      } else if (e.key === 'Escape' && !this.isMinimized) {
+        // Escape to close (only if not minimized to avoid conflicts)
+        e.preventDefault();
+        this.hide();
+      }
+    }
+  }
+
+  handleDialogKeydown(e) {
+    // Focus trap for dialog
+    if (e.key === 'Tab') {
+      this.handleTabKeyInDialog(e);
+    }
+  }
+
+  handleTabKeyInDialog(e) {
+    if (!this.isVisible || this.isMinimized) return;
+
+    const focusableElements = this.chatContainer.querySelectorAll(
+      'button:not([disabled]), textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (e.shiftKey && document.activeElement === firstElement) {
+      e.preventDefault();
+      lastElement.focus();
+    } else if (!e.shiftKey && document.activeElement === lastElement) {
+      e.preventDefault();
+      firstElement.focus();
     }
   }
 
@@ -486,14 +578,33 @@ class ChatWindow {
       // Send to AI API
       const response = await this.sendToAI(message, context);
       
-      // Add AI response
-      this.addMessage('assistant', response.content, response.metadata);
+      // Only add message if not streaming (streaming handles its own message creation)
+      if (response.metadata && !response.metadata.streaming) {
+        this.addMessage('assistant', response.content, response.metadata);
+      }
       
       this.updateStatus('ready');
     } catch (error) {
       console.error('💬 Error sending message:', error);
-      this.addMessage('error', `Sorry, I encountered an error: ${error.message}`);
+      
+      // Provide helpful error messages based on the error type
+      let errorMessage = `Sorry, I encountered an error: ${error.message}`;
+      
+      if (error.message.includes('fetch')) {
+        errorMessage = 'Unable to connect to the AI service. Please check your internet connection and try again.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'The request timed out. The AI service might be slow or unavailable.';
+      } else if (error.message.includes('401') || error.message.includes('unauthorized')) {
+        errorMessage = 'Authentication failed. Please check your API key in settings.';
+      } else if (error.message.includes('429')) {
+        errorMessage = 'Rate limit exceeded. Please wait a moment before trying again.';
+      } else if (error.message.includes('Ollama')) {
+        errorMessage = 'Ollama service is not running or unavailable. Please start Ollama or switch to another provider.';
+      }
+      
+      this.addMessage('error', errorMessage);
       this.updateStatus('error');
+      this.announceToScreenReader('Error occurred while processing your message');
     } finally {
       this.setTypingState(false);
     }
@@ -508,12 +619,14 @@ class ChatWindow {
     const messageElement = document.createElement('div');
     messageElement.className = `chat-message ${role}-message`;
     messageElement.id = messageId;
+    messageElement.setAttribute('role', 'article');
+    messageElement.setAttribute('aria-label', `${role === 'user' ? 'Your message' : role === 'assistant' ? 'Assistant response' : 'System message'} at ${this.formatTime(timestamp)}`);
     
     let messageHTML = '';
     
     if (role === 'user') {
       messageHTML = `
-        <div class="message-avatar">
+        <div class="message-avatar" aria-hidden="true">
           <span class="avatar-icon">👤</span>
         </div>
         <div class="message-content">
@@ -521,12 +634,12 @@ class ChatWindow {
             <span class="message-author">You</span>
             <span class="message-time">${this.formatTime(timestamp)}</span>
           </div>
-          <div class="message-text">${this.formatMessageContent(content)}</div>
+          <div class="message-text" role="text">${this.formatMessageContent(content)}</div>
         </div>
       `;
     } else if (role === 'assistant') {
       messageHTML = `
-        <div class="message-avatar">
+        <div class="message-avatar" aria-hidden="true">
           <span class="avatar-icon">🤖</span>
         </div>
         <div class="message-content">
@@ -535,21 +648,21 @@ class ChatWindow {
             <span class="message-time">${this.formatTime(timestamp)}</span>
             ${metadata.model ? `<span class="message-model">${metadata.model}</span>` : ''}
           </div>
-          <div class="message-text">${this.formatMessageContent(content)}</div>
+          <div class="message-text" role="text">${this.formatMessageContent(content)}</div>
           ${metadata.context ? `<div class="message-context">📎 Used: ${metadata.context}</div>` : ''}
         </div>
-        <div class="message-actions">
-          <button class="message-action-btn" onclick="chatWindow.copyMessage('${messageId}')" title="Copy message">
-            <span class="action-icon">📋</span>
+        <div class="message-actions" role="group" aria-label="Message actions">
+          <button class="message-action-btn" onclick="chatWindow.copyMessage('${messageId}')" title="Copy message" aria-label="Copy this message to clipboard">
+            <span class="action-icon" aria-hidden="true">📋</span>
           </button>
-          <button class="message-action-btn" onclick="chatWindow.regenerateMessage('${messageId}')" title="Regenerate response">
-            <span class="action-icon">🔄</span>
+          <button class="message-action-btn" onclick="chatWindow.regenerateMessage('${messageId}')" title="Regenerate response" aria-label="Ask assistant to regenerate this response">
+            <span class="action-icon" aria-hidden="true">🔄</span>
           </button>
         </div>
       `;
     } else if (role === 'error') {
       messageHTML = `
-        <div class="message-avatar">
+        <div class="message-avatar" aria-hidden="true">
           <span class="avatar-icon">⚠️</span>
         </div>
         <div class="message-content">
@@ -557,13 +670,13 @@ class ChatWindow {
             <span class="message-author">System</span>
             <span class="message-time">${this.formatTime(timestamp)}</span>
           </div>
-          <div class="message-text error-text">${this.formatMessageContent(content)}</div>
+          <div class="message-text error-text" role="alert">${this.formatMessageContent(content)}</div>
         </div>
       `;
     } else if (role === 'system') {
       messageHTML = `
         <div class="message-content system-content">
-          <div class="message-text">${this.formatMessageContent(content)}</div>
+          <div class="message-text" role="text">${this.formatMessageContent(content)}</div>
         </div>
       `;
     }
@@ -593,6 +706,16 @@ class ChatWindow {
 
     // Scroll to bottom
     this.scrollToBottom();
+    
+    // Announce new messages to screen readers (but not system messages)
+    if (role !== 'system' && role !== 'error') {
+      const announcement = role === 'user' ? 
+        'Your message sent' : 
+        'New response from assistant received';
+      setTimeout(() => this.announceToScreenReader(announcement), 500);
+    } else if (role === 'error') {
+      setTimeout(() => this.announceToScreenReader('Error message received'), 500);
+    }
     
     // Save conversation
     this.saveConversationHistory();
@@ -689,79 +812,19 @@ class ChatWindow {
       let response, data;
 
       if (provider === 'ollama') {
-        const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model,
-            prompt: `${systemPrompt}\n\nUser: ${contextualMessage}`,
-            stream: false
-          }),
-          signal: AbortSignal.timeout(30000)
-        });
-
-        if (!ollamaResponse.ok) {
-          throw new Error(`Ollama error: ${ollamaResponse.status} ${ollamaResponse.statusText}`);
+        // Try streaming first, fallback to non-streaming
+        try {
+          response = await this.streamFromOllama(model, systemPrompt, contextualMessage);
+        } catch (streamError) {
+          console.warn('Streaming failed, using standard response:', streamError);
+          response = await this.standardOllamaRequest(model, systemPrompt, contextualMessage);
         }
-
-        const ollamaData = await ollamaResponse.json();
-        response = ollamaData.response || 'No response generated.';
 
       } else if (provider === 'openai') {
-        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: contextualMessage }
-            ],
-            max_tokens: 1500,
-            temperature: 0.7
-          }),
-          signal: AbortSignal.timeout(30000)
-        });
-
-        if (!openaiResponse.ok) {
-          const errorData = await openaiResponse.json().catch(() => ({}));
-          throw new Error(`OpenAI error: ${openaiResponse.status} ${errorData.error?.message || openaiResponse.statusText}`);
-        }
-
-        const openaiData = await openaiResponse.json();
-        response = openaiData.choices?.[0]?.message?.content || 'No response generated.';
+        response = await this.standardOpenAIRequest(model, systemPrompt, contextualMessage, apiKey);
 
       } else if (provider === 'openrouter') {
-        const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': window.location.origin,
-            'X-Title': 'CAnalyzerAI Chat'
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: contextualMessage }
-            ],
-            max_tokens: 1500,
-            temperature: 0.7
-          }),
-          signal: AbortSignal.timeout(30000)
-        });
-
-        if (!openrouterResponse.ok) {
-          const errorData = await openrouterResponse.json().catch(() => ({}));
-          throw new Error(`OpenRouter error: ${openrouterResponse.status} ${errorData.error?.message || openrouterResponse.statusText}`);
-        }
-
-        const openrouterData = await openrouterResponse.json();
-        response = openrouterData.choices?.[0]?.message?.content || 'No response generated.';
+        response = await this.standardOpenRouterRequest(model, systemPrompt, contextualMessage, apiKey);
 
       } else {
         throw new Error(`Unknown provider: ${provider}`);
@@ -781,6 +844,234 @@ class ChatWindow {
       console.error('💬 AI API Error:', error);
       throw error;
     }
+  }
+
+  async streamFromOllama(model, systemPrompt, contextualMessage) {
+    const response = await fetch('http://localhost:11434/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: `${systemPrompt}\n\nUser: ${contextualMessage}`,
+        stream: true
+      }),
+      signal: AbortSignal.timeout(60000)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama error: ${response.status} ${response.statusText}`);
+    }
+
+    // Create a streaming message element
+    const streamingMessageId = `msg-${++this.messageIdCounter}`;
+    this.createStreamingMessage(streamingMessageId);
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullResponse = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n').filter(line => line.trim());
+
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line);
+            if (data.response) {
+              fullResponse += data.response;
+              this.updateStreamingMessage(streamingMessageId, fullResponse);
+            }
+            if (data.done) {
+              this.finalizeStreamingMessage(streamingMessageId, fullResponse);
+              return fullResponse;
+            }
+          } catch (parseError) {
+            console.warn('Failed to parse streaming chunk:', parseError);
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    if (!fullResponse) {
+      throw new Error('No response received from streaming');
+    }
+
+    return fullResponse;
+  }
+
+  async standardOllamaRequest(model, systemPrompt, contextualMessage) {
+    const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: `${systemPrompt}\n\nUser: ${contextualMessage}`,
+        stream: false
+      }),
+      signal: AbortSignal.timeout(30000)
+    });
+
+    if (!ollamaResponse.ok) {
+      throw new Error(`Ollama error: ${ollamaResponse.status} ${ollamaResponse.statusText}`);
+    }
+
+    const ollamaData = await ollamaResponse.json();
+    return ollamaData.response || 'No response generated.';
+  }
+
+  async standardOpenAIRequest(model, systemPrompt, contextualMessage, apiKey) {
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: contextualMessage }
+        ],
+        max_tokens: 1500,
+        temperature: 0.7
+      }),
+      signal: AbortSignal.timeout(30000)
+    });
+
+    if (!openaiResponse.ok) {
+      const errorData = await openaiResponse.json().catch(() => ({}));
+      throw new Error(`OpenAI error: ${openaiResponse.status} ${errorData.error?.message || openaiResponse.statusText}`);
+    }
+
+    const openaiData = await openaiResponse.json();
+    return openaiData.choices?.[0]?.message?.content || 'No response generated.';
+  }
+
+  async standardOpenRouterRequest(model, systemPrompt, contextualMessage, apiKey) {
+    const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'CAnalyzerAI Chat'
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: contextualMessage }
+        ],
+        max_tokens: 1500,
+        temperature: 0.7
+      }),
+      signal: AbortSignal.timeout(30000)
+    });
+
+    if (!openrouterResponse.ok) {
+      const errorData = await openrouterResponse.json().catch(() => ({}));
+      throw new Error(`OpenRouter error: ${openrouterResponse.status} ${errorData.error?.message || openrouterResponse.statusText}`);
+    }
+
+    const openrouterData = await openrouterResponse.json();
+    return openrouterData.choices?.[0]?.message?.content || 'No response generated.';
+  }
+
+  createStreamingMessage(messageId) {
+    const timestamp = new Date();
+    const messageElement = document.createElement('div');
+    messageElement.className = 'chat-message assistant-message streaming-message';
+    messageElement.id = messageId;
+    messageElement.setAttribute('role', 'article');
+    messageElement.setAttribute('aria-label', `Assistant response streaming at ${this.formatTime(timestamp)}`);
+    
+    messageElement.innerHTML = `
+      <div class="message-avatar" aria-hidden="true">
+        <span class="avatar-icon">🤖</span>
+      </div>
+      <div class="message-content">
+        <div class="message-header">
+          <span class="message-author">C Code Assistant</span>
+          <span class="message-time">${this.formatTime(timestamp)}</span>
+          <span class="streaming-indicator" aria-live="polite">Streaming...</span>
+        </div>
+        <div class="message-text streaming-text" role="text"></div>
+      </div>
+    `;
+    
+    this.chatMessages.appendChild(messageElement);
+    this.scrollToBottom();
+    
+    // Add to conversation history (will be updated when finalized)
+    this.conversationHistory.push({
+      id: messageId,
+      role: 'assistant',
+      content: '',
+      timestamp: timestamp.toISOString(),
+      metadata: { streaming: true }
+    });
+  }
+
+  updateStreamingMessage(messageId, content) {
+    const messageElement = document.getElementById(messageId);
+    if (messageElement) {
+      const textElement = messageElement.querySelector('.streaming-text');
+      if (textElement) {
+        textElement.innerHTML = this.formatMessageContent(content);
+        this.scrollToBottom();
+      }
+    }
+  }
+
+  finalizeStreamingMessage(messageId, finalContent) {
+    const messageElement = document.getElementById(messageId);
+    if (messageElement) {
+      // Remove streaming classes and indicator
+      messageElement.classList.remove('streaming-message');
+      const streamingIndicator = messageElement.querySelector('.streaming-indicator');
+      if (streamingIndicator) {
+        streamingIndicator.remove();
+      }
+      
+      const textElement = messageElement.querySelector('.streaming-text');
+      if (textElement) {
+        textElement.classList.remove('streaming-text');
+        textElement.innerHTML = this.formatMessageContent(finalContent);
+      }
+      
+      // Add message actions
+      const messageContent = messageElement.querySelector('.message-content');
+      if (messageContent) {
+        const actionsHTML = `
+          <div class="message-actions" role="group" aria-label="Message actions">
+            <button class="message-action-btn" onclick="chatWindow.copyMessage('${messageId}')" title="Copy message" aria-label="Copy this message to clipboard">
+              <span class="action-icon" aria-hidden="true">�</span>
+            </button>
+            <button class="message-action-btn" onclick="chatWindow.regenerateMessage('${messageId}')" title="Regenerate response" aria-label="Ask assistant to regenerate this response">
+              <span class="action-icon" aria-hidden="true">🔄</span>
+            </button>
+          </div>
+        `;
+        messageContent.insertAdjacentHTML('afterend', actionsHTML);
+      }
+    }
+    
+    // Update conversation history
+    const historyItem = this.conversationHistory.find(msg => msg.id === messageId);
+    if (historyItem) {
+      historyItem.content = finalContent;
+      historyItem.metadata.streaming = false;
+      historyItem.metadata.streamCompleted = new Date().toISOString();
+    }
+    
+    this.saveConversationHistory();
+    this.announceToScreenReader('Response completed');
   }
 
   buildSystemPrompt() {
@@ -951,20 +1242,45 @@ class ChatWindow {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
+  announceToScreenReader(message) {
+    // Create or use existing screen reader announcement area
+    let announcer = document.getElementById('sr-announcer');
+    if (!announcer) {
+      announcer = document.createElement('div');
+      announcer.id = 'sr-announcer';
+      announcer.className = 'sr-only';
+      announcer.setAttribute('aria-live', 'assertive');
+      announcer.setAttribute('aria-atomic', 'true');
+      document.body.appendChild(announcer);
+    }
+    
+    // Clear and set new message
+    announcer.textContent = '';
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
+
   updateStatus(status = 'ready') {
     if (!this.chatStatusDot || !this.chatStatusText) return;
 
     const statuses = {
-      ready: { color: '#39ff14', text: 'Ready' },
-      processing: { color: '#ffa502', text: 'Processing...' },
-      error: { color: '#ff4757', text: 'Error' },
-      offline: { color: '#8892b0', text: 'Offline' }
+      ready: { color: '#39ff14', text: 'Ready', announcement: 'Chat assistant is ready' },
+      processing: { color: '#ffa502', text: 'Processing...', announcement: 'Processing your request' },
+      error: { color: '#ff4757', text: 'Error', announcement: 'An error occurred' },
+      offline: { color: '#8892b0', text: 'Offline', announcement: 'Chat assistant is offline' }
     };
 
     const currentStatus = statuses[status] || statuses.ready;
     
     this.chatStatusDot.style.backgroundColor = currentStatus.color;
     this.chatStatusText.textContent = currentStatus.text;
+    
+    // Announce status changes to screen readers
+    if (this.lastStatus !== status) {
+      this.announceToScreenReader(currentStatus.announcement);
+      this.lastStatus = status;
+    }
   }
 
   clearConversation() {

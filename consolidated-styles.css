@@ -239,29 +239,29 @@ body::after {
 
 /* Chat system - proper hierarchy */
 .chat-toggle-btn {
-  z-index: 900 !important;
+  z-index: 1000 !important;
 }
 
 .chat-container {
-  z-index: 950 !important;
+  z-index: 1050 !important;
 }
 
 .chat-container.dragging {
-  z-index: 1150 !important;
+  z-index: 1200 !important;
 }
 
 /* Modal and loading overlays - clear hierarchy */
 .loading-overlay {
-  z-index: 1000 !important;
+  z-index: 1100 !important;
 }
 
 .modal {
-  z-index: 1100 !important;
+  z-index: 1150 !important;
 }
 
 /* Dropdown menus - above modals but not excessive */
 .theme-options {
-  z-index: 1200 !important;
+  z-index: 1250 !important;
 }
 
 /* Fix chat toggle button visibility when chat is open */
@@ -286,14 +286,14 @@ body::after {
 }
 
 /* Prevent chat from interfering with loading states */
-.loading-overlay ~ .chat-container {
+.loading-overlay:not(.hidden) ~ .chat-container {
   pointer-events: none !important;
   opacity: 0.5 !important;
 }
 
 /* Ensure proper stacking of multiple overlays */
 .modal + .loading-overlay {
-  z-index: 1050 !important; /* Between modal and dragging chat */
+  z-index: 1125 !important; /* Between modal and dragging chat */
 }
 
 /* Reduce header z-index when critical overlays are present */
@@ -305,11 +305,11 @@ body::after {
 /* Ensure focus remains visible in the correct layer */
 .modal:focus-within,
 .loading-overlay:focus-within {
-  z-index: 1101 !important;
+  z-index: 1175 !important;
 }
 
 .chat-container:focus-within {
-  z-index: 951 !important;
+  z-index: 1075 !important;
 }
 
 /* Ensure keyboard navigation works correctly across layers */
