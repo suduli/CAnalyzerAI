@@ -3,333 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C Code Complexity Analyzer</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 300;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .main-content {
-            padding: 40px;
-        }
-
-        .input-section {
-            margin-bottom: 40px;
-        }
-
-        .file-input-container {
-            border: 3px dashed #3498db;
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            background: rgba(52, 152, 219, 0.05);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .file-input-container:hover {
-            border-color: #2980b9;
-            background: rgba(52, 152, 219, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .file-input-container.dragover {
-            border-color: #27ae60;
-            background: rgba(39, 174, 96, 0.1);
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        .upload-icon {
-            font-size: 3rem;
-            color: #3498db;
-            margin-bottom: 20px;
-        }
-
-        .upload-text {
-            font-size: 1.2rem;
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-
-        .upload-hint {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        .code-display {
-            background: #2d3748;
-            color: #e2e8f0;
-            border-radius: 10px;
-            padding: 20px;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            max-height: 400px;
-            overflow-y: auto;
-            margin-bottom: 30px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        .analyze-btn {
-            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
-        }
-
-        .analyze-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
-        }
-
-        .analyze-btn:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .results-section {
-            display: none;
-            margin-top: 40px;
-        }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .metric-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .metric-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .metric-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .metric-label {
-            font-size: 1rem;
-            opacity: 0.9;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .notes-section {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 25px;
-            border-left: 5px solid #3498db;
-        }
-
-        .notes-title {
-            font-size: 1.3rem;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .notes-list {
-            list-style: none;
-        }
-
-        .notes-list li {
-            background: white;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border-left: 3px solid #3498db;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-
-        .error-message {
-            background: #e74c3c;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .api-key-section {
-            background: #ecf0f1;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-
-        .api-key-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #bdc3c7;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .api-key-input:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        .api-key-label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .api-key-hint {
-            font-size: 0.9rem;
-            color: #7f8c8d;
-            margin-top: 5px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                border-radius: 15px;
-            }
-
-            .main-content {
-                padding: 20px;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .results-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <title>CAnalyzerAI - AI-Powered C Code Analysis</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="enhanced-data-display.css" />
+    <link rel="stylesheet" href="enhanced-light-theme.css" />
+    <link rel="stylesheet" href="glassmorphic-effects.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🔍 C Code Complexity Analyzer</h1>
-            <p>Analyze your C code using AI-powered complexity metrics</p>
+    <!-- Glassmorphic Particle System - Enhanced visual effects -->
+    <canvas id="glassmorphic-particles"></canvas>
+    
+    <!-- Matrix Particle System - positioned behind everything -->
+    <div id="particles-js" class="matrix-particles"></div>
+    
+    <!-- Light Theme Particle System -->
+    <div id="light-particles-js" class="light-particles"></div>
+    
+    <div class="app-container">
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="app-title"><span class="title-icon">⚡</span> CAnalyzerAI</h1>
+                    <div class="version">AI-Powered Edition</div>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <a href="index.html" class="btn btn--outline btn--sm">
+                            <span class="btn-icon">🏠</span>
+                            <span class="btn-text">Main App</span>
+                        </a>
+                        <div class="theme-toggle-container">
+                            <div class="theme-toggle" id="themeToggle" role="switch" aria-label="Toggle dark/light mode" tabindex="0">
+                                <div class="theme-toggle-track">
+                                    <div class="theme-toggle-thumb" id="themeToggleThumb">
+                                        <span class="theme-icon theme-icon-sun">☀️</span>
+                                        <span class="theme-icon theme-icon-moon">🌙</span>
+                                    </div>
+                                </div>
+                                <div class="theme-toggle-label" id="themeToggleLabel">Auto</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="upload-section" role="main" aria-labelledby="analyzer-section-title">
+            <div class="upload-container">
+                <div class="section-header">
+                    <h2 id="analyzer-section-title"><span class="section-icon">🤖</span>AI-Powered C Code Analysis</h2>
+                    <p class="section-subtitle">Advanced complexity analysis using artificial intelligence</p>
+                </div>
+
+                <!-- API Key Configuration -->
+                <div class="api-key-section">
+                    <div class="form-group">
+                        <label for="apiKey" class="form-label">OpenRouter API Key</label>
+                        <div class="api-key-input-wrapper">
+                            <input type="password" id="apiKey" class="form-control api-key-input" placeholder="Enter your OpenRouter API key" autocomplete="off" spellcheck="false">
+                            <button type="button" class="key-toggle-btn" id="keyToggleBtn" title="Show/Hide Key"><span class="key-toggle-icon">👁️</span></button>
+                        </div>
+                        <div class="form-hint">
+                            Get your API key from <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">OpenRouter</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Upload Area -->
+                <div 
+                    class="upload-zone" 
+                    id="uploadZone"
+                    role="button"
+                    tabindex="0"
+                    aria-label="File upload area. Click to browse for C code files or drag and drop files here."
+                    data-upload-state="empty"
+                >
+                    <div class="upload-content">
+                        <div class="upload-icon" aria-hidden="true">📁</div>
+                        <h3 class="upload-title">Drop your C code file here</h3>
+                        <p class="upload-subtitle">or click to browse</p>
+                        <div class="file-requirements">
+                            <span class="requirement">.c files only</span>
+                            <span class="requirement">Max 5MB</span>
+                        </div>
+                    </div>
+                    <input 
+                        type="file" 
+                        id="fileInput" 
+                        accept=".c" 
+                        class="file-input"
+                        aria-label="Choose C code file to upload"
+                    >
+                </div>
+
+                <!-- Code Display -->
+                <div id="codeDisplay" class="code-display hidden"></div>
+
+                <!-- Error Messages -->
+                <div 
+                    class="error-message hidden" 
+                    id="errorMessage" 
+                    role="alert" 
+                    aria-live="assertive"
+                ></div>
+
+                <!-- Analysis Button -->
+                <div class="analysis-controls">
+                    <button id="analyzeBtn" class="btn btn--primary" disabled>
+                        <span class="btn-icon">🚀</span>
+                        <span class="btn-text">Analyze Code Complexity</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay hidden" id="loadingOverlay">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Analyzing your code with AI...</div>
+            </div>
         </div>
 
-        <div class="main-content">
-            <div class="api-key-section">
-                <label for="apiKey" class="api-key-label">OpenRouter API Key:</label>
-                <input type="password" id="apiKey" class="api-key-input" placeholder="Enter your OpenRouter API key">
-                <div class="api-key-hint">
-                    Get your API key from <a href="https://openrouter.ai/keys" target="_blank">OpenRouter</a>
+        <!-- Results Section -->
+        <section class="results-section hidden" id="resultsSection">
+            <div class="results-header">
+                <h2><span class="section-icon">📊</span>AI Analysis Results</h2>
+                <div class="results-actions">
+                    <button class="btn btn--outline btn--sm" id="exportResults" title="Download results as JSON">
+                        <span class="btn-icon">💾</span>Export JSON
+                    </button>
+                    <button class="btn btn--outline btn--sm" id="newAnalysis" title="Start a new analysis">
+                        <span class="btn-icon">🔄</span>New Analysis
+                    </button>
                 </div>
             </div>
 
-            <div class="input-section">
-                <div class="file-input-container" id="fileInputContainer">
-                    <div class="upload-icon">📁</div>
-                    <div class="upload-text">Click to select or drag & drop your .c file</div>
-                    <div class="upload-hint">Supports .c files only</div>
-                    <input type="file" id="fileInput" class="file-input" accept=".c">
+            <div class="results-grid">
+                <div class="analysis-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title"><span class="panel-icon">🤖</span> AI-Powered Metrics</h3>
+                    </div>
+                    <div class="panel-content">
+                        <div class="complexity-section">
+                            <div class="complexity-metrics" id="resultsGrid">
+                                <!-- Results will be populated here -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div id="codeDisplay" class="code-display" style="display: none;"></div>
-
-                <button id="analyzeBtn" class="analyze-btn" disabled>
-                    🚀 Analyze Code Complexity
-                </button>
+                <div class="analysis-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title"><span class="panel-icon">📝</span> Analysis Notes</h3>
+                    </div>
+                    <div class="panel-content">
+                        <div id="notesSection" class="notes-content">
+                            <!-- Notes will be populated here -->
+                        </div>
+                    </div>
+                </div>
             </div>
+        </section>
 
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Analyzing your code with AI...</p>
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-main">
+                    <div class="footer-section footer-brand">
+                        <h3 class="footer-brand-title">CAnalyzerAI</h3>
+                        <p class="footer-brand-subtitle">Advanced C Code Complexity Analysis</p>
+                        <p class="footer-copyright">&copy; 2025 Suduli. All rights reserved.</p>
+                    </div>
+                    
+                    <div class="footer-section footer-connect">
+                        <h4 class="footer-section-title">Connect</h4>
+                        <div class="footer-social-links">
+                            <a href="https://github.com/suduli/CAnalyzerAI" target="_blank" rel="noopener noreferrer" class="social-link-modern" title="GitHub Repository">
+                                <svg class="social-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="footer-bottom">
+                    <div class="footer-brand-credit">
+                        <span class="brand-credit-text">Design And Implemented By Suduli</span>
+                    </div>
+                    <div class="footer-version">
+                        <span>AI-Powered Edition</span>
+                    </div>
+                </div>
             </div>
-
-            <div class="results-section" id="resultsSection">
-                <div class="results-grid" id="resultsGrid"></div>
-                <div class="notes-section" id="notesSection"></div>
-            </div>
-
-            <div id="errorMessage" class="error-message" style="display: none;"></div>
-        </div>
+        </footer>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="glassmorphic-particles.js"></script>
+    <script src="matrix-particles.js"></script>
+    <script src="light-theme-particles.js"></script>
     <script>
         class CCodeAnalyzer {
             constructor() {
@@ -480,56 +358,119 @@ ${this.codeContent}`;
             }
 
             async callOpenRouterAPI(prompt) {
-                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${this.apiKey}`,
-                        'Content-Type': 'application/json',
-                        'HTTP-Referer': window.location.origin,
-                        'X-Title': 'C Code Complexity Analyzer'
-                    },
-                    body: JSON.stringify({
-                        model: 'google/gemini-2.5-flash-image-preview:free',
-                        messages: [
-                            {
-                                role: 'user',
-                                content: prompt
+                // Try models in order of preference
+                const modelsToTry = [
+                    'google/gemini-2.0-flash-exp:free',
+                    'google/gemini-2.5-flash:free',
+                    'meta-llama/llama-3.1-8b-instruct:free'
+                ];
+
+                let lastError = null;
+
+                for (const model of modelsToTry) {
+                    try {
+                        console.log(`🔄 Trying model: ${model}`);
+                        
+                        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${this.apiKey}`,
+                                'Content-Type': 'application/json',
+                                'HTTP-Referer': window.location.origin,
+                                'X-Title': 'C Code Complexity Analyzer'
+                            },
+                            body: JSON.stringify({
+                                model: model,
+                                messages: [
+                                    {
+                                        role: 'user',
+                                        content: prompt
+                                    }
+                                ],
+                                temperature: 0.1,
+                                max_tokens: 1000
+                            })
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}));
+                            console.error(`OpenRouter API Error for ${model}:`, {
+                                status: response.status,
+                                statusText: response.statusText,
+                                headers: Object.fromEntries(response.headers.entries()),
+                                errorData
+                            });
+                            
+                            let errorMessage = '';
+                            if (response.status === 401) {
+                                errorMessage = 'Authentication failed. Please check your OpenRouter API key.';
+                            } else if (response.status === 403) {
+                                errorMessage = `Access forbidden to model ${model}. Your API key may not have access to this model.`;
+                            } else if (response.status === 429) {
+                                errorMessage = 'Rate limit exceeded. Please wait a moment and try again.';
+                            } else if (response.status === 400) {
+                                errorMessage = `Bad request for ${model}: ${errorData.error?.message || 'Invalid request parameters'}`;
+                            } else {
+                                errorMessage = errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`;
                             }
-                        ],
-                        temperature: 0.1,
-                        max_tokens: 1000
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                const content = data.choices[0]?.message?.content;
-                
-                if (!content) {
-                    throw new Error('No response content received from AI model');
-                }
-
-                // Clean the response content to extract JSON
-                let cleanedContent = this.cleanAIResponse(content);
-                
-                try {
-                    return JSON.parse(cleanedContent);
-                } catch (parseError) {
-                    // If parsing fails, try to extract JSON from the cleaned content
-                    const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
-                    if (jsonMatch) {
-                        try {
-                            return JSON.parse(jsonMatch[0]);
-                        } catch (secondParseError) {
-                            throw new Error(`Invalid JSON response from AI: ${secondParseError.message}. Raw content: ${cleanedContent.substring(0, 200)}...`);
+                            
+                            lastError = new Error(errorMessage);
+                            
+                            // If it's a 401, don't try other models as it's likely an API key issue
+                            if (response.status === 401) {
+                                throw lastError;
+                            }
+                            
+                            // Try next model
+                            continue;
                         }
+
+                        const data = await response.json();
+                        const content = data.choices[0]?.message?.content;
+                        
+                        if (!content) {
+                            lastError = new Error(`No response content received from ${model}`);
+                            continue;
+                        }
+
+                        console.log(`✅ Successfully used model: ${model}`);
+
+                        // Clean the response content to extract JSON
+                        let cleanedContent = this.cleanAIResponse(content);
+                        
+                        try {
+                            return JSON.parse(cleanedContent);
+                        } catch (parseError) {
+                            // If parsing fails, try to extract JSON from the cleaned content
+                            const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
+                            if (jsonMatch) {
+                                try {
+                                    return JSON.parse(jsonMatch[0]);
+                                } catch (secondParseError) {
+                                    lastError = new Error(`Invalid JSON response from ${model}: ${secondParseError.message}. Raw content: ${cleanedContent.substring(0, 200)}...`);
+                                    continue;
+                                }
+                            }
+                            lastError = new Error(`Invalid JSON response from ${model}: ${parseError.message}. Raw content: ${cleanedContent.substring(0, 200)}...`);
+                            continue;
+                        }
+
+                    } catch (error) {
+                        console.error(`Error with model ${model}:`, error);
+                        lastError = error;
+                        
+                        // If it's a network error or auth error, don't try other models
+                        if (error.message.includes('Authentication failed') || error.message.includes('Failed to fetch')) {
+                            throw error;
+                        }
+                        
+                        // Try next model
+                        continue;
                     }
-                    throw new Error(`Invalid JSON response from AI: ${parseError.message}. Raw content: ${cleanedContent.substring(0, 200)}...`);
                 }
+
+                // If we get here, all models failed
+                throw lastError || new Error('All available models failed to respond');
             }
 
             cleanAIResponse(content) {

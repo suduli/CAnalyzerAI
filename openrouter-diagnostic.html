@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenRouter API Diagnostic Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005fa3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .model-card {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+        .model-name {
+            font-weight: bold;
+            color: #007acc;
+        }
+        .model-status {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        .available { color: #28a745; }
+        .unavailable { color: #dc3545; }
+        .testing { color: #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 OpenRouter API Diagnostic Tool</h1>
+        
+        <div class="section">
+            <h3>🔑 API Configuration</h3>
+            <div class="form-group">
+                <label for="apiKey">OpenRouter API Key:</label>
+                <input type="password" id="apiKey" placeholder="Enter your OpenRouter API key">
+                <small>Get your API key from <a href="https://openrouter.ai/keys" target="_blank">OpenRouter</a></small>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>🔬 Basic Tests</h3>
+            <button onclick="testApiKey()">Test API Key Validity</button>
+            <button onclick="testModels()">Test Available Models</button>
+            <button onclick="testSpecificModel()">Test Specific Model</button>
+            <div id="basicTestResults"></div>
+        </div>
+
+        <div class="section">
+            <h3>🎯 Model-Specific Testing</h3>
+            <div class="form-group">
+                <label for="modelSelect">Select Model to Test:</label>
+                <select id="modelSelect">
+                    <option value="google/gemini-2.0-flash-exp:free">Google Gemini 2.0 Flash Experimental (Free)</option>
+                    <option value="google/gemini-2.5-flash:free">Google Gemini 2.5 Flash (Free)</option>
+                    <option value="google/gemini-2.5-flash-image-preview:free">Google Gemini 2.5 Flash Image Preview (Free)</option>
+                    <option value="meta-llama/llama-3.1-8b-instruct:free">Meta Llama 3.1 8B Instruct (Free)</option>
+                    <option value="microsoft/phi-3-mini-128k-instruct:free">Microsoft Phi 3 Mini (Free)</option>
+                </select>
+            </div>
+            <button onclick="testSingleModel()">Test Selected Model</button>
+            <div id="modelTestResults"></div>
+        </div>
+
+        <div class="section">
+            <h3>📝 Custom Request Testing</h3>
+            <div class="form-group">
+                <label for="customModel">Model:</label>
+                <input type="text" id="customModel" value="google/gemini-2.0-flash-exp:free">
+            </div>
+            <div class="form-group">
+                <label for="customPrompt">Test Prompt:</label>
+                <textarea id="customPrompt" rows="4" placeholder="Enter a test prompt...">Hello! Please respond with a simple JSON object containing: {"status": "ok", "message": "API is working"}</textarea>
+            </div>
+            <button onclick="testCustomRequest()">Send Custom Request</button>
+            <div id="customTestResults"></div>
+        </div>
+
+        <div class="section">
+            <h3>📊 Detailed Diagnostics</h3>
+            <div id="diagnosticResults"></div>
+        </div>
+    </div>
+
+    <script>
+        const resultsElements = {
+            basic: document.getElementById('basicTestResults'),
+            model: document.getElementById('modelTestResults'),
+            custom: document.getElementById('customTestResults'),
+            diagnostic: document.getElementById('diagnosticResults')
+        };
+
+        function getApiKey() {
+            const key = document.getElementById('apiKey').value.trim();
+            if (!key) {
+                showResult('basic', 'Please enter your OpenRouter API key first.', 'error');
+                return null;
+            }
+            return key;
+        }
+
+        function showResult(section, message, type = 'info') {
+            const element = resultsElements[section];
+            if (element) {
+                element.innerHTML = `<div class="result ${type}">${message}</div>`;
+            }
+        }
+
+        function addResult(section, message, type = 'info') {
+            const element = resultsElements[section];
+            if (element) {
+                element.innerHTML += `<div class="result ${type}">${message}</div>`;
+            }
+        }
+
+        async function makeOpenRouterRequest(model, messages, additionalParams = {}) {
+            const apiKey = getApiKey();
+            if (!apiKey) return null;
+
+            const requestBody = {
+                model: model,
+                messages: messages,
+                temperature: 0.1,
+                max_tokens: 500,
+                ...additionalParams
+            };
+
+            console.log('Making OpenRouter request:', requestBody);
+
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': window.location.origin,
+                    'X-Title': 'OpenRouter Diagnostic Tool'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            const responseData = await response.json();
+            
+            return {
+                ok: response.ok,
+                status: response.status,
+                statusText: response.statusText,
+                headers: Object.fromEntries(response.headers.entries()),
+                data: responseData
+            };
+        }
+
+        async function testApiKey() {
+            showResult('basic', 'Testing API key validity...', 'info');
+            
+            try {
+                const result = await makeOpenRouterRequest(
+                    'google/gemini-2.0-flash-exp:free',
+                    [{ role: 'user', content: 'Hello' }]
+                );
+
+                if (result.ok) {
+                    showResult('basic', '✅ API key is valid and working!', 'success');
+                } else {
+                    let errorMsg = `❌ API key test failed:\nStatus: ${result.status} ${result.statusText}\n`;
+                    if (result.data.error) {
+                        errorMsg += `Error: ${result.data.error.message}\n`;
+                    }
+                    errorMsg += `Response: ${JSON.stringify(result.data, null, 2)}`;
+                    showResult('basic', errorMsg, 'error');
+                }
+            } catch (error) {
+                showResult('basic', `❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testModels() {
+            showResult('basic', 'Testing available models...', 'info');
+
+            const modelsToTest = [
+                'google/gemini-2.0-flash-exp:free',
+                'google/gemini-2.5-flash:free',
+                'google/gemini-2.5-flash-image-preview:free',
+                'meta-llama/llama-3.1-8b-instruct:free',
+                'microsoft/phi-3-mini-128k-instruct:free'
+            ];
+
+            let results = '🔍 Testing models:\n\n';
+            
+            for (const model of modelsToTest) {
+                try {
+                    const result = await makeOpenRouterRequest(
+                        model,
+                        [{ role: 'user', content: 'Hello' }]
+                    );
+
+                    if (result.ok) {
+                        results += `✅ ${model} - Available\n`;
+                    } else {
+                        results += `❌ ${model} - Error ${result.status}: ${result.data.error?.message || 'Unknown error'}\n`;
+                    }
+                } catch (error) {
+                    results += `❌ ${model} - Network error: ${error.message}\n`;
+                }
+            }
+
+            showResult('basic', results, 'info');
+        }
+
+        async function testSpecificModel() {
+            const targetModel = 'google/gemini-2.0-flash-exp:free';
+            showResult('basic', `Testing specific model: ${targetModel}...`, 'info');
+
+            try {
+                const result = await makeOpenRouterRequest(
+                    targetModel,
+                    [{ role: 'user', content: 'Please respond with "Model test successful"' }]
+                );
+
+                if (result.ok) {
+                    const response = result.data.choices?.[0]?.message?.content || 'No content';
+                    showResult('basic', `✅ Model test successful!\nResponse: ${response}`, 'success');
+                } else {
+                    let errorMsg = `❌ Model test failed:\nStatus: ${result.status} ${result.statusText}\n`;
+                    errorMsg += `Error: ${result.data.error?.message || 'Unknown error'}\n`;
+                    errorMsg += `Full response: ${JSON.stringify(result.data, null, 2)}`;
+                    showResult('basic', errorMsg, 'error');
+                }
+            } catch (error) {
+                showResult('basic', `❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSingleModel() {
+            const model = document.getElementById('modelSelect').value;
+            showResult('model', `Testing model: ${model}...`, 'info');
+
+            try {
+                const result = await makeOpenRouterRequest(
+                    model,
+                    [{ role: 'user', content: 'Respond with "Hello from AI model"' }]
+                );
+
+                if (result.ok) {
+                    const response = result.data.choices?.[0]?.message?.content || 'No content';
+                    const usage = result.data.usage || {};
+                    
+                    let successMsg = `✅ Model "${model}" is working!\n\n`;
+                    successMsg += `Response: ${response}\n\n`;
+                    successMsg += `Usage Stats:\n`;
+                    successMsg += `- Prompt tokens: ${usage.prompt_tokens || 'N/A'}\n`;
+                    successMsg += `- Completion tokens: ${usage.completion_tokens || 'N/A'}\n`;
+                    successMsg += `- Total tokens: ${usage.total_tokens || 'N/A'}`;
+                    
+                    showResult('model', successMsg, 'success');
+                } else {
+                    let errorMsg = `❌ Model test failed:\nModel: ${model}\nStatus: ${result.status} ${result.statusText}\n`;
+                    
+                    if (result.status === 401) {
+                        errorMsg += '\n🔑 This is an authentication error. Possible causes:\n';
+                        errorMsg += '- Invalid API key\n';
+                        errorMsg += '- API key doesn\'t have access to this model\n';
+                        errorMsg += '- API key has expired\n';
+                    } else if (result.status === 403) {
+                        errorMsg += '\n🚫 This is a permission error. Possible causes:\n';
+                        errorMsg += '- Your plan doesn\'t include this model\n';
+                        errorMsg += '- Model requires payment/credits\n';
+                        errorMsg += '- Geographic restrictions\n';
+                    } else if (result.status === 404) {
+                        errorMsg += '\n❓ Model not found. Possible causes:\n';
+                        errorMsg += '- Model name is incorrect\n';
+                        errorMsg += '- Model has been removed or renamed\n';
+                        errorMsg += '- Model is not available in your region\n';
+                    }
+                    
+                    errorMsg += `\nError details: ${result.data.error?.message || 'Unknown error'}\n`;
+                    errorMsg += `Full response: ${JSON.stringify(result.data, null, 2)}`;
+                    
+                    showResult('model', errorMsg, 'error');
+                }
+            } catch (error) {
+                showResult('model', `❌ Network error testing model "${model}": ${error.message}`, 'error');
+            }
+        }
+
+        async function testCustomRequest() {
+            const model = document.getElementById('customModel').value.trim();
+            const prompt = document.getElementById('customPrompt').value.trim();
+
+            if (!model || !prompt) {
+                showResult('custom', 'Please enter both model and prompt.', 'error');
+                return;
+            }
+
+            showResult('custom', `Sending custom request...\nModel: ${model}`, 'info');
+
+            try {
+                const result = await makeOpenRouterRequest(
+                    model,
+                    [{ role: 'user', content: prompt }]
+                );
+
+                if (result.ok) {
+                    const response = result.data.choices?.[0]?.message?.content || 'No content';
+                    const usage = result.data.usage || {};
+                    
+                    let successMsg = `✅ Custom request successful!\n\n`;
+                    successMsg += `Model: ${model}\n`;
+                    successMsg += `Response: ${response}\n\n`;
+                    successMsg += `Usage: ${JSON.stringify(usage, null, 2)}\n\n`;
+                    successMsg += `Full API Response: ${JSON.stringify(result.data, null, 2)}`;
+                    
+                    showResult('custom', successMsg, 'success');
+                } else {
+                    let errorMsg = `❌ Custom request failed:\n`;
+                    errorMsg += `Model: ${model}\n`;
+                    errorMsg += `Status: ${result.status} ${result.statusText}\n`;
+                    errorMsg += `Error: ${result.data.error?.message || 'Unknown error'}\n\n`;
+                    errorMsg += `Full response: ${JSON.stringify(result.data, null, 2)}`;
+                    
+                    showResult('custom', errorMsg, 'error');
+                }
+            } catch (error) {
+                showResult('custom', `❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-populate diagnostic info on page load
+        window.addEventListener('load', () => {
+            const diagnosticInfo = `🔍 Browser & Environment Information:
+
+User Agent: ${navigator.userAgent}
+Current URL: ${window.location.href}
+Timestamp: ${new Date().toISOString()}
+Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
+
+🌐 Network Information:
+Online Status: ${navigator.onLine ? 'Online' : 'Offline'}
+Connection: ${navigator.connection ? JSON.stringify({
+    effectiveType: navigator.connection.effectiveType,
+    downlink: navigator.connection.downlink,
+    rtt: navigator.connection.rtt
+}) : 'Not available'}
+
+📋 Instructions:
+1. Enter your OpenRouter API key above
+2. Click "Test API Key Validity" to verify authentication
+3. Use "Test Available Models" to check which models work
+4. Try specific models if you encounter issues
+
+🔗 Useful Links:
+- OpenRouter Dashboard: https://openrouter.ai/
+- API Keys: https://openrouter.ai/keys
+- Model Pricing: https://openrouter.ai/models
+- Documentation: https://openrouter.ai/docs`;
+
+            showResult('diagnostic', diagnosticInfo, 'info');
+        });
+    </script>
+</body>
+</html>

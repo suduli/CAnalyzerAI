@@ -105,6 +105,53 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes slideInFromLeft {
+  from { 
+    opacity: 0; 
+    transform: translateX(-30px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+}
+
+@keyframes slideInFromRight {
+  from { 
+    opacity: 0; 
+    transform: translateX(30px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+}
+
+@keyframes titleGlow {
+  0%, 100% { 
+    text-shadow: 0 0 10px var(--accent-glow), 0 0 20px var(--accent-glow), 0 0 30px var(--accent-glow);
+  }
+  50% { 
+    text-shadow: 0 0 15px var(--accent-glow), 0 0 25px var(--accent-glow), 0 0 35px var(--accent-glow);
+  }
+}
+
+@keyframes iconSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes statusPulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
 @keyframes pulseGlow {
   0%, 100% { box-shadow: 0 0 8px var(--accent-cyan), 0 0 16px var(--accent-cyan); }
   50% { box-shadow: 0 0 12px var(--accent-cyan), 0 0 24px var(--accent-cyan); }
@@ -826,12 +873,14 @@ body::after {
   display: flex;
   align-items: center;
   gap: 16px;
+  animation: slideInFromLeft 1s ease-out;
 }
 
 .header-right {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  animation: slideInFromRight 1s ease-out;
 }
 
 .header-actions {
@@ -851,10 +900,21 @@ body::after {
   gap: 12px;
   text-shadow: 0 0 5px var(--accent-cyan), 0 0 10px var(--accent-cyan);
   transition: var(--transition-fast);
+  animation: slideInFromLeft 1s ease-out;
 }
 .app-title:hover {
   transform: scale(1.05);
   text-shadow: 0 0 10px var(--accent-cyan), 0 0 20px var(--accent-cyan);
+  animation: titleGlow 2s ease-in-out infinite;
+}
+
+.app-title .title-icon {
+  animation: iconSpin 3s linear infinite;
+  transition: var(--transition-fast);
+}
+
+.app-title:hover .title-icon {
+  animation: iconSpin 1s linear infinite;
 }
 
 /* Stronger visual hierarchy for headings and sections */
@@ -936,6 +996,13 @@ h3 { font-size: 20px; margin: 0; }
   font-size: 12px;
   font-weight: 600;
   border: 1px solid transparent;
+  animation: fadeIn 1.2s ease-out;
+  transition: var(--transition-fast);
+}
+
+.version:hover {
+  background: var(--border-color-hover);
+  transform: translateY(-1px);
 }
 
 .api-key-status {
@@ -1058,6 +1125,7 @@ div.status-indicator .status-dot,
   border-radius: 50% !important;
   background: var(--text-muted) !important;
   transition: background-color .3s !important;
+  animation: statusPulse 2s ease-in-out infinite;
   box-shadow: 0 0 8px var(--text-muted) !important;
 }
 .status-indicator .status-dot.valid,
