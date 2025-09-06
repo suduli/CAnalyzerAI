@@ -145,10 +145,12 @@
   0%, 100% { 
     opacity: 1;
     transform: scale(1);
+    box-shadow: 0 0 8px currentColor;
   }
   50% { 
-    opacity: 0.7;
-    transform: scale(1.05);
+    opacity: 0.8;
+    transform: scale(1.1);
+    box-shadow: 0 0 15px currentColor;
   }
 }
 
@@ -960,7 +962,7 @@ body::after {
 }
 
 .dropdown-menu {
-  position: absolute;
+  position: fixed !important;
   top: calc(100% + 8px);
   right: 0;
   min-width: 320px;
@@ -974,19 +976,36 @@ body::after {
   visibility: hidden;
   transform: translateY(-10px) scale(0.95);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1000;
+  z-index: 999999 !important;
   box-shadow: 
     0 20px 40px rgba(0, 0, 0, 0.3),
     0 0 20px rgba(0, 255, 255, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  max-height: 70vh;
+  max-height: calc(100vh - 120px);
   overflow-y: auto;
+  /* Ensure dropdown stays within viewport */
+  max-width: min(400px, calc(100vw - 32px));
+  /* Force new stacking context */
+  isolation: isolate;
 }
 
 .dropdown-menu.show {
   opacity: 1;
   visibility: visible;
   transform: translateY(0) scale(1);
+  /* Force to absolute top layer */
+  z-index: 2147483647 !important;
+}
+
+/* Dropdown opening upward animation */
+.dropdown-menu.dropdown-up {
+  transform: translateY(10px) scale(0.95);
+}
+
+.dropdown-menu.dropdown-up.show {
+  transform: translateY(0) scale(1);
+  /* Force to absolute top layer */
+  z-index: 2147483647 !important;
 }
 
 .dropdown-section {
@@ -1068,12 +1087,14 @@ body::after {
   
   .dropdown-menu {
     position: fixed;
-    top: auto;
-    right: 8px;
-    left: 8px;
+    top: auto !important;
+    bottom: auto !important;
+    right: 8px !important;
+    left: 8px !important;
     min-width: auto;
-    max-width: none;
+    max-width: none !important;
     margin-top: 8px;
+    max-height: calc(100vh - 120px) !important;
   }
 }
 
@@ -1310,9 +1331,17 @@ div.status-indicator,
   box-sizing: border-box !important;
   border-radius: 8px !important;
   border: 1px solid transparent !important;
-  background: transparent !important;
-  transition: var(--transition-fast) !important;
+  background: rgba(20, 20, 35, 0.2) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  transition: all 0.3s ease !important;
   position: relative !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+.api-key-status .status-indicator:hover {
+  background: rgba(20, 20, 35, 0.3) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
 }
 
 .status-help-btn {
@@ -1402,21 +1431,34 @@ div.status-indicator .status-dot,
   height: 12px !important;
   border-radius: 50% !important;
   background: var(--text-muted) !important;
-  transition: background-color .3s !important;
+  transition: all 0.3s ease !important;
   animation: statusPulse 2s ease-in-out infinite;
   box-shadow: 0 0 8px var(--text-muted) !important;
+  position: relative;
 }
 .status-indicator .status-dot.valid,
 .status-indicator.valid .status-dot,
 div.status-indicator.valid .status-dot { 
-  background: var(--accent-cyan) !important; 
-  box-shadow: 0 0 10px var(--accent-cyan) !important;
+  background: #39ff14 !important; /* Bright green */
+  box-shadow: 0 0 10px #39ff14 !important;
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+.status-indicator.valid {
+  border-color: rgba(57, 255, 20, 0.3) !important;
 }
 .status-indicator .status-dot.invalid,
 .status-indicator.invalid .status-dot,
-div.status-indicator.invalid .status-dot { 
-  background: var(--accent-magenta) !important; 
-  box-shadow: 0 0 10px var(--accent-magenta) !important;
+div.status-indicator.invalid .status-dot,
+.status-indicator.not-set .status-dot { 
+  background: #ff4757 !important; /* Red */
+  box-shadow: 0 0 10px #ff4757 !important;
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+.status-indicator.invalid,
+.status-indicator.not-set {
+  border-color: rgba(255, 71, 87, 0.3) !important;
 }
 
 .settings-btn {
@@ -1649,6 +1691,17 @@ div.status-indicator.invalid .status-dot {
 .status-badge.testing { background: rgba(108, 99, 255, 0.1); color: var(--accent-glow); }
 .status-badge.pass { background: rgba(57, 255, 20, 0.1); color: #39ff14; }
 .status-badge.fail { background: rgba(255, 71, 87, 0.1); color: #ff4757; }
+
+/* Analysis status badges */
+.status-badge.ai-warning { background: rgba(255, 165, 2, 0.1); color: #ffa502; }
+.status-badge.ai-error { background: rgba(255, 71, 87, 0.1); color: #ff4757; }
+.status-badge.ai-unavailable { background: rgba(136, 146, 176, 0.1); color: #8892b0; }
+
+/* Comparison indicators */
+.status-badge.positive { background: rgba(57, 255, 20, 0.1); color: #39ff14; }
+.status-badge.negative { background: rgba(255, 71, 87, 0.1); color: #ff4757; }
+.status-badge.neutral { background: rgba(0, 245, 212, 0.1); color: var(--accent-cyan); }
+.status-badge.na { background: rgba(136, 146, 176, 0.1); color: #8892b0; }
 
 .help-grid {
   display: grid;
@@ -3715,10 +3768,36 @@ div.status-indicator.invalid .status-dot {
   flex-direction: column; 
   text-align: left; 
 }
+/* Status text styling */
+.status-text {
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.status-indicator.valid .status-text {
+  color: #39ff14; /* Bright green */
+}
+
+.status-indicator.invalid .status-text,
+.status-indicator.not-set .status-text {
+  color: #ff4757; /* Red */
+}
+
+/* Status detail styling */
 .status-detail { 
   font-size: 12px; 
   color: var(--text-muted);
   text-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+  transition: color 0.3s ease;
+}
+
+.status-indicator.valid .status-detail {
+  color: rgba(57, 255, 20, 0.7);
+}
+
+.status-indicator.invalid .status-detail,
+.status-indicator.not-set .status-detail {
+  color: rgba(255, 71, 87, 0.7);
 }
 
 /* Ensure header API status text blends seamlessly */
@@ -3735,6 +3814,8 @@ div.status-indicator.invalid .status-dot {
   padding: 48px 0 24px;
   font-size: 14px;
   z-index: 100;
+  /* Ensure footer doesn't interfere with dropdown */
+  isolation: isolate;
   
   /* Glassmorphic Background - Theme Adaptive */
   background: linear-gradient(135deg, 

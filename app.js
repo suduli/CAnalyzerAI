@@ -101,9 +101,28 @@
     updateStatus(validated = false) {
       const needsKey = this.provider !== 'ollama';
       const ok = !needsKey || (this.apiKey && this.apiKey.length > 10);
-      if (this.statusDot) this.statusDot.style.background = ok ? '#39ff14' : '#8892b0';
+      
+      // Update status dot color
+      if (this.statusDot) this.statusDot.style.background = ok ? '#39ff14' : '#ff4757';
+      
+      // Update status text
       if (this.statusText) this.statusText.textContent = ok ? 'Ready' : 'No API Key';
+      
+      // Update timestamp if validated
       if (validated && this.lastValidated) this.lastValidated.textContent = `Updated ${new Date().toLocaleString()}`;
+      
+      // Update status indicator classes
+      if (this.statusRoot) {
+        // Remove all status classes
+        this.statusRoot.classList.remove('valid', 'invalid', 'not-set');
+        
+        // Add appropriate class
+        if (ok) {
+          this.statusRoot.classList.add('valid');
+        } else {
+          this.statusRoot.classList.add('invalid');
+        }
+      }
       
       // Update status-specific tooltips
       this.updateStatusTooltips(ok, validated);
@@ -2609,7 +2628,7 @@ int main() {
             <h2 class="modal-title">
               <span class="modal-icon">📊</span> Status Indicators Reference Guide
             </h2>
-            <button class="modal-close" onclick="document.getElementById('statusLegendModal').classList.add('hidden')">&times;</button>
+            <button class="modal-close" onclick="document.getElementById('statusLegendModal').classList.add('hidden')" aria-label="Close modal">&times;</button>
           </div>
           <div class="modal-body">
             <div class="legend-section">
@@ -2658,7 +2677,7 @@ int main() {
             </div>
 
             <div class="legend-section">
-              <h3 class="legend-section-title">⚙️ Configuration Status</h3>
+              <h3 class="legend-section-title">⚙️ API Configuration Status</h3>
               <div class="status-examples">
                 <div class="status-example-compact">
                   <span class="status-badge ready">Ready</span>
@@ -2677,27 +2696,103 @@ int main() {
                   <span>Test failed - check connection/key</span>
                 </div>
               </div>
+              
+              <div class="status-example">
+                <div class="api-status-example">
+                  <div class="status-indicator ready-example">
+                    <div class="status-dot" style="background: #39ff14;"></div>
+                    <div class="status-info">
+                      <span class="status-text">Ready</span>
+                      <span class="status-detail">Last updated: 2025-09-06</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="status-explanation">
+                  <strong>API Key Status:</strong> The green dot indicates your API key is valid and the system is ready to use the AI service for code analysis.
+                </div>
+              </div>
             </div>
 
             <div class="legend-section">
-              <h3 class="legend-section-title">🧪 Testing Status</h3>
+              <h3 class="legend-section-title">🧪 Analysis Status</h3>
               <div class="status-examples">
                 <div class="status-example-compact">
                   <span class="status-badge pending">⏳ Pending</span>
-                  <span>Test not started yet</span>
+                  <span>Analysis queued, waiting to start</span>
                 </div>
                 <div class="status-example-compact">
-                  <span class="status-badge testing">🔄 Testing</span>
-                  <span>Test currently running</span>
+                  <span class="status-badge testing">🔄 Analyzing</span>
+                  <span>Analysis currently in progress</span>
                 </div>
                 <div class="status-example-compact">
-                  <span class="status-badge pass">✅ Pass</span>
-                  <span>Test completed successfully</span>
+                  <span class="status-badge pass">✅ Complete</span>
+                  <span>Analysis completed successfully</span>
                 </div>
                 <div class="status-example-compact">
-                  <span class="status-badge fail">❌ Fail</span>
-                  <span>Test failed - issues found</span>
+                  <span class="status-badge fail">❌ Failed</span>
+                  <span>Analysis failed - see error message</span>
                 </div>
+                <div class="status-example-compact">
+                  <span class="status-badge ai-warning">⚠️ Warning</span>
+                  <span>Analysis completed with issues</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="legend-section">
+              <h3 class="legend-section-title">� Analysis Status Indicators</h3>
+              <div class="status-examples">
+                <div class="status-example-compact">
+                  <span class="status-badge ready">✅ AI analysis completed successfully</span>
+                  <span>Analysis ran without errors and returned valid data</span>
+                </div>
+                <div class="status-example-compact">
+                  <span class="status-badge ai-warning">⚠️ AI analysis completed with minor issues</span>
+                  <span>Analysis completed but with parsing or schema warnings</span>
+                </div>
+                <div class="status-example-compact">
+                  <span class="status-badge ai-error">❌ AI analysis failed</span>
+                  <span>Analysis could not be completed due to API or parsing errors</span>
+                </div>
+                <div class="status-example-compact">
+                  <span class="status-badge ai-unavailable">ℹ️ AI analysis unavailable</span>
+                  <span>Analysis skipped due to missing API key or configuration</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="legend-section">
+              <h3 class="legend-section-title">📊 Comparison Indicators</h3>
+              <div class="status-examples">
+                <div class="status-example-compact">
+                  <span class="status-badge positive">+24</span>
+                  <span>Positive difference (AI value is higher than static)</span>
+                </div>
+                <div class="status-example-compact">
+                  <span class="status-badge negative">-15</span>
+                  <span>Negative difference (AI value is lower than static)</span>
+                </div>
+                <div class="status-example-compact">
+                  <span class="status-badge neutral">0</span>
+                  <span>No difference between AI and static analysis</span>
+                </div>
+                <div class="status-example-compact">
+                  <span class="status-badge na">NA</span>
+                  <span>Comparison not available or values cannot be compared</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="legend-section">
+              <h3 class="legend-section-title">�📱 Responsive Status Display</h3>
+              <div class="responsive-status-info">
+                <p>Status indicators adapt to different screen sizes:</p>
+                <ul>
+                  <li><strong>Desktop:</strong> Full status with details</li>
+                  <li><strong>Tablet:</strong> Condensed status indicators</li>
+                  <li><strong>Mobile:</strong> Essential status dots only</li>
+                </ul>
+                <p>Hover or tap on any status indicator for more information.</p>
               </div>
             </div>
 
@@ -2715,6 +2810,33 @@ int main() {
                 </div>
                 <div class="help-item">
                   <strong>🔍 Detailed View:</strong> Click status indicators for more information
+                </div>
+              </div>
+            </div>
+            
+            <div class="legend-section">
+              <h3 class="legend-section-title">🔔 Notifications</h3>
+              <div class="notification-examples">
+                <div class="notification-example success">
+                  <div class="notification-icon">✅</div>
+                  <div class="notification-content">
+                    <strong>Success Notification</strong>
+                    <p>Operation completed successfully</p>
+                  </div>
+                </div>
+                <div class="notification-example warning">
+                  <div class="notification-icon">⚠️</div>
+                  <div class="notification-content">
+                    <strong>Warning Notification</strong>
+                    <p>Operation completed with warnings</p>
+                  </div>
+                </div>
+                <div class="notification-example error">
+                  <div class="notification-icon">❌</div>
+                  <div class="notification-content">
+                    <strong>Error Notification</strong>
+                    <p>Operation failed - see details</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -4437,6 +4559,9 @@ class NavigationDropdownController {
     this.dropdownToggle.setAttribute('aria-expanded', 'true');
     this.dropdownMenu.classList.add('show');
     
+    // Dynamic positioning to handle viewport constraints
+    this.adjustDropdownPosition();
+    
     // Announce to screen readers
     this.announceToScreenReader('Demo and testing menu opened');
     
@@ -4446,10 +4571,110 @@ class NavigationDropdownController {
     sys.log('🔽 Demo dropdown menu opened');
   }
 
+  adjustDropdownPosition() {
+    // Get viewport dimensions
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    
+    // Get toggle button position relative to viewport (since we're using fixed positioning)
+    const toggleRect = this.dropdownToggle.getBoundingClientRect();
+    
+    // Get dropdown dimensions (temporarily make it visible to measure)
+    this.dropdownMenu.style.visibility = 'hidden';
+    this.dropdownMenu.style.display = 'block';
+    const menuRect = this.dropdownMenu.getBoundingClientRect();
+    this.dropdownMenu.style.display = '';
+    this.dropdownMenu.style.visibility = '';
+    
+    // Calculate available space below and above the toggle
+    const spaceBelow = viewportHeight - toggleRect.bottom - 16; // 16px margin
+    const spaceAbove = toggleRect.top - 16; // 16px margin
+    const menuHeight = menuRect.height;
+    
+    // Reset any previous positioning adjustments
+    this.dropdownMenu.style.top = '';
+    this.dropdownMenu.style.bottom = '';
+    this.dropdownMenu.style.left = '';
+    this.dropdownMenu.style.right = '';
+    this.dropdownMenu.style.maxHeight = '';
+    this.dropdownMenu.classList.remove('dropdown-up');
+    
+    // Position dropdown using fixed positioning relative to toggle button
+    const toggleRight = viewportWidth - toggleRect.right;
+    const toggleLeft = toggleRect.left;
+    
+    // Determine the best position
+    if (spaceBelow >= menuHeight) {
+      // Enough space below - position below toggle
+      this.dropdownMenu.style.top = `${toggleRect.bottom + 8}px`;
+      this.dropdownMenu.style.right = `${toggleRight}px`;
+      
+      // CRITICAL: Check if dropdown would overlap with footer
+      const footer = document.querySelector('footer');
+      if (footer) {
+        const footerRect = footer.getBoundingClientRect();
+        const dropdownBottom = toggleRect.bottom + 8 + menuHeight;
+        const footerTop = footerRect.top;
+        
+        // If dropdown would extend into footer area, constrain it
+        if (dropdownBottom > footerTop - 20) { // 20px buffer from footer
+          const maxHeightToAvoidFooter = footerTop - (toggleRect.bottom + 8) - 20;
+          if (maxHeightToAvoidFooter > 200) { // Only constrain if we have reasonable space
+            this.dropdownMenu.style.maxHeight = `${maxHeightToAvoidFooter}px`;
+          }
+        }
+      }
+    } else if (spaceAbove >= menuHeight) {
+      // Not enough space below but enough above - position above
+      this.dropdownMenu.style.top = `${toggleRect.top - menuHeight - 8}px`;
+      this.dropdownMenu.style.right = `${toggleRight}px`;
+      this.dropdownMenu.classList.add('dropdown-up');
+    } else {
+      // Not enough space in either direction - adjust height and position
+      const maxAvailableSpace = Math.max(spaceBelow, spaceAbove);
+      
+      if (spaceBelow >= spaceAbove) {
+        // Use space below with constrained height
+        this.dropdownMenu.style.top = `${toggleRect.bottom + 8}px`;
+        this.dropdownMenu.style.maxHeight = `${spaceBelow - 16}px`;
+        this.dropdownMenu.style.right = `${toggleRight}px`;
+      } else {
+        // Use space above with constrained height
+        this.dropdownMenu.style.top = `${spaceAbove - maxAvailableSpace + 16}px`;
+        this.dropdownMenu.style.maxHeight = `${spaceAbove - 16}px`;
+        this.dropdownMenu.style.right = `${toggleRight}px`;
+        this.dropdownMenu.classList.add('dropdown-up');
+      }
+    }
+    
+    // Handle horizontal positioning for narrow screens
+    if (viewportWidth < 480) {
+      this.dropdownMenu.style.right = '8px';
+      this.dropdownMenu.style.left = '8px';
+      this.dropdownMenu.style.minWidth = 'auto';
+    } else {
+      // Ensure dropdown doesn't go off-screen horizontally
+      const menuWidth = parseInt(getComputedStyle(this.dropdownMenu).minWidth) || 320;
+      if (toggleRight < menuWidth) {
+        // Not enough space on the right, align to left edge of toggle
+        this.dropdownMenu.style.left = `${toggleLeft}px`;
+        this.dropdownMenu.style.right = 'auto';
+      }
+    }
+  }
+
   closeDropdown() {
     this.isOpen = false;
     this.dropdownToggle.setAttribute('aria-expanded', 'false');
-    this.dropdownMenu.classList.remove('show');
+    this.dropdownMenu.classList.remove('show', 'dropdown-up');
+    
+    // Reset all positioning styles for fixed positioning
+    this.dropdownMenu.style.top = '';
+    this.dropdownMenu.style.bottom = '';
+    this.dropdownMenu.style.left = '';
+    this.dropdownMenu.style.right = '';
+    this.dropdownMenu.style.maxHeight = '';
+    this.dropdownMenu.style.minWidth = '';
     
     // Remove focus trap
     this.dropdownMenu.removeAttribute('tabindex');
