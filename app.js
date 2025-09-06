@@ -4437,6 +4437,9 @@ class NavigationDropdownController {
     this.dropdownToggle.setAttribute('aria-expanded', 'true');
     this.dropdownMenu.classList.add('show');
     
+    // Dynamic positioning to handle viewport constraints
+    this.adjustDropdownPosition();
+    
     // Announce to screen readers
     this.announceToScreenReader('Demo and testing menu opened');
     
@@ -4446,10 +4449,80 @@ class NavigationDropdownController {
     sys.log('🔽 Demo dropdown menu opened');
   }
 
+  adjustDropdownPosition() {
+    // Get viewport dimensions
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    
+    // Get toggle button position
+    const toggleRect = this.dropdownToggle.getBoundingClientRect();
+    
+    // Get dropdown dimensions (temporarily make it visible to measure)
+    this.dropdownMenu.style.visibility = 'hidden';
+    this.dropdownMenu.style.display = 'block';
+    const menuRect = this.dropdownMenu.getBoundingClientRect();
+    this.dropdownMenu.style.display = '';
+    this.dropdownMenu.style.visibility = '';
+    
+    // Calculate available space below and above the toggle
+    const spaceBelow = viewportHeight - toggleRect.bottom - 16; // 16px margin
+    const spaceAbove = toggleRect.top - 16; // 16px margin
+    const menuHeight = menuRect.height;
+    
+    // Reset any previous positioning adjustments
+    this.dropdownMenu.style.top = '';
+    this.dropdownMenu.style.bottom = '';
+    this.dropdownMenu.style.maxHeight = '';
+    this.dropdownMenu.classList.remove('dropdown-up');
+    
+    // Determine the best position
+    if (spaceBelow >= menuHeight) {
+      // Enough space below - use default positioning
+      this.dropdownMenu.style.top = 'calc(100% + 8px)';
+    } else if (spaceAbove >= menuHeight) {
+      // Not enough space below but enough above - position above
+      this.dropdownMenu.style.bottom = 'calc(100% + 8px)';
+      this.dropdownMenu.style.top = 'auto';
+      this.dropdownMenu.classList.add('dropdown-up');
+    } else {
+      // Not enough space in either direction - adjust height and position
+      const maxAvailableSpace = Math.max(spaceBelow, spaceAbove);
+      
+      if (spaceBelow >= spaceAbove) {
+        // Use space below with constrained height
+        this.dropdownMenu.style.top = 'calc(100% + 8px)';
+        this.dropdownMenu.style.maxHeight = `${spaceBelow - 16}px`;
+      } else {
+        // Use space above with constrained height
+        this.dropdownMenu.style.bottom = 'calc(100% + 8px)';
+        this.dropdownMenu.style.top = 'auto';
+        this.dropdownMenu.style.maxHeight = `${spaceAbove - 16}px`;
+        this.dropdownMenu.classList.add('dropdown-up');
+      }
+    }
+    
+    // Handle horizontal positioning for mobile
+    if (viewportWidth < 480) {
+      const spaceRight = viewportWidth - toggleRect.right;
+      if (spaceRight < 320) {
+        // Not enough space on the right, align to right edge of viewport
+        this.dropdownMenu.style.right = '16px';
+        this.dropdownMenu.style.left = 'auto';
+      }
+    }
+  }
+
   closeDropdown() {
     this.isOpen = false;
     this.dropdownToggle.setAttribute('aria-expanded', 'false');
-    this.dropdownMenu.classList.remove('show');
+    this.dropdownMenu.classList.remove('show', 'dropdown-up');
+    
+    // Reset positioning styles
+    this.dropdownMenu.style.top = '';
+    this.dropdownMenu.style.bottom = '';
+    this.dropdownMenu.style.maxHeight = '';
+    this.dropdownMenu.style.right = '';
+    this.dropdownMenu.style.left = '';
     
     // Remove focus trap
     this.dropdownMenu.removeAttribute('tabindex');

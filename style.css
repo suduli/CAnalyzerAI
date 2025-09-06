@@ -974,18 +974,29 @@ body::after {
   visibility: hidden;
   transform: translateY(-10px) scale(0.95);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1000;
+  z-index: 9999;
   box-shadow: 
     0 20px 40px rgba(0, 0, 0, 0.3),
     0 0 20px rgba(0, 255, 255, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  max-height: 70vh;
+  max-height: calc(100vh - 120px);
   overflow-y: auto;
+  /* Ensure dropdown stays within viewport */
+  max-width: min(400px, calc(100vw - 32px));
 }
 
 .dropdown-menu.show {
   opacity: 1;
   visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+/* Dropdown opening upward animation */
+.dropdown-menu.dropdown-up {
+  transform: translateY(10px) scale(0.95);
+}
+
+.dropdown-menu.dropdown-up.show {
   transform: translateY(0) scale(1);
 }
 
@@ -1068,12 +1079,14 @@ body::after {
   
   .dropdown-menu {
     position: fixed;
-    top: auto;
-    right: 8px;
-    left: 8px;
+    top: auto !important;
+    bottom: auto !important;
+    right: 8px !important;
+    left: 8px !important;
     min-width: auto;
-    max-width: none;
+    max-width: none !important;
     margin-top: 8px;
+    max-height: calc(100vh - 120px) !important;
   }
 }
 
