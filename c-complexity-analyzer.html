@@ -166,6 +166,40 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- MISRA Analysis Panel -->
+                <div class="analysis-panel" id="misraPanel">
+                    <div class="panel-header">
+                        <h3 class="panel-title"><span class="panel-icon">🛡️</span> MISRA C Analysis</h3>
+                        <div class="misra-compliance-badge" id="misraComplianceBadge">
+                            <span id="misraComplianceText">Calculating...</span>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div class="misra-summary" id="misraSummary">
+                            <div class="misra-stat">
+                                <div class="misra-stat-value" id="misraViolationCount">0</div>
+                                <div class="misra-stat-label">Total Violations</div>
+                            </div>
+                            <div class="misra-stat">
+                                <div class="misra-stat-value" id="misraCriticalCount">0</div>
+                                <div class="misra-stat-label">Critical Issues</div>
+                            </div>
+                            <div class="misra-stat">
+                                <div class="misra-stat-value" id="misraCompliance">0%</div>
+                                <div class="misra-stat-label">Compliance</div>
+                            </div>
+                        </div>
+                        <div class="misra-violations" id="misraViolations">
+                            <!-- MISRA violations will be populated here -->
+                        </div>
+                        <div class="misra-actions">
+                            <button class="btn btn--outline btn--sm" id="explainMisraBtn" style="display: none;">
+                                <span class="btn-icon">💡</span>Explain MISRA Findings
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -208,11 +242,340 @@
     <script src="glassmorphic-particles.js"></script>
     <script src="matrix-particles.js"></script>
     <script src="light-theme-particles.js"></script>
+    
+    <style>
+        /* MISRA Analysis Styles */
+        .misra-compliance-badge {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.8em;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .misra-compliance-badge.excellent {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: rgba(76, 175, 80, 0.4);
+            color: #4caf50;
+        }
+
+        .misra-compliance-badge.good {
+            background: rgba(76, 175, 80, 0.15);
+            border-color: rgba(76, 175, 80, 0.3);
+            color: #81c784;
+        }
+
+        .misra-compliance-badge.warning {
+            background: rgba(255, 193, 7, 0.2);
+            border-color: rgba(255, 193, 7, 0.4);
+            color: #ffc107;
+        }
+
+        .misra-compliance-badge.critical {
+            background: rgba(244, 67, 54, 0.2);
+            border-color: rgba(244, 67, 54, 0.4);
+            color: #f44336;
+        }
+
+        .misra-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .misra-stat {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: var(--transition-smooth);
+        }
+
+        .misra-stat:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .misra-stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--accent-glow);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .misra-stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .misra-violations {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+
+        .misra-violation {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: var(--transition-smooth);
+        }
+
+        .misra-violation:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+
+        .misra-violation.severity-mandatory {
+            border-left-color: #f44336;
+        }
+
+        .misra-violation.severity-required {
+            border-left-color: #ff9800;
+        }
+
+        .misra-violation.severity-advisory {
+            border-left-color: #2196f3;
+        }
+
+        .violation-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .rule-number {
+            background: rgba(79, 195, 247, 0.2);
+            color: #4fc3f7;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .severity-badge {
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .severity-badge.mandatory {
+            background: #f44336;
+            color: white;
+        }
+
+        .severity-badge.required {
+            background: #ff9800;
+            color: white;
+        }
+
+        .severity-badge.advisory {
+            background: #2196f3;
+            color: white;
+        }
+
+        .line-number {
+            color: var(--text-muted);
+            font-size: 0.85em;
+        }
+
+        .violation-description {
+            margin-bottom: 12px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+
+        .code-snippet {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-snippet pre {
+            margin: 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #e8eaf6;
+        }
+
+        .recommendation {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 3px solid #4caf50;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .recommendation strong {
+            color: #4caf50;
+        }
+
+        .no-violations {
+            text-align: center;
+            padding: 40px 20px;
+            color: #4caf50;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .misra-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        /* MISRA Modal Styles */
+        .misra-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .misra-modal-content {
+            background: var(--bg-glass-elevated);
+            border-radius: 16px;
+            max-width: 800px;
+            max-height: 80vh;
+            width: 100%;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: var(--glass-shadow-xl);
+        }
+
+        .misra-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .misra-modal-header h3 {
+            margin: 0;
+            color: var(--text-primary);
+            font-family: var(--font-family-heading);
+        }
+
+        .close-misra-modal {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-misra-modal:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        .misra-modal-body {
+            padding: 24px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .misra-explanation-content {
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .misra-explanation-content h4 {
+            color: var(--text-primary);
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+
+        .misra-explanation-content ul {
+            padding-left: 20px;
+        }
+
+        .misra-explanation-content li {
+            margin-bottom: 8px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .misra-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .violation-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .misra-modal-content {
+                margin: 10px;
+                max-height: 90vh;
+            }
+            
+            .misra-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* Loading state for MISRA panel */
+        .misra-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        .misra-loading::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-glow);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
     <script>
         class CCodeAnalyzer {
             constructor() {
                 this.apiKey = '';
                 this.codeContent = '';
+                this.misraResults = null;
                 this.initializeElements();
                 this.bindEvents();
             }
@@ -228,6 +591,16 @@
                 this.resultsGrid = document.getElementById('resultsGrid');
                 this.notesSection = document.getElementById('notesSection');
                 this.errorMessage = document.getElementById('errorMessage');
+                
+                // MISRA elements
+                this.misraPanel = document.getElementById('misraPanel');
+                this.misraComplianceBadge = document.getElementById('misraComplianceBadge');
+                this.misraComplianceText = document.getElementById('misraComplianceText');
+                this.misraViolationCount = document.getElementById('misraViolationCount');
+                this.misraCriticalCount = document.getElementById('misraCriticalCount');
+                this.misraCompliance = document.getElementById('misraCompliance');
+                this.misraViolations = document.getElementById('misraViolations');
+                this.explainMisraBtn = document.getElementById('explainMisraBtn');
             }
 
             bindEvents() {
@@ -242,6 +615,9 @@
                 this.fileInputContainer.addEventListener('dragleave', (e) => this.handleDragLeave(e));
                 this.fileInputContainer.addEventListener('drop', (e) => this.handleDrop(e));
                 this.analyzeBtn.addEventListener('click', () => this.analyzeCode());
+                
+                // MISRA events
+                this.explainMisraBtn.addEventListener('click', () => this.explainMisraFindings());
             }
 
             handleFileSelect(event) {
@@ -307,11 +683,17 @@
                 this.showLoading(true);
                 this.hideError();
                 this.hideResults();
+                this.showMisraLoading();
 
                 try {
-                    const prompt = this.buildPrompt();
-                    const response = await this.callOpenRouterAPI(prompt);
-                    this.displayResults(response);
+                    // Run both analyses in parallel
+                    const [complexityResults, misraResults] = await Promise.all([
+                        this.analyzeComplexity(),
+                        this.analyzeMISRA()
+                    ]);
+                    
+                    this.displayResults(complexityResults);
+                    this.displayMisraResults(misraResults);
                 } catch (error) {
                     console.error('Analysis error:', error);
                     this.showError(`Analysis failed: ${error.message}`);
@@ -320,7 +702,17 @@
                 }
             }
 
-            buildPrompt() {
+            async analyzeComplexity() {
+                const prompt = this.buildComplexityPrompt();
+                return await this.callOpenRouterAPI(prompt, 'complexity');
+            }
+
+            async analyzeMISRA() {
+                const prompt = this.buildMisraPrompt();
+                return await this.callOpenRouterAPI(prompt, 'misra');
+            }
+
+            buildComplexityPrompt() {
                 return `You are a code complexity analyzer. Your task is to analyze C programming language code and return ONLY a valid JSON response.
 
 CRITICAL INSTRUCTIONS:
@@ -357,7 +749,47 @@ C CODE TO ANALYZE:
 ${this.codeContent}`;
             }
 
-            async callOpenRouterAPI(prompt) {
+            buildMisraPrompt() {
+                return `Analyze the following C code for MISRA-C compliance violations. Return results in strict JSON format with no additional text or formatting:
+
+CRITICAL INSTRUCTIONS:
+1. Return ONLY valid JSON. No explanations, no markdown formatting, no code blocks.
+2. Do NOT wrap your response in \`\`\`json or any other markdown formatting.
+3. Start your response with { and end with } - nothing before or after.
+
+REQUIRED JSON SCHEMA:
+{
+    "misra_violations": [
+        {
+            "rule": "MISRA rule number (e.g., 1.1, 8.5)",
+            "severity": "Required|Advisory|Mandatory",
+            "line": line_number,
+            "description": "Brief description of violation",
+            "code_snippet": "Relevant code snippet",
+            "recommendation": "How to fix this violation"
+        }
+    ],
+    "summary": {
+        "total_violations": number,
+        "critical_count": number,
+        "compliance_percentage": number,
+        "most_common_violation": "Most frequent rule violation"
+    }
+}
+
+Focus on common MISRA-C rules like:
+- Rule 8.5: Declaration should be in header files
+- Rule 12.1: Precedence of operators
+- Rule 14.3: Controlling expressions should be boolean
+- Rule 15.5: Function should have single exit point
+- Rule 16.4: Switch statements should be well-formed
+- Rule 20.1: #include directives should only be preceded by preprocessor directives
+
+C Code to analyze:
+${this.codeContent}`;
+            }
+
+            async callOpenRouterAPI(prompt, analysisType) {
                 // Try models in order of preference
                 const modelsToTry = [
                     'google/gemini-2.0-flash-exp:free',
@@ -369,7 +801,7 @@ ${this.codeContent}`;
 
                 for (const model of modelsToTry) {
                     try {
-                        console.log(`🔄 Trying model: ${model}`);
+                        console.log(`🔄 Trying model: ${model} for ${analysisType} analysis`);
                         
                         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                             method: 'POST',
@@ -377,7 +809,7 @@ ${this.codeContent}`;
                                 'Authorization': `Bearer ${this.apiKey}`,
                                 'Content-Type': 'application/json',
                                 'HTTP-Referer': window.location.origin,
-                                'X-Title': 'C Code Complexity Analyzer'
+                                'X-Title': `CAnalyzerAI ${analysisType} Analysis`
                             },
                             body: JSON.stringify({
                                 model: model,
@@ -388,16 +820,15 @@ ${this.codeContent}`;
                                     }
                                 ],
                                 temperature: 0.1,
-                                max_tokens: 1000
+                                max_tokens: analysisType === 'misra' ? 4000 : 1000
                             })
                         });
 
                         if (!response.ok) {
                             const errorData = await response.json().catch(() => ({}));
-                            console.error(`OpenRouter API Error for ${model}:`, {
+                            console.error(`OpenRouter API Error for ${model} (${analysisType}):`, {
                                 status: response.status,
                                 statusText: response.statusText,
-                                headers: Object.fromEntries(response.headers.entries()),
                                 errorData
                             });
                             
@@ -429,11 +860,11 @@ ${this.codeContent}`;
                         const content = data.choices[0]?.message?.content;
                         
                         if (!content) {
-                            lastError = new Error(`No response content received from ${model}`);
+                            lastError = new Error(`No response content received from ${model} for ${analysisType}`);
                             continue;
                         }
 
-                        console.log(`✅ Successfully used model: ${model}`);
+                        console.log(`✅ Successfully used model: ${model} for ${analysisType} analysis`);
 
                         // Clean the response content to extract JSON
                         let cleanedContent = this.cleanAIResponse(content);
@@ -447,16 +878,16 @@ ${this.codeContent}`;
                                 try {
                                     return JSON.parse(jsonMatch[0]);
                                 } catch (secondParseError) {
-                                    lastError = new Error(`Invalid JSON response from ${model}: ${secondParseError.message}. Raw content: ${cleanedContent.substring(0, 200)}...`);
+                                    lastError = new Error(`Invalid JSON response from ${model} for ${analysisType}: ${secondParseError.message}. Raw content: ${cleanedContent.substring(0, 200)}...`);
                                     continue;
                                 }
                             }
-                            lastError = new Error(`Invalid JSON response from ${model}: ${parseError.message}. Raw content: ${cleanedContent.substring(0, 200)}...`);
+                            lastError = new Error(`Invalid JSON response from ${model} for ${analysisType}: ${parseError.message}. Raw content: ${cleanedContent.substring(0, 200)}...`);
                             continue;
                         }
 
                     } catch (error) {
-                        console.error(`Error with model ${model}:`, error);
+                        console.error(`Error with model ${model} for ${analysisType}:`, error);
                         lastError = error;
                         
                         // If it's a network error or auth error, don't try other models
@@ -470,7 +901,7 @@ ${this.codeContent}`;
                 }
 
                 // If we get here, all models failed
-                throw lastError || new Error('All available models failed to respond');
+                throw lastError || new Error(`All available models failed to respond for ${analysisType} analysis`);
             }
 
             cleanAIResponse(content) {
@@ -531,6 +962,158 @@ ${this.codeContent}`;
                 }
 
                 this.resultsSection.style.display = 'block';
+            }
+
+            displayMisraResults(results) {
+                this.misraResults = results;
+                
+                // Update summary stats
+                this.misraViolationCount.textContent = results.summary.total_violations;
+                this.misraCriticalCount.textContent = results.summary.critical_count;
+                this.misraCompliance.textContent = `${results.summary.compliance_percentage}%`;
+                
+                // Update compliance badge
+                this.updateComplianceBadge(results.summary.compliance_percentage);
+                
+                // Clear and populate violations
+                this.misraViolations.innerHTML = '';
+                
+                if (results.misra_violations && results.misra_violations.length > 0) {
+                    results.misra_violations.forEach((violation, index) => {
+                        const violationDiv = document.createElement('div');
+                        violationDiv.className = `misra-violation severity-${violation.severity.toLowerCase()}`;
+                        
+                        violationDiv.innerHTML = `
+                            <div class="violation-header">
+                                <span class="rule-number">Rule ${violation.rule}</span>
+                                <span class="severity-badge ${violation.severity.toLowerCase()}">${violation.severity}</span>
+                                <span class="line-number">Line ${violation.line}</span>
+                            </div>
+                            <div class="violation-description">${violation.description}</div>
+                            <div class="code-snippet">
+                                <strong>Code:</strong>
+                                <pre><code>${violation.code_snippet}</code></pre>
+                            </div>
+                            <div class="recommendation">
+                                <strong>Recommendation:</strong> ${violation.recommendation}
+                            </div>
+                        `;
+                        this.misraViolations.appendChild(violationDiv);
+                    });
+                    
+                    this.explainMisraBtn.style.display = 'block';
+                } else {
+                    this.misraViolations.innerHTML = '<div class="no-violations">🎉 No MISRA violations found! Your code follows MISRA-C guidelines.</div>';
+                    this.explainMisraBtn.style.display = 'none';
+                }
+            }
+
+            updateComplianceBadge(percentage) {
+                let badgeClass = 'critical';
+                let badgeText = 'Critical Issues';
+                
+                if (percentage >= 95) {
+                    badgeClass = 'excellent';
+                    badgeText = 'Excellent';
+                } else if (percentage >= 80) {
+                    badgeClass = 'good';
+                    badgeText = 'Good';
+                } else if (percentage >= 60) {
+                    badgeClass = 'warning';
+                    badgeText = 'Needs Improvement';
+                }
+                
+                this.misraComplianceBadge.className = `misra-compliance-badge ${badgeClass}`;
+                this.misraComplianceText.textContent = badgeText;
+            }
+
+            showMisraLoading() {
+                this.misraViolations.innerHTML = '<div class="misra-loading">Analyzing MISRA compliance...</div>';
+                this.misraViolationCount.textContent = '...';
+                this.misraCriticalCount.textContent = '...';
+                this.misraCompliance.textContent = '...';
+                this.misraComplianceText.textContent = 'Analyzing...';
+            }
+
+            async explainMisraFindings() {
+                if (!this.misraResults) {
+                    this.showError('No MISRA analysis data available');
+                    return;
+                }
+
+                const btn = this.explainMisraBtn;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="btn-icon">⏳</span>Generating Explanation...';
+                btn.disabled = true;
+
+                try {
+                    const explanationPrompt = `Based on the following MISRA-C analysis results, provide a comprehensive explanation of the findings, their impact on code quality and safety, and prioritized recommendations for improvement.
+
+MISRA Analysis Results:
+${JSON.stringify(this.misraResults, null, 2)}
+
+Please provide:
+1. Overall assessment of MISRA compliance
+2. Critical issues that need immediate attention
+3. Impact on code safety and reliability
+4. Prioritized action plan for remediation
+5. Best practices to prevent future violations
+
+Format your response in clear, structured sections with practical recommendations.`;
+
+                    const explanation = await this.callOpenRouterAPI(explanationPrompt, 'explanation');
+                    this.showMisraExplanation(explanation);
+                } catch (error) {
+                    console.error('MISRA explanation error:', error);
+                    this.showError('Failed to generate explanation. Please try again.');
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            }
+
+            showMisraExplanation(explanation) {
+                const modal = document.createElement('div');
+                modal.className = 'misra-modal';
+                modal.innerHTML = `
+                    <div class="misra-modal-content">
+                        <div class="misra-modal-header">
+                            <h3>MISRA Analysis Explanation</h3>
+                            <button class="close-misra-modal" aria-label="Close explanation modal">&times;</button>
+                        </div>
+                        <div class="misra-modal-body">
+                            <div class="misra-explanation-content">
+                                ${typeof explanation === 'string' ? explanation.replace(/\n/g, '<br>') : JSON.stringify(explanation, null, 2)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Close modal functionality
+                const closeBtn = modal.querySelector('.close-misra-modal');
+                closeBtn.addEventListener('click', () => this.closeMisraModal(modal));
+                
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        this.closeMisraModal(modal);
+                    }
+                });
+                
+                // Keyboard navigation
+                modal.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeMisraModal(modal);
+                    }
+                });
+                
+                closeBtn.focus();
+            }
+
+            closeMisraModal(modal) {
+                document.body.removeChild(modal);
+                this.explainMisraBtn.focus();
             }
 
             showLoading(show) {

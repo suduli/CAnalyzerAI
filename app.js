@@ -4317,3 +4317,183 @@ class CyberParticleController {
 
 // Initialize Cyber particle controller
 const cyberController = new CyberParticleController();
+
+// Navigation Dropdown Controller
+class NavigationDropdownController {
+  constructor() {
+    this.dropdownToggle = null;
+    this.dropdownMenu = null;
+    this.isOpen = false;
+    this.init();
+  }
+
+  init() {
+    document.addEventListener('DOMContentLoaded', () => {
+      this.dropdownToggle = document.getElementById('demoDropdownToggle');
+      this.dropdownMenu = document.getElementById('demo-dropdown-menu');
+      
+      if (this.dropdownToggle && this.dropdownMenu) {
+        this.setupEventListeners();
+        sys.log('🧪 Demo & Testing dropdown menu initialized');
+      }
+    });
+  }
+
+  setupEventListeners() {
+    // Click event for toggle button
+    this.dropdownToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.toggleDropdown();
+    });
+
+    // Keyboard navigation for toggle
+    this.dropdownToggle.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        this.toggleDropdown();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        this.openDropdown();
+        this.focusFirstMenuItem();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        this.closeDropdown();
+      }
+    });
+
+    // Menu item keyboard navigation
+    const menuItems = this.dropdownMenu.querySelectorAll('.dropdown-item');
+    menuItems.forEach((item, index) => {
+      item.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const nextItem = menuItems[index + 1] || menuItems[0];
+          nextItem.focus();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const prevItem = menuItems[index - 1] || menuItems[menuItems.length - 1];
+          prevItem.focus();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          this.closeDropdown();
+          this.dropdownToggle.focus();
+        } else if (e.key === 'Tab' && !e.shiftKey) {
+          // Tab forward from last item closes dropdown
+          if (index === menuItems.length - 1) {
+            this.closeDropdown();
+          }
+        } else if (e.key === 'Tab' && e.shiftKey) {
+          // Shift+Tab from first item closes dropdown
+          if (index === 0) {
+            e.preventDefault();
+            this.closeDropdown();
+            this.dropdownToggle.focus();
+          }
+        }
+      });
+
+      // Add hover effects for better UX
+      item.addEventListener('mouseenter', () => {
+        item.focus();
+      });
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (this.isOpen && 
+          !this.dropdownToggle.contains(e.target) && 
+          !this.dropdownMenu.contains(e.target)) {
+        this.closeDropdown();
+      }
+    });
+
+    // Close dropdown on window resize
+    window.addEventListener('resize', () => {
+      if (this.isOpen) {
+        this.closeDropdown();
+      }
+    });
+
+    // Close dropdown when pressing escape anywhere
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isOpen) {
+        this.closeDropdown();
+        this.dropdownToggle.focus();
+      }
+    });
+  }
+
+  toggleDropdown() {
+    if (this.isOpen) {
+      this.closeDropdown();
+    } else {
+      this.openDropdown();
+    }
+  }
+
+  openDropdown() {
+    this.isOpen = true;
+    this.dropdownToggle.setAttribute('aria-expanded', 'true');
+    this.dropdownMenu.classList.add('show');
+    
+    // Announce to screen readers
+    this.announceToScreenReader('Demo and testing menu opened');
+    
+    // Set focus trap
+    this.dropdownMenu.setAttribute('tabindex', '-1');
+    
+    sys.log('🔽 Demo dropdown menu opened');
+  }
+
+  closeDropdown() {
+    this.isOpen = false;
+    this.dropdownToggle.setAttribute('aria-expanded', 'false');
+    this.dropdownMenu.classList.remove('show');
+    
+    // Remove focus trap
+    this.dropdownMenu.removeAttribute('tabindex');
+    
+    sys.log('🔼 Demo dropdown menu closed');
+  }
+
+  focusFirstMenuItem() {
+    const firstItem = this.dropdownMenu.querySelector('.dropdown-item');
+    if (firstItem) {
+      // Small delay to ensure dropdown is fully visible
+      setTimeout(() => {
+        firstItem.focus();
+      }, 100);
+    }
+  }
+
+  announceToScreenReader(message) {
+    // Create or update screen reader announcement
+    let announcement = document.getElementById('sr-announcement');
+    if (!announcement) {
+      announcement = document.createElement('div');
+      announcement.id = 'sr-announcement';
+      announcement.setAttribute('aria-live', 'polite');
+      announcement.setAttribute('aria-atomic', 'true');
+      announcement.className = 'sr-only';
+      announcement.style.cssText = `
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      `;
+      document.body.appendChild(announcement);
+    }
+    
+    announcement.textContent = message;
+    
+    // Clear after announcement
+    setTimeout(() => {
+      announcement.textContent = '';
+    }, 1000);
+  }
+}
+
+// Initialize Navigation Dropdown Controller
+const navigationDropdown = new NavigationDropdownController();
