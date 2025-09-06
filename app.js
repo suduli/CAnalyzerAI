@@ -4454,7 +4454,7 @@ class NavigationDropdownController {
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
     
-    // Get toggle button position
+    // Get toggle button position relative to viewport (since we're using fixed positioning)
     const toggleRect = this.dropdownToggle.getBoundingClientRect();
     
     // Get dropdown dimensions (temporarily make it visible to measure)
@@ -4472,17 +4472,40 @@ class NavigationDropdownController {
     // Reset any previous positioning adjustments
     this.dropdownMenu.style.top = '';
     this.dropdownMenu.style.bottom = '';
+    this.dropdownMenu.style.left = '';
+    this.dropdownMenu.style.right = '';
     this.dropdownMenu.style.maxHeight = '';
     this.dropdownMenu.classList.remove('dropdown-up');
     
+    // Position dropdown using fixed positioning relative to toggle button
+    const toggleRight = viewportWidth - toggleRect.right;
+    const toggleLeft = toggleRect.left;
+    
     // Determine the best position
     if (spaceBelow >= menuHeight) {
-      // Enough space below - use default positioning
-      this.dropdownMenu.style.top = 'calc(100% + 8px)';
+      // Enough space below - position below toggle
+      this.dropdownMenu.style.top = `${toggleRect.bottom + 8}px`;
+      this.dropdownMenu.style.right = `${toggleRight}px`;
+      
+      // CRITICAL: Check if dropdown would overlap with footer
+      const footer = document.querySelector('footer');
+      if (footer) {
+        const footerRect = footer.getBoundingClientRect();
+        const dropdownBottom = toggleRect.bottom + 8 + menuHeight;
+        const footerTop = footerRect.top;
+        
+        // If dropdown would extend into footer area, constrain it
+        if (dropdownBottom > footerTop - 20) { // 20px buffer from footer
+          const maxHeightToAvoidFooter = footerTop - (toggleRect.bottom + 8) - 20;
+          if (maxHeightToAvoidFooter > 200) { // Only constrain if we have reasonable space
+            this.dropdownMenu.style.maxHeight = `${maxHeightToAvoidFooter}px`;
+          }
+        }
+      }
     } else if (spaceAbove >= menuHeight) {
       // Not enough space below but enough above - position above
-      this.dropdownMenu.style.bottom = 'calc(100% + 8px)';
-      this.dropdownMenu.style.top = 'auto';
+      this.dropdownMenu.style.top = `${toggleRect.top - menuHeight - 8}px`;
+      this.dropdownMenu.style.right = `${toggleRight}px`;
       this.dropdownMenu.classList.add('dropdown-up');
     } else {
       // Not enough space in either direction - adjust height and position
@@ -4490,24 +4513,30 @@ class NavigationDropdownController {
       
       if (spaceBelow >= spaceAbove) {
         // Use space below with constrained height
-        this.dropdownMenu.style.top = 'calc(100% + 8px)';
+        this.dropdownMenu.style.top = `${toggleRect.bottom + 8}px`;
         this.dropdownMenu.style.maxHeight = `${spaceBelow - 16}px`;
+        this.dropdownMenu.style.right = `${toggleRight}px`;
       } else {
         // Use space above with constrained height
-        this.dropdownMenu.style.bottom = 'calc(100% + 8px)';
-        this.dropdownMenu.style.top = 'auto';
+        this.dropdownMenu.style.top = `${spaceAbove - maxAvailableSpace + 16}px`;
         this.dropdownMenu.style.maxHeight = `${spaceAbove - 16}px`;
+        this.dropdownMenu.style.right = `${toggleRight}px`;
         this.dropdownMenu.classList.add('dropdown-up');
       }
     }
     
-    // Handle horizontal positioning for mobile
+    // Handle horizontal positioning for narrow screens
     if (viewportWidth < 480) {
-      const spaceRight = viewportWidth - toggleRect.right;
-      if (spaceRight < 320) {
-        // Not enough space on the right, align to right edge of viewport
-        this.dropdownMenu.style.right = '16px';
-        this.dropdownMenu.style.left = 'auto';
+      this.dropdownMenu.style.right = '8px';
+      this.dropdownMenu.style.left = '8px';
+      this.dropdownMenu.style.minWidth = 'auto';
+    } else {
+      // Ensure dropdown doesn't go off-screen horizontally
+      const menuWidth = parseInt(getComputedStyle(this.dropdownMenu).minWidth) || 320;
+      if (toggleRight < menuWidth) {
+        // Not enough space on the right, align to left edge of toggle
+        this.dropdownMenu.style.left = `${toggleLeft}px`;
+        this.dropdownMenu.style.right = 'auto';
       }
     }
   }
@@ -4517,12 +4546,13 @@ class NavigationDropdownController {
     this.dropdownToggle.setAttribute('aria-expanded', 'false');
     this.dropdownMenu.classList.remove('show', 'dropdown-up');
     
-    // Reset positioning styles
+    // Reset all positioning styles for fixed positioning
     this.dropdownMenu.style.top = '';
     this.dropdownMenu.style.bottom = '';
-    this.dropdownMenu.style.maxHeight = '';
-    this.dropdownMenu.style.right = '';
     this.dropdownMenu.style.left = '';
+    this.dropdownMenu.style.right = '';
+    this.dropdownMenu.style.maxHeight = '';
+    this.dropdownMenu.style.minWidth = '';
     
     // Remove focus trap
     this.dropdownMenu.removeAttribute('tabindex');

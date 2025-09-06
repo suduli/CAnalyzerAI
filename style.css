@@ -960,7 +960,7 @@ body::after {
 }
 
 .dropdown-menu {
-  position: absolute;
+  position: fixed !important;
   top: calc(100% + 8px);
   right: 0;
   min-width: 320px;
@@ -974,7 +974,7 @@ body::after {
   visibility: hidden;
   transform: translateY(-10px) scale(0.95);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 9999;
+  z-index: 999999 !important;
   box-shadow: 
     0 20px 40px rgba(0, 0, 0, 0.3),
     0 0 20px rgba(0, 255, 255, 0.1),
@@ -983,12 +983,16 @@ body::after {
   overflow-y: auto;
   /* Ensure dropdown stays within viewport */
   max-width: min(400px, calc(100vw - 32px));
+  /* Force new stacking context */
+  isolation: isolate;
 }
 
 .dropdown-menu.show {
   opacity: 1;
   visibility: visible;
   transform: translateY(0) scale(1);
+  /* Force to absolute top layer */
+  z-index: 2147483647 !important;
 }
 
 /* Dropdown opening upward animation */
@@ -998,6 +1002,8 @@ body::after {
 
 .dropdown-menu.dropdown-up.show {
   transform: translateY(0) scale(1);
+  /* Force to absolute top layer */
+  z-index: 2147483647 !important;
 }
 
 .dropdown-section {
@@ -3748,6 +3754,8 @@ div.status-indicator.invalid .status-dot {
   padding: 48px 0 24px;
   font-size: 14px;
   z-index: 100;
+  /* Ensure footer doesn't interfere with dropdown */
+  isolation: isolate;
   
   /* Glassmorphic Background - Theme Adaptive */
   background: linear-gradient(135deg, 
