@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAnalyzerAI - Test Suite</title>
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0e23, #1a1a3a);
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .test-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .test-card:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+        .test-card h3 {
+            color: var(--accent-cyan, #00f5d4);
+            margin-bottom: 10px;
+        }
+        .test-card a {
+            color: #ffffff;
+            text-decoration: none;
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 6px;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        .test-card a:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: rgba(0, 255, 255, 0.5);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            color: #ffffff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .back-link:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: rgba(0, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <a href="../../index.html" class="back-link">← Back to CAnalyzerAI</a>
+        
+        <div class="test-header">
+            <h1>🧪 CAnalyzerAI Test Suite</h1>
+            <p>Comprehensive testing and validation tools for the CAnalyzerAI platform</p>
+        </div>
+
+        <div class="test-grid">
+            <div class="test-card">
+                <h3>🤖 AI Testing</h3>
+                <p>Test AI integration and chat functionality</p>
+                <a href="ai-test-page.html">Run AI Tests</a>
+            </div>
+
+            <div class="test-card">
+                <h3>🎬 Animation Tests</h3>
+                <p>Validate animation engine and particle systems</p>
+                <a href="animation-demo.html">Animation Demo</a>
+            </div>
+
+            <div class="test-card">
+                <h3>💬 Chat System</h3>
+                <p>Test chat window functionality</p>
+                <a href="chat-demo.html">Chat Demo</a>
+            </div>
+
+            <div class="test-card">
+                <h3>🌐 Cross-Browser</h3>
+                <p>Cross-browser compatibility testing</p>
+                <a href="cross-browser-accessibility-test.html">Browser Tests</a>
+            </div>
+
+            <div class="test-card">
+                <h3>🎨 Theme Testing</h3>
+                <p>Light/dark theme validation</p>
+                <a href="theme-test.html">Theme Tests</a>
+            </div>
+
+            <div class="test-card">
+                <h3>♿ Accessibility</h3>
+                <p>WCAG compliance validation</p>
+                <a href="cross-browser-accessibility-test.html">Accessibility Tests</a>
+            </div>
+
+            <div class="test-card">
+                <h3>📱 Device Compatibility</h3>
+                <p>Mobile and responsive design testing</p>
+                <a href="test-device-compatibility.html">Device Tests</a>
+            </div>
+
+            <div class="test-card">
+                <h3>📊 Data Analysis</h3>
+                <p>Data processing and discrepancy testing</p>
+                <a href="test-data-discrepancy-fix.html">Data Tests</a>
+            </div>
+
+            <div class="test-card">
+                <h3>🔮 Glassmorphism</h3>
+                <p>UI visual effects testing</p>
+                <a href="test-glassmorphism.html">Visual Tests</a>
+            </div>
+
+            <div class="test-card">
+                <h3>📝 JSON Reliability</h3>
+                <p>JSON parsing and validation testing</p>
+                <a href="test-json-reliability.html">JSON Tests</a>
+            </div>
+
+            <div class="test-card">
+                <h3>🎯 Micro-Interactions</h3>
+                <p>UI micro-interaction testing</p>
+                <a href="test-micro-interactions.html">Interaction Tests</a>
+            </div>
+
+            <div class="test-card">
+                <h3>✨ Particles</h3>
+                <p>Particle system validation</p>
+                <a href="test-particles.html">Particle Tests</a>
+            </div>
+
+            <div class="test-card">
+                <h3>💡 Status Help</h3>
+                <p>Status indicator and help system testing</p>
+                <a href="test-status-help.html">Status Tests</a>
+            </div>
+
+            <div class="test-card">
+                <h3>🏷️ Tooltip Hierarchy</h3>
+                <p>Tooltip system validation</p>
+                <a href="tooltip-hierarchy-test.html">Tooltip Tests</a>
+            </div>
+
+            <div class="test-card">
+                <h3>🔧 UI Diagnostic</h3>
+                <p>General UI component testing</p>
+                <a href="ui-diagnostic.html">UI Diagnostic</a>
+            </div>
+
+            <div class="test-card">
+                <h3>✅ Final Validation</h3>
+                <p>Complete system validation</p>
+                <a href="test-final-validation.html">Final Tests</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
